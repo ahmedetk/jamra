@@ -174,7 +174,7 @@ def build(url, out_path, screenshot=None):
     tb(s, 0.55, 1.95, 6.2, 1.6, [
         [("Team Astro Byte", {"bold": True, "size": 16})],
         [("Shahd Farraj · Ahmed Etkaidek · Aya Salman", {"size": 14})],
-        [("Ahmad Akhras · Diala Abubaker · Tala Yousef", {"size": 14})],
+        [("Ahmad Akhras · Tala Yousef", {"size": 14})],
         [("Local event by NOVA · NASA Space Apps Challenge 2026", {"size": 12, "color": MUTED})],
     ])
     tb(s, 0.55, 3.75, 5.6, 1.5, [
@@ -190,7 +190,8 @@ def build(url, out_path, screenshot=None):
                  f"Here is the problem in one number. For the same fires, VIIRS records about {N['k_global']} times more hotspots than MODIS, "
                  "because its pixels are 375 metres wide instead of one kilometre. So anyone who joins the two records raw sees fires "
                  f"suddenly multiply after 2012: about {gj['raw_ratio']} times in Greece and {pj['raw_ratio']} times in Portugal. "
-                 "That misleads emergency teams, forest managers, firefighters and scientists who plan with history. "
+                 "That misleads the people who plan with fire history: emergency managers and early-warning teams, firefighting teams, "
+                 "land and forest managers, and scientists. Through them, village councils, municipalities and farmers benefit too. "
                  "And it is urgent: MODIS is near the end of its life, and NASA stopped the S-NPP VIIRS data stream on 2 November 2026, "
                  "so a fair, continuous record is needed now."))
     rect(s, 0.55, 1.65, 4.6, 4.3, WHITE, line=LINE, shape=MSO_SHAPE.ROUNDED_RECTANGLE, radius=0.06)
@@ -219,14 +220,15 @@ def build(url, out_path, screenshot=None):
     ch.value_axis.has_major_gridlines = False
     u("p_raw", f"{pj['raw_ratio']}"); u("p_harm", f"{pj['harm_ratio']}")
     # users
-    tb(s, 10.0, 1.6, 2.9, 0.4, "Who is misled", size=15, bold=True)
-    for i, who in enumerate(["Emergency teams", "Forest & land managers", "Firefighters", "Scientists"]):
+    tb(s, 10.0, 1.6, 2.9, 0.4, "Who we serve", size=15, bold=True)
+    tb(s, 10.0, 5.95, 3.0, 0.7, "Also benefit: village councils, municipalities, farmers (via local authorities)", size=10, color=MUTED)
+    for i, who in enumerate(["Emergency managers & early warning", "Firefighting teams", "Land & forest managers", "Scientists & researchers"]):
         yy = 2.1 + i * 0.95
         c = rect(s, 10.0, yy, 0.62, 0.62, NAVY, shape=MSO_SHAPE.OVAL)
         c.text_frame.text = who[0]
         c.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
         r = c.text_frame.paragraphs[0].runs[0]; r.font.size = Pt(16); r.font.bold = True; r.font.color.rgb = WHITE; r.font.name = FONT
-        tb(s, 10.75, yy + 0.08, 2.3, 0.5, who, size=14)
+        tb(s, 10.75, yy + 0.02, 2.4, 0.8, who, size=12.5)
     tb(s, 0.55, 6.15, 12.2, 0.5, "MODIS (2000–) is near end of life; NASA stopped S-NPP VIIRS data on 2 Nov 2026.", size=14, color=INK2)
 
     # ------------------------------------------------------------------ 3 sensors
@@ -306,19 +308,20 @@ def build(url, out_path, screenshot=None):
             a.fill.solid(); a.fill.fore_color.rgb = EMBER; a.line.fill.background()
 
     # ------------------------------------------------------------------ 5 demo
-    s = base(prs, 5, "Pick any area, see its burning calendar, get alerted when a season turns unusual",
+    ev = st["evia_2007_08"]
+    T = N["test"]
+    s = base(prs, 5, "Pick any area, see its burning calendar, and know which values are observed and which are estimated",
              speaker="Ahmad Akhras", notes=(
-                 "Now the live demo. Click path: 1) Open the site; the hero shows Greece. Press Harmonized: the fake 2012 jump disappears. "
-                 "2) In Choose an area, keep Greece. Scroll to the calendar and click August 2007. The sentence reads: "
-                 f"August 2007, Greece: {fmt(g07['value'])} hotspots, {g07['times_typical']} times a typical August, the highest in 23 years, estimated from MODIS. "
-                 f"Raw MODIS showed only {fmt(g07['raw'])}, which would make 2021 look {round(g21['raw'] / g07['raw'], 1)} times worse. "
-                 "3) Click Fire areas, then Evia: August 2021 lights up. 4) Switch the calendar to Anomaly: blue lower, red higher. "
-                 "5) Open the Draw tab, draw a polygon, and see its own conversion factor with uncertainty. "
-                 "6) Scroll to Alert Center for today's levels, then Live data: Fetch from NASA FIRMS, and download the CSV. "
-                 f"Direct links: {url}?area=greece&month=2007-08 ; {url}?area=evia&month=2021-08&mode=anomaly ; {url}#alerts ; {url}#live . "
-                 "If Wi-Fi fails, the app works offline from cache, and the backup screenshots are in AstroByte_Backup.pptx."))
-    # native calendar for Greece
-    a = json.loads((WEB / "areas" / "greece.json").read_text(encoding="utf-8"))
+                 "Live demo, six steps. "
+                 f"1) Home ({url}?area=greece&hero=raw): the raw yearly chart for Greece jumps after 2012. "
+                 "2) Press Harmonized: the fake jump disappears. "
+                 f"3) Press 'Try the Evia 2007 example' ({url}calendar/?area=evia&from=2003&to=2025&month=2007-08&mode=abs&detail=1): the Calendar opens on Evia, August 2007, with the details open. "
+                 f"4) The bars compare August in every year: about {fmt(ev['value'])} hotspots, {ev['times_typical']} times a typical August of {ev['typical']}. "
+                 f"5) Point at the label: this value is estimated from MODIS on the VIIRS scale, plus or minus {N['unc_small_pct']} percent (range {fmt(ev['lo'])} to {fmt(ev['hi'])}); raw MODIS saw only {fmt(ev['raw'])}. "
+                 f"6) End on the Validation page ({url}validation/): on held-out years the monthly error drops from {T['err_raw_pct']} to {T['err_harm_pct']} percent. "
+                 f"Extra if time: Alerts ({url}alerts/) and Live Data ({url}live/?area=greece). "
+                 "If Wi-Fi fails, the app works offline from cache; backup screenshots are in AstroByte_Backup.pptx."))
+    a = json.loads((WEB / "areas" / "evia.json").read_text(encoding="utf-8"))
     vals = a["harm"]
     import math
     mx = math.log1p(max(v for v in vals if v is not None))
@@ -340,41 +343,42 @@ def build(url, out_path, screenshot=None):
         for m in range(12):
             v = vals[(yv - 2003) * 12 + m]
             cell = rect(s, gx + m * cw, gy + r * chh, cw - 0.02, chh - 0.02, col(v) if v is not None else LINE)
+            if yv < 2012:  # estimated from MODIS: thin light border, like the hatch on the site
+                cell.line.color.rgb = RGBColor(0xFF, 0xFF, 0xFF); cell.line.width = Pt(0.75)
             if yv == 2007 and m == 7:
                 cell.line.color.rgb = EMBER; cell.line.width = Pt(2.5)
-    tb(s, gx - 0.5, gy + 23 * chh + 0.05, 4.9, 0.5, "Greece, hotspots per month 2003–2025 (VIIRS-equivalent, log colour scale). Before 2012 estimated from MODIS.", size=8, color=MUTED)
-    tb(s, 5.5, 1.75, 4.6, 2.2, [
-        [(u("g07", f"August 2007, Greece: {fmt(g07['value'])} hotspots"), {"bold": True, "size": 16})],
-        [(u("g07x", f"{g07['times_typical']}× a typical August"), {"size": 15}), (" · highest in 23 years · estimated from MODIS (±" + u("unc", f"{N['uncertainty_month_pct']}%") + ")", {"size": 13, "color": INK2})],
-        [(f"Raw MODIS said {fmt(g07['raw'])}, smaller than 2021's {fmt(g21['raw'])}.", {"size": 13, "color": INK2})],
+    tb(s, gx - 0.5, gy + 23 * chh + 0.05, 4.9, 0.5, "Evia (Greece), hotspots per month 2003–2025, VIIRS-equivalent, log colour scale. Rows before 2012 are estimated from MODIS.", size=8, color=MUTED)
+    tb(s, 5.5, 1.75, 4.8, 1.5, [
+        [(u("ev07", f"August 2007, Evia: ≈ {fmt(ev['value'])} hotspots"), {"bold": True, "size": 16})],
+        [(u("ev07x", f"{ev['times_typical']}× a typical August"), {"size": 15}), (f" (usual {ev['typical']})", {"size": 13, "color": INK2})],
+        [("Estimated from MODIS on the VIIRS scale, ±" + u("unc", f"{N['unc_small_pct']}%"), {"size": 13, "color": EMBER, "bold": True})],
     ])
-    u("g07raw", fmt(g07["raw"])); u("g21raw", fmt(g21["raw"]))
     if screenshot and Path(screenshot).exists():
         s.shapes.add_picture(str(screenshot), Inches(5.5), Inches(3.3), width=Inches(4.7))
         tb(s, 5.5, 6.3, 4.7, 0.3, "The Jamra web app (installable on phones).", size=9, color=MUTED)
     # QR
     s.shapes.add_picture(qr_png(url), Inches(10.75), Inches(1.75), width=Inches(2.0))
     tb(s, 10.5, 3.8, 2.5, 0.9, ["Try it live", url.replace("https://", "")], size=11, align=PP_ALIGN.CENTER)
-    feats = ["Presets, countries, polygon, circle, lat/lon", "Monthly + weekly calendar", "Anomaly vs usual, colour-blind safe",
-             "Alerts every 3 h from NASA FIRMS", "CSV + PNG download"]
+    feats = ["8 pages: Calendar, Alerts, Live Data, Validation…", "Presets, countries, polygon, circle, lat/lon", "Observed vs estimated, with ±",
+             "Alerts every 3 h from NASA FIRMS", "CSV, PNG and one-page summary"]
     tb(s, 10.45, 4.75, 2.7, 2.0, [[("• " + f, {"size": 10.5})] for f in feats])
 
     # ------------------------------------------------------------------ 6 validation
-    s = base(prs, 6, f"Does it work? Monthly error drops from {N['err_raw_month_pct']}% to {N['err_harm_month_pct']}%; calendar colours agree {N['colour_agree_pct']}% of the time; here are our limits",
-             speaker="Diala Abubaker", notes=(
-                 "Does it work? We hid one year at a time, predicted that year's VIIRS hotspots from MODIS, and compared with what VIIRS really saw. "
-                 f"Raw MODIS is off by {N['err_raw_month_pct']} percent on a typical month. Harmonized, the error is {N['err_harm_month_pct']} percent per month and "
-                 f"{N['err_harm_year_pct']} percent per year. The calendar colour, lower, typical or higher, matches real VIIRS in {N['colour_agree_pct']} percent of months, "
-                 f"versus {N['colour_agree_raw_pct']} percent without harmonization, and about {N['colour_by_country']['Portugal']} percent in Portugal. "
-                 "Our limits: hotspots are not fires or burned area, and clouds hide fires. In small countries like Jordan and Palestine MODIS sees very few fires, so errors are larger. "
-                 "And we tested a popular idea, that fire power FRP is more stable than counts: our data did not support it, so we use counts."))
-    cv = json.loads((WEB / "model_report.json").read_text(encoding="utf-8"))["cv"]
+    T = N["test"]
+    s = base(prs, 6, f"Does it work? On held-out years, monthly error drops from {T['err_raw_pct']}% to {T['err_harm_pct']}% and {T['hits']} of {T['high_total']} high-fire months are caught",
+             speaker="Aya Salman", notes=(
+                 f"Does it work? We built the model only on {T['dev_years'][0]} to {T['dev_years'][-1]} and kept {T['test_years'][0]} to {T['test_years'][-1]} hidden as a final test. "
+                 f"On those test years, raw MODIS is off by {T['err_raw_pct']} percent on a typical country-month; harmonized, {T['err_harm_pct']} percent, and {T['err_year_pct']} percent on a yearly total. "
+                 f"For early warning, real VIIRS had {T['high_total']} higher-than-usual months: we caught {T['hits']}, with {T['false_alarms']} false alarms; raw MODIS caught only {T['raw_hits']}. "
+                 f"Small areas are harder: typical error {T['small_preset_pct']} percent in the fire areas and {T['small_grid_pct']} percent in {T['grid_regions']} one-degree areas. "
+                 + ("The local factor beat the country factor on the test years, by a small margin, so we adopted it. " if T["local_adopted"] else "The local factor did not beat the country factor, so we kept the country factor. ")
+                 + "Limits: hotspots are not fires or burned area, clouds hide fires, and FRP was not more stable than counts in our test, so we use counts."))
     cd = CategoryChartData()
     order = ["M0", "M1", "M2", "M3", "M4", "M5"]
-    labels = {"M0": "M0 raw", "M1": "M1 one ratio", "M2": "M2 per country", "M3": "M3 country×month", "M4": "M4 log-log", "M5": "M5 quantile"}
+    labels = {"M0": "M0 raw MODIS", "M1": "M1 one ratio", "M2": "M2 per country", "M3": "M3 country×month", "M4": "M4 log-log", "M5": "M5 quantile"}
     cd.categories = [labels[m] for m in order]
-    cd.add_series("Typical monthly error (%)", [round(cv[m]["monthly"]["mdape"] * 100) for m in order])
-    gf = s.shapes.add_chart(XL_CHART_TYPE.BAR_CLUSTERED, Inches(0.55), Inches(1.75), Inches(6.2), Inches(4.4), cd)
+    cd.add_series("Typical monthly error, test years (%)", [T["by_model_pct"][m] for m in order])
+    gf = s.shapes.add_chart(XL_CHART_TYPE.BAR_CLUSTERED, Inches(0.55), Inches(1.75), Inches(6.2), Inches(4.3), cd)
     ch = gf.chart
     style_chart(ch, legend=False, size=12)
     ser = ch.series[0]
@@ -390,18 +394,18 @@ def build(url, out_path, screenshot=None):
     ch.value_axis.visible = False
     ch.value_axis.has_major_gridlines = False
     ch.category_axis.reverse_order = True
-    tb(s, 0.55, 6.1, 6.3, 0.6, "Leave-one-year-out cross-validation, months with ≥10 VIIRS hotspots. M3 has the lowest absolute error (MAE), so it handles big fire months best.", size=10, color=MUTED)
-    kpis = [(u("err", f"{N['err_raw_month_pct']}% → {N['err_harm_month_pct']}%"), "typical monthly error, raw → harmonized"),
-            (u("col", f"{N['colour_agree_pct']}%"), f"same calendar colour as real VIIRS (raw: {N['colour_agree_raw_pct']}%)"),
-            (u("yr", f"±{N['err_harm_year_pct']}%"), "typical error on a yearly total")]
+    tb(s, 0.55, 6.05, 6.3, 0.7, f"Model chosen on development years {T['dev_years'][0]}–{T['dev_years'][-1]}; scored on test years {', '.join(map(str, T['test_years']))}. Country-months with ≥10 VIIRS hotspots.", size=10, color=MUTED)
+    kpis = [(u("err", f"{T['err_raw_pct']}% → {T['err_harm_pct']}%"), "typical monthly error on test years, raw → harmonized"),
+            (u("hits", f"{T['hits']} of {T['high_total']}"), f"high-fire months caught · {T['false_alarms']} false alarms (raw MODIS: {T['raw_hits']})"),
+            (u("small", f"{T['small_preset_pct']}%"), f"error in small fire areas ({T['small_grid_pct']}% in {T['grid_regions']} 1° areas) · local factor {'adopted' if T['local_adopted'] else 'not adopted'}")]
     for i, (big, small) in enumerate(kpis):
         yy = 1.75 + i * 1.05
         rect(s, 7.1, yy, 5.7, 0.92, WHITE, line=LINE, shape=MSO_SHAPE.ROUNDED_RECTANGLE, radius=0.1)
-        tb(s, 7.25, yy + 0.12, 2.3, 0.7, big, size=22, bold=True, color=EMBER if i == 0 else NAVY)
-        tb(s, 9.6, yy + 0.18, 3.1, 0.7, small, size=12, color=INK2)
+        tb(s, 7.25, yy + 0.12, 2.3, 0.7, big, size=21, bold=True, color=EMBER if i == 0 else NAVY)
+        tb(s, 9.6, yy + 0.12, 3.15, 0.8, small, size=11, color=INK2)
     tb(s, 7.1, 4.95, 5.7, 0.4, "Honest limits", size=15, bold=True)
     tb(s, 7.1, 5.35, 5.7, 1.4, [[("• Hotspots are not fires or burned area; clouds hide fires.", {"size": 12})],
-                                [("• Few MODIS fires in small countries → wider error.", {"size": 12})],
+                                [("• Small areas: few hotspots → wider error (shown as ±).", {"size": 12})],
                                 [("• FRP was not more stable than counts, so we use counts.", {"size": 12})]])
 
     # ------------------------------------------------------------------ 7 impact
@@ -410,20 +414,22 @@ def build(url, out_path, screenshot=None):
                  "Jamra gives emergency teams one fair record from 2003 to today, for any area they draw, with a live early-warning check every three hours "
                  "and open CSV downloads. It runs on free infrastructure and NASA open data, and it installs on a phone. "
                  "Next, we want more regions, an Arabic interface, Telegram and SMS alerts, and to test Terra plus Aqua, "
-                 f"which already showed a lower error of {N['terra_aqua_mdape_pct']} percent and could extend the record to 2001. "
-                 "Each of us owned one part, shown here, and we made the big decisions together. "
+                 f"which showed a lower cross-validated error ({N['terra_aqua_mdape_pct']} versus {N['cv_aqua_mdape_pct']} percent) and could extend the record to 2001. "
+                 "Each of us owned one part, shown here; together we chose the idea and the method, tested the site with real users, and rehearsed this pitch. "
                  "We used an SI coding assistant to write the code, following our design; we checked the numbers against NASA FIRMS. "
                  "Thank you, scan the code and try Jamra yourself."))
-    team = [("Shahd Farraj", "Problem & users"), ("Ahmed Etkaidek", "NASA data"), ("Aya Salman", "Harmonization"),
-            ("Ahmad Akhras", "Live demo"), ("Diala Abubaker", "Validation & limits"), ("Tala Yousef", "UX, impact & next steps")]
+    team = [("Shahd Farraj", "Problem & users · slides 1–2"), ("Ahmed Etkaidek", "NASA data & live system · slide 3"),
+            ("Aya Salman", "Science: method & validation · slides 4, 6"), ("Ahmad Akhras", "Calendar & live demo · slide 5"),
+            ("Tala Yousef", "UX, impact & next steps · slide 7")]
     for i, (nme, role) in enumerate(team):
         xx = 0.55 + (i % 3) * 2.75
         yy = 1.75 + (i // 3) * 1.15
         rect(s, xx, yy, 2.55, 0.98, WHITE, line=LINE, shape=MSO_SHAPE.ROUNDED_RECTANGLE, radius=0.1)
         tb(s, xx + 0.12, yy + 0.08, 2.35, 0.4, nme, size=13, bold=True)
         tb(s, xx + 0.12, yy + 0.46, 2.35, 0.5, role, size=10.5, color=INK2)
-    tb(s, 0.55, 4.2, 8.2, 0.4, "Next steps", size=15, bold=True)
-    road = [("More regions", "global coarse grid"), ("Arabic interface", "right-to-left"), ("Telegram + SMS", "alerts"), ("Terra + Aqua", u("ta", f"{N['terra_aqua_mdape_pct']}% error") + ", back to 2001")]
+    tb(s, 0.55, 3.95, 8.2, 0.4, "Shared: idea and method, testing with real users, pitch rehearsal.", size=10.5, color=MUTED)
+    tb(s, 0.55, 4.25, 8.2, 0.4, "Next steps", size=15, bold=True)
+    road = [("More regions", "global coarse grid"), ("Arabic interface", "right-to-left"), ("Telegram + SMS", "alerts"), ("Terra + Aqua", u("ta", f"{N['terra_aqua_mdape_pct']}% vs {N['cv_aqua_mdape_pct']}% error") + ", to 2001")]
     for i, (h, t) in enumerate(road):
         xx = 0.55 + i * 2.06
         rect(s, xx, 4.65, 1.9, 0.95, NAVY, shape=MSO_SHAPE.ROUNDED_RECTANGLE, radius=0.12)

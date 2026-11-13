@@ -82,6 +82,7 @@ export function drawSummary(c) {
     ctx.fillStyle = MUTED; ctx.font = F(16); ctx.fillText(String(yy), 80, y + r * chh + chh - 8);
     MONTHS.forEach((_, m) => {
       const t = val(yy, m);
+      if (t === undefined) return; // future month
       ctx.fillStyle = t === null ? '#e5e5e5' : state.mode === 'anomaly'
         ? (CAT_COLOR[category(t, wy.filter((q) => q !== yy).map((q) => val(q, m)), meta.anomaly)] || '#f7f7f7') : ramp(state.palette, sc(t));
       ctx.fillRect(x0 + m * cw + 1, y + r * chh + 1, cw - 2, chh - 2);

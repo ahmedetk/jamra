@@ -89,6 +89,29 @@ def main():
         },
         "data_through": r["data_through"],
     }
+    v = r["validation"]
+    meth = "local" if v["decision"]["adopt_local_factor"] else "baseline"
+    tc = v["test_countries"]
+    cc = v["confusion_countries"]["harmonized"]
+    out["test"] = {
+        "dev_years": v["dev_years"], "test_years": v["test_years"],
+        "err_raw_pct": round(tc["M0"]["mdape"] * 100), "err_harm_pct": round(tc[ch]["mdape"] * 100),
+        "err_year_pct": round(tc[ch]["annual"]["mdape"] * 100),
+        "hits": cc["hits"], "high_total": cc["hits"] + cc["misses"], "false_alarms": cc["false_alarms"],
+        "raw_hits": v["confusion_countries"]["raw_modis"]["hits"],
+        "small_preset_pct": round(v["small_regions"]["presets"][meth]["mdape"] * 100),
+        "small_grid_pct": round(v["small_regions"]["grid_1deg"][meth]["mdape"] * 100),
+        "grid_regions": v["small_regions"]["grid_1deg"]["regions"],
+        "local_adopted": v["decision"]["adopt_local_factor"],
+        "by_model_pct": {m: round(tc[m]["mdape"] * 100) for m in tc},
+    }
+    out["cv_aqua_mdape_pct"] = round(cv[ch]["monthly"]["mdape"] * 100)
+    out["unc_small_pct"] = round(r["uncertainty"]["small_regions_rel"] * 100)
+    ev = month_story("evia", 2007, 8, r)
+    a = load("areas/evia.json")
+    i = (2007 - int(a["start"][:4])) * 12 + 7
+    ev.update({"lo": round(a["lo"][i]), "hi": round(a["hi"][i])})
+    out["stories"]["evia_2007_08"] = ev
     p = ROOT / "data" / "processed" / "slide_numbers.json"
     p.write_text(json.dumps(out, indent=1, ensure_ascii=False), encoding="utf-8")
     print(json.dumps(out, indent=1, ensure_ascii=False))

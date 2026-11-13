@@ -1,0 +1,227 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<title>دليل استخدام جمرة · Jamra User Guide (Arabic)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+@page { size: A4; margin: 16mm 14mm 18mm; }
+* { box-sizing: border-box; }
+body { font-family: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif; color: #14213d; font-size: 11.5pt; line-height: 1.75; margin: 0; }
+h1 { font-size: 26pt; margin: 0 0 6mm; } h2 { font-size: 17pt; color: #14213d; border-bottom: 3px solid #d9480f; padding-bottom: 2mm; margin: 0 0 4mm; }
+h3 { font-size: 13pt; margin: 5mm 0 2mm; }
+section { page-break-before: always; } section.cover { page-break-before: auto; }
+.cover { height: 255mm; display: flex; flex-direction: column; justify-content: center; text-align: center; }
+.cover .t { font-size: 40pt; font-weight: 700; color: #d9480f; } .cover .s { font-size: 15pt; }
+.en { direction: ltr; unicode-bidi: isolate; font-family: "Segoe UI", Arial, sans-serif; }
+figure { margin: 3mm 0; page-break-inside: avoid; } figure img { width: 100%; border: 1px solid #d9dee7; border-radius: 4px; }
+figcaption { font-size: 9.5pt; color: #5f6b80; }
+table { width: 100%; border-collapse: collapse; font-size: 10pt; margin: 2mm 0 4mm; page-break-inside: auto; }
+th, td { border: 1px solid #d9dee7; padding: 1.6mm 2mm; vertical-align: top; text-align: right; }
+th { background: #eef0f4; } tr { page-break-inside: avoid; }
+td.n { width: 8mm; text-align: center; font-weight: 700; color: #fff; background: #d9480f; }
+td.nm { width: 32mm; font-weight: 600; }
+.box { background: #f7f6f2; border-right: 4px solid #d9480f; padding: 3mm 4mm; margin: 3mm 0; }
+.kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 3mm; }
+.kpi { border: 1px solid #d9dee7; border-radius: 6px; padding: 3mm; } .kpi b { display: block; font-size: 16pt; color: #d9480f; }
+.small { font-size: 9.5pt; color: #5f6b80; }
+ol li, ul li { margin-bottom: 1.5mm; }
+.map { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2mm; text-align: center; }
+.map div { border: 2px solid #14213d; border-radius: 6px; padding: 2mm; font-weight: 600; }
+.map div.h { background: #14213d; color: #fff; }
+</style></head><body>
+
+<section class="cover">
+  <div class="t">جمرة · <span class="en">Jamra</span></div>
+  <p class="s">تقويم موحَّد لنشاط الحرائق من قمرَي <span class="en">MODIS</span> و<span class="en">VIIRS</span> مع إنذار مبكر مباشر</p>
+  <h1 style="margin-top:10mm">دليل استخدام الموقع</h1>
+  <p class="s">فريق <span class="en">Astro Byte</span> · <span class="en">NASA Space Apps Challenge 2026</span></p>
+  <p>شهد فرّاج · أحمد اتكيدك · آية سلمان · أحمد الأخرس · تالا يوسف</p>
+  <p class="small">الموقع: <span class="en">https://ahmedetk.github.io/jamra/</span> · البيانات حتى <span class="en">2026-10-31</span> · جميع الأرقام في هذا الدليل محسوبة من بياناتنا</p>
+</section>
+
+<section>
+  <h2>1. ما هي جمرة؟</h2>
+  <h3>المشكلة: «قفزة وهمية» في عدد الحرائق</h3>
+  <p>ترصد الأقمار الصناعية الحرائق على شكل «بؤر حرارية» (<span class="en">hotspots</span>)، أي بكسلات ساخنة في صور القمر. منذ عام 2000 يرصدها جهاز <span class="en">MODIS</span> بدقة 1 كم. وفي 2012 انضم جهاز أدقّ هو <span class="en">VIIRS</span> بدقة 375 م، فصار يرى حرائق أصغر وبؤرًا أكثر للحريق نفسه.</p>
+  <p>في دولنا الثماني سجّل <span class="en">VIIRS</span> نحو <b>6.2 أضعاف</b> البؤر التي سجّلها <span class="en">MODIS</span> في الأشهر نفسها. لذلك إذا وصلنا السجلَّين كما هما، يظهر ارتفاع كبير بعد 2012 لم يحدث فعلًا على الأرض: سببه دقة الجهاز الجديد، لا زيادة الحرائق.</p>
+  <h3>الحل</h3>
+  <p>جمرة «تُوائم» السجل القديم: تحوّل أعداد <span class="en">MODIS</span> قبل 2012 إلى ما يعادلها بمقياس <span class="en">VIIRS</span>، فيصبح لدينا سجل واحد عادل من 2003 حتى اليوم. ثم تقارن كل شهر بالمعتاد له في السنوات الأخرى، وتتابع بيانات ناسا الجديدة كل 3 ساعات لتنبّه إذا كان الشهر الحالي غير عادي.</p>
+  <figure><img src="img/home_harm.jpg" alt=""><figcaption>الصفحة الرئيسية: الرسم البياني بوضع «المُواءَم» (Harmonized). الأعمدة المخطَّطة قبل 2012 مقدَّرة من MODIS.</figcaption></figure>
+  <div class="box">جمرة ليست خدمة طوارئ: بيانات الأقمار تصل بتأخير ساعات. في الطوارئ اتصل برقم الطوارئ المحلي.</div>
+</section>
+
+<section>
+  <h2>2. لمن صُمِّمت جمرة؟</h2>
+  <h3>المستخدمون الأساسيون</h3>
+  <table><thead><tr><th>المستخدم</th><th>ماذا يستفيد</th></tr></thead><tbody>
+  <tr><td>مديرو الطوارئ وفرق الإنذار المبكر</td><td>يعرفون فورًا إن كان هذا الشهر أعلى من المعتاد في منطقتهم (صفحة التنبيهات وبطاقة «الإنذار المبكر الآن»).</td></tr>
+  <tr><td>فرق الإطفاء</td><td>يرون أحدث البؤر على الخريطة وفي جدول من واجهة ناسا <span class="en">FIRMS</span> مباشرة.</td></tr>
+  <tr><td>مديرو الأراضي والغابات</td><td>يعرفون متى يبدأ موسم الحرائق ومتى يبلغ ذروته، وأي السنوات كانت الأسوأ، على مقياس واحد عادل.</td></tr>
+  <tr><td>العلماء والباحثون</td><td>سجل متّسق من 2003 حتى اليوم مع نطاق الخطأ، وتنزيل البيانات بصيغة <span class="en">CSV</span>، وطريقة مفتوحة ونتائج اختبار مستقل.</td></tr>
+  </tbody></table>
+  <h3>المستفيدون غير المباشرين</h3>
+  <p>المجالس القروية والبلديات والمزارعون يستفيدون عبر السلطات المحلية والدفاع المدني الذين يستخدمون جمرة: إنذار أبكر، وتخطيط أفضل لموسم الحرائق.</p>
+  <h2 style="margin-top:8mm">3. خريطة الموقع</h2>
+  <p>الموقع ثماني صفحات، لكل صفحة رابط مستقل. شريط التنقل نفسه في أعلى كل صفحة، والصفحة الحالية مميَّزة. الضغط على شعار جمرة يعيدك إلى الرئيسية. المنطقة والفترة والشهر المختارة تنتقل معك بين الصفحات عبر الرابط.</p>
+  <div class="map">
+    <div class="h">الرئيسية<br><span class="en">/jamra/</span></div><div>التقويم<br><span class="en">/calendar/</span></div><div>التنبيهات<br><span class="en">/alerts/</span></div><div>البيانات المباشرة<br><span class="en">/live/</span></div>
+    <div>كيف تعمل<br><span class="en">/how-it-works/</span></div><div>التحقق<br><span class="en">/validation/</span></div><div>الحدود<br><span class="en">/limits/</span></div><div>المصادر والفريق<br><span class="en">/credits/</span></div>
+  </div>
+  <p class="small">الروابط القديمة من الموقع ذي الصفحة الواحدة (مثل <span class="en">#calendar</span>) تُحوَّل تلقائيًا إلى الصفحة الجديدة مع إبقاء خياراتك. ويمكن تثبيت الموقع على الهاتف كتطبيق (<span class="en">PWA</span>) ويعمل دون إنترنت من آخر نسخة محفوظة.</p>
+</section>
+
+<section>
+  <h2>4. صفحة بصفحة</h2>
+  <h3>4.1 الرئيسية (<span class="en">Home</span>)</h3>
+  <p><b>الهدف:</b> فهم المشكلة في ثوانٍ ورؤية الحل. <b>لمن:</b> كل زائر جديد ولجان التحكيم.</p>
+  <figure><img src="img/home.jpg" alt=""><figcaption>الصفحة الرئيسية مع أرقام الأزرار.</figcaption></figure>
+  <table class="co"><thead><tr><th>#</th><th>الاسم</th><th>ماذا يفعل</th><th>لماذا هو موجود</th></tr></thead><tbody><tr><td class="n">1</td><td class="nm">شريط التنقل</td><td>ينقلك بين الصفحات الثماني.</td><td>لكل جزء من العمل صفحة واضحة برابط خاص.</td></tr><tr><td class="n">2</td><td class="nm">شارة الحالة</td><td>تُظهر «مباشر · حُدِّث قبل …» أو «متأخر» أو «قديم».</td><td>حتى تعرف فورًا مدى حداثة بيانات ناسا.</td></tr><tr><td class="n">3</td><td class="nm">اختيار المنطقة</td><td>يغيّر المنطقة المعروضة في الرسم.</td><td>لترى القفزة الوهمية في دولتك أو منطقتك.</td></tr><tr><td class="n">4</td><td class="nm">زر «خام» (Raw)</td><td>يعرض السجل كما هو: MODIS حتى 2011 ثم VIIRS.</td><td>ليُظهر القفزة الوهمية بعد 2012.</td></tr><tr><td class="n">5</td><td class="nm">زر «مُواءَم» (Harmonized)</td><td>يعرض السجل بعد التحويل إلى مقياس VIIRS.</td><td>ليُظهر أن القفزة تختفي بعد المواءمة.</td></tr><tr><td class="n">6</td><td class="nm">الرسم السنوي</td><td>عدد البؤر لكل سنة؛ مرّر المؤشر لترى الرقم.</td><td>صورة سريعة لأعوام الحرائق الكبرى.</td></tr><tr><td class="n">7</td><td class="nm">«جرّب مثال إيفيا 2007»</td><td>يفتح التقويم على إيفيا وشهر آب 2007 مع التفاصيل.</td><td>مثال جاهز يوضح قيمة مقدَّرة من MODIS مع نطاق خطئها.</td></tr></tbody></table>
+</section>
+
+<section>
+  <h3>4.2 التقويم (<span class="en">Calendar</span>)</h3>
+  <p><b>الهدف:</b> تاريخ الحرائق لأي منطقة: أي الأشهر والسنوات أكثر نشاطًا، ومقارنة كل شهر بالمعتاد. <b>لمن:</b> الجميع، وخاصة مديري الأراضي والعلماء.</p>
+  <figure><img src="img/cal_top.jpg" alt=""><figcaption>أعلى صفحة التقويم: اختيار المنطقة والخريطة.</figcaption></figure>
+  <table class="co"><thead><tr><th>#</th><th>الاسم</th><th>ماذا يفعل</th><th>لماذا هو موجود</th></tr></thead><tbody><tr><td class="n">1</td><td class="nm">مناطق الحرائق</td><td>مناطق جاهزة مشهورة بالحرائق (إيفيا، أتيكا، وسط البرتغال…).</td><td>للبدء بسرعة دون رسم.</td></tr><tr><td class="n">2</td><td class="nm">الدول</td><td>الدول الثماني في منطقة التغطية.</td><td>للمقارنة على مستوى الدولة.</td></tr><tr><td class="n">3</td><td class="nm">الرسم (Draw)</td><td>ارسم مضلّعًا أو دائرة على الخريطة.</td><td>لدراسة أي منطقة تهمّك بالضبط.</td></tr><tr><td class="n">4</td><td class="nm">خط العرض/الطول</td><td>أدخل نقطة ونصف قطر، أو حدود مربع.</td><td>عندما تعرف الإحداثيات من خريطة أخرى.</td></tr><tr><td class="n">5</td><td class="nm">الخريطة</td><td>تُظهر المنطقة المختارة وأحدث البؤر.</td><td>لترى المكان والسياق.</td></tr><tr><td class="n">6</td><td class="nm">البؤر الأخيرة</td><td>عرض بؤر آخر 24 ساعة أو 7 أيام أو إخفاؤها.</td><td>لمتابعة النشاط الحالي على الخريطة.</td></tr><tr><td class="n">7</td><td class="nm">بطاقة المنطقة</td><td>تُظهر معامل التحويل للمنطقة ونطاق الخطأ ومصدره.</td><td>الشفافية: كيف قُدِّرت قيم ما قبل 2012 هنا.</td></tr></tbody></table>
+</section>
+
+<section>
+  <figure><img src="img/cal_main.jpg" alt=""><figcaption>وسط صفحة التقويم: الفترة، البطاقات، التقويم وأزرار التنزيل.</figcaption></figure>
+  <table class="co"><thead><tr><th>#</th><th>الاسم</th><th>ماذا يفعل</th><th>لماذا هو موجود</th></tr></thead><tbody><tr><td class="n">1</td><td class="nm">الفترة (من/إلى)</td><td>تحدد السنوات التي يُحسب منها «المعتاد».</td><td>لتقارن مع فترة تختارها.</td></tr><tr><td class="n">2</td><td class="nm">إخفاء الشعلات والصناعة</td><td>يحذف خلايا فيها حرارة ثابتة طوال السنة تقريبًا.</td><td>حتى لا تُحسب شعلات الغاز والمصانع كحرائق؛ يمكن إيقافه.</td></tr><tr><td class="n">3</td><td class="nm">البطاقات</td><td>شهر الذروة، الآن مقابل المعتاد، أنشط سنة، الإنذار المبكر الآن، إجمالي الرصد.</td><td>أهم الأرقام بنظرة واحدة.</td></tr><tr><td class="n">4</td><td class="nm">«مقارنةً بالمعتاد»</td><td>يلوّن الخلايا: أزرق أقل من المعتاد، أحمر أعلى، مع رموز ▲ و▼ ونص.</td><td>لرؤية الأشهر غير العادية؛ لا نعتمد على اللون وحده.</td></tr><tr><td class="n">5</td><td class="nm">أسابيع</td><td>يعرض 52 أسبوعًا بدل 12 شهرًا (للدول ومناطق الحرائق).</td><td>لتفاصيل أدق لبداية الموسم.</td></tr><tr><td class="n">6</td><td class="nm">الألوان</td><td>يغيّر لوحة الألوان (Viridis، Cividis، YlOrRd).</td><td>لوحات مناسبة لعمى الألوان.</td></tr><tr><td class="n">7</td><td class="nm">التقويم</td><td>صفوف = سنوات، أعمدة = أشهر. الخلايا المخطَّطة مقدَّرة من MODIS، والمصمتة مرصودة من VIIRS.</td><td>قلب الموقع: تاريخ المنطقة كاملًا.</td></tr><tr><td class="n">8</td><td class="nm">تنزيل CSV</td><td>جدول القيم الشهرية مع المصدر ونطاق الخطأ.</td><td>للباحثين وللتحليل في Excel.</td></tr><tr><td class="n">9</td><td class="nm">تنزيل PNG</td><td>صورة للتقويم.</td><td>للعروض والتقارير.</td></tr><tr><td class="n">10</td><td class="nm">ملخص PNG</td><td>صفحة ملخص واحدة كصورة.</td><td>لمشاركتها بسرعة.</td></tr><tr><td class="n">11</td><td class="nm">ملخص PDF</td><td>صفحة ملخص A4: المنطقة، الفترة، مقارنة الشهر بالوسيط، تقويم صغير، المصدر، الاعتراف ببيانات FIRMS.</td><td>لغرف العمليات والتقارير الرسمية.</td></tr></tbody></table>
+  <p class="small">الأرقام 8 إلى 18 في الصورة أعلاه بالترتيب نفسه.</p>
+</section>
+
+<section>
+  <figure><img src="img/cal_detail.jpg" alt=""><figcaption>تفاصيل الشهر (رقم 19): إيفيا، آب 2007.</figcaption></figure>
+  <p><b>تفاصيل الشهر (19):</b> اضغط أي خلية لترى جملة واضحة، والقيمة ومصدرها، ونطاق الخطأ، والقيمة الخام، والمعتاد (الوسيط) ونطاق «النصف الأوسط»، والرتبة المئوية، ورسمًا لنفس الشهر في كل السنوات مع خط الوسيط. يمكن التنقل بين الخلايا بأسهم لوحة المفاتيح والضغط على <span class="en">Enter</span>.</p>
+  <div class="box">مثال حقيقي من بياناتنا: آب 2007 في إيفيا ≈ <b>1,086</b> بؤرة (من 605 إلى 1,567)، أي نحو <b>17.2</b> ضعف آب المعتاد (63). القيمة <b>مقدَّرة من MODIS بمقياس VIIRS</b> بنطاق خطأ ±44%.</div>
+  <figure><img src="img/mobile_detail.jpg" alt=""><figcaption>نفس التفاصيل على شاشة هاتف بعرض 390 بكسل.</figcaption></figure>
+</section>
+
+<section>
+  <h3>4.3 التنبيهات (<span class="en">Alerts</span>)</h3>
+  <p><b>الهدف:</b> هل هذا الشهر غير عادي الآن؟ <b>لمن:</b> مديرو الطوارئ وفرق الإنذار المبكر.</p>
+  <figure><img src="img/alerts.jpg" alt=""><figcaption>صفحة التنبيهات.</figcaption></figure>
+  <table class="co"><thead><tr><th>#</th><th>الاسم</th><th>ماذا يفعل</th><th>لماذا هو موجود</th></tr></thead><tbody><tr><td class="n">1</td><td class="nm">حالة البيانات</td><td>آخر تحديث ناجح ومصدره؛ وتظهر رسائل «متأخر» أو «بيانات جزئية» أو «فشل آخر تحديث» عند الحاجة.</td><td>حتى لا تثق بمستوى «عادي» على بيانات قديمة أو ناقصة.</td></tr><tr><td class="n">2</td><td class="nm">ملاحظة المقياس</td><td>توضّح أن الأعداد من NOAA-20 مضروبة في {kjn:.2f} لتطابق مقياس S-NPP.</td><td>لأن S-NPP توقف في 2 تشرين الثاني 2026.</td></tr><tr><td class="n">3</td><td class="nm">بطاقات التنبيه</td><td>لكل منطقة: الفترة (مثلًا 1–13 تشرين الثاني، منذ بداية الشهر)، القيمة مقابل المعتاد والنسبة والمستوى، وقت التحديث، والمصدر.</td><td>قرار سريع: عادي، مرتفع، عالٍ، أو شديد.</td></tr><tr><td class="n">4</td><td class="nm">الخلاصات العامة</td><td>روابط alerts.json و RSS و status.json.</td><td>لربط أنظمة أخرى بتنبيهات جمرة.</td></tr></tbody></table>
+  <p class="small">المستويات: عادي (<span class="en">Normal</span>)، مرتفع (≥ المئين 75)، عالٍ (≥ 90)، شديد (≥ 97.5)، مقارنةً بنفس الأيام في السنوات السابقة. إذا كانت البيانات أقدم من 30 ساعة يظهر «قديم» بدل أي مستوى.</p>
+</section>
+
+<section>
+  <h3>4.4 البيانات المباشرة (<span class="en">Live Data</span>)</h3>
+  <p><b>الهدف:</b> أحدث البؤر لمنطقة مختارة. <b>لمن:</b> فرق الإطفاء والطوارئ.</p>
+  <figure><img src="img/live.jpg" alt=""><figcaption>صفحة البيانات المباشرة.</figcaption></figure>
+  <table class="co"><thead><tr><th>#</th><th>الاسم</th><th>ماذا يفعل</th><th>لماذا هو موجود</th></tr></thead><tbody><tr><td class="n">1</td><td class="nm">اختيار المنطقة</td><td>نفس طرق الاختيار في التقويم.</td><td>لتحديد مكان البحث.</td></tr><tr><td class="n">2</td><td class="nm">الخريطة</td><td>تُظهر البؤر الجديدة.</td><td>لرؤية مواقع البؤر.</td></tr><tr><td class="n">3</td><td class="nm">الفترة</td><td>آخر 24 ساعة حتى 7 أيام.</td><td>ضمن حدود واجهة ناسا.</td></tr><tr><td class="n">4</td><td class="nm">«اجلب من NASA FIRMS»</td><td>يجلب الكشوفات من NOAA-20 ويعرض وقت الجلب بالتوقيت العالمي.</td><td>بيانات حديثة عند الطلب.</td></tr><tr><td class="n">5</td><td class="nm">تنزيل CSV</td><td>يحفظ النتائج.</td><td>لاستخدامها في أنظمة أخرى.</td></tr><tr><td class="n">6</td><td class="nm">الجدول</td><td>التاريخ والوقت والقمر والثقة وقوة الإشعاع FRP والإحداثيات؛ اضغط العناوين للترتيب.</td><td>تفاصيل كل بؤرة.</td></tr></tbody></table>
+  <p class="small">ملاحظة: هذه كشوفات <span class="en">NOAA-20</span> الخام (غير محوّلة).</p>
+</section>
+
+<section>
+  <h3>4.5 كيف تعمل (<span class="en">How It Works</span>)</h3>
+  <p>صفحة علمية تشرح الطريقة: سنوات التداخل، معامل التحويل، ووضع السجل القديم على المقياس الجديد، مع جدول يقارن ست طرق.</p>
+  <figure><img src="img/how.jpg" alt=""><figcaption>صفحة «كيف تعمل».</figcaption></figure>
+  <table class="co"><thead><tr><th>#</th><th>الاسم</th><th>ماذا يفعل</th><th>لماذا هو موجود</th></tr></thead><tbody><tr><td class="n">1</td><td class="nm">الخطوات الثلاث</td><td>سنوات التداخل ← معامل التحويل ← السجل القديم بالمقياس الجديد.</td><td>شرح الطريقة للعلماء.</td></tr><tr><td class="n">2</td><td class="nm">مقارنة الطرق</td><td>أخطاء الطرق M0 إلى M5 والطريقة المختارة.</td><td>لماذا اخترنا هذه الطريقة.</td></tr><tr><td class="n">3</td><td class="nm">مسار البيانات</td><td>من أين تأتي البيانات ومتى تتحدث.</td><td>الشفافية حول التحديث التلقائي.</td></tr></tbody></table>
+  <h3>4.6 التحقق (<span class="en">Validation</span>)</h3>
+  <p>نتائج الاختبار المستقل على سنوات لم تُستخدم أبدًا في بناء النموذج (التفاصيل في القسم 7).</p>
+  <table class="co"><thead><tr><th>#</th><th>الاسم</th><th>ماذا يفعل</th><th>لماذا هو موجود</th></tr></thead><tbody><tr><td class="n">1</td><td class="nm">كيف اختبرنا</td><td>تقسيم السنوات إلى سنوات تطوير وسنوات اختبار.</td><td>اختبار عادل ومستقل.</td></tr><tr><td class="n">2</td><td class="nm">أرقام الاختبار</td><td>الخطأ للدول وللمجاميع السنوية والمناطق الصغيرة.</td><td>ملخص الدقة.</td></tr><tr><td class="n">3</td><td class="nm">الأشهر عالية النشاط</td><td>كم شهرًا اكتشفنا وكم فاتنا وكم إنذارًا خاطئًا.</td><td>مهم للإنذار المبكر.</td></tr><tr><td class="n">4</td><td class="nm">المناطق الصغيرة</td><td>المعامل المحلي مقابل معامل الدولة.</td><td>قاعدة القرار بشفافية.</td></tr><tr><td class="n">5</td><td class="nm">مناطق الحرائق</td><td>الخطأ لكل منطقة على حدة.</td><td>أين يصعب التقدير.</td></tr><tr><td class="n">6</td><td class="nm">المتوقَّع مقابل الفعلي</td><td>كل نقطة شهر لدولة في سنة مخفية.</td><td>رؤية الدقة بصريًا.</td></tr><tr><td class="n">7</td><td class="nm">ثبات النسبة</td><td>نسبة VIIRS إلى MODIS لكل سنة.</td><td>لكشف انجراف مدارات الأقمار القديمة.</td></tr></tbody></table>
+</section>
+
+<section>
+  <figure><img src="img/validation.jpg" alt=""><figcaption>صفحة التحقق.</figcaption></figure>
+</section>
+
+<section>
+  <h3>4.7 الحدود (<span class="en">Limits</span>)</h3>
+  <figure><img src="img/limits.jpg" alt=""><figcaption>صفحة الحدود.</figcaption></figure>
+  <table class="co"><thead><tr><th>#</th><th>الاسم</th><th>ماذا يفعل</th><th>لماذا هو موجود</th></tr></thead><tbody><tr><td class="n">1</td><td class="nm">أرقام عدم اليقين</td><td>نطاق الخطأ لشهر الدولة وسنتها وللمناطق الصغيرة، ومعامل NOAA-20.</td><td>حتى يعرف المستخدم مدى الثقة بكل رقم.</td></tr><tr><td class="n">2</td><td class="nm">قائمة الحدود</td><td>البؤر ليست حرائق، الغيوم تخفي الحرائق، انجراف المدارات، تغيّر الأقمار، وليست خدمة طوارئ.</td><td>الصدق حول ما لا تستطيع البيانات قوله.</td></tr></tbody></table>
+  <h3>4.8 المصادر والفريق (<span class="en">Credits</span>)</h3>
+  <figure><img src="img/credits.jpg" alt=""><figcaption>صفحة المصادر والفريق.</figcaption></figure>
+  <table class="co"><thead><tr><th>#</th><th>الاسم</th><th>ماذا يفعل</th><th>لماذا هو موجود</th></tr></thead><tbody><tr><td class="n">1</td><td class="nm">الاعتراف ببيانات FIRMS</td><td>النص الذي تطلبه ناسا حرفيًا.</td><td>شرط استخدام البيانات.</td></tr><tr><td class="n">2</td><td class="nm">الإفصاح عن الذكاء الفائق (SI)</td><td>كيف استخدمنا مساعد البرمجة.</td><td>شرط مسابقة Space Apps.</td></tr><tr><td class="n">3</td><td class="nm">رابط GitHub</td><td>الكود مفتوح المصدر (MIT).</td><td>لمن يريد التحقق أو إعادة الاستخدام.</td></tr><tr><td class="n">4</td><td class="nm">الفريق</td><td>الأعضاء الخمسة وتوزيع العمل.</td><td>من فعل ماذا.</td></tr></tbody></table>
+</section>
+
+<section>
+  <h2>5. سيناريوهات استخدام حقيقية</h2>
+  <h3>مدير طوارئ: هل هذا الشهر غير عادي؟</h3>
+  <ol><li>افتح صفحة <b>التنبيهات</b>.</li><li>تأكد من شارة الحالة «مباشر» وعدم وجود «بيانات جزئية».</li><li>اقرأ بطاقة منطقتك: الفترة، القيمة مقابل المعتاد، والمستوى.</li><li>اضغط البطاقة لفتح التقويم على المنطقة نفسها ومقارنة الأشهر السابقة.</li></ol>
+  <h3>مدير غابات: مقارنة مواسم الحرائق</h3>
+  <ol><li>افتح <b>التقويم</b> واختر منطقة أو ارسمها.</li><li>اختر «مقارنةً بالمعتاد» لرؤية الأشهر الأعلى (▲) والأدنى (▼).</li><li>اقرأ قسم «هل يبدأ الموسم أبكر؟» أسفل التقويم: يذكر الاتجاه وهل هو ذو دلالة إحصائية.</li><li>نزّل «ملخص PDF» لإرفاقه بتقرير.</li></ol>
+  <h3>فريق إطفاء: البيانات المباشرة</h3>
+  <ol><li>افتح <b>البيانات المباشرة</b> واختر المنطقة.</li><li>اختر الفترة (مثلًا آخر 24 ساعة) واضغط «اجلب من NASA FIRMS».</li><li>رتّب الجدول حسب الوقت أو قوة الإشعاع FRP، وانظر المواقع على الخريطة.</li><li>نزّل CSV عند الحاجة.</li></ol>
+  <h3>باحث: تنزيل البيانات</h3>
+  <ol><li>في <b>التقويم</b> اختر المنطقة والفترة.</li><li>اضغط «تنزيل CSV»: كل شهر مع قيمته المُواءَمة ومصدره (مرصود/مقدَّر) ونطاق الخطأ والأعداد الخام لكل قمر.</li><li>راجع صفحتَي «كيف تعمل» و«التحقق» لفهم الطريقة ودقتها.</li></ol>
+  <h3>مثال إيفيا 2007</h3>
+  <ol><li>في <b>الرئيسية</b> اعرض الرسم «خام» ثم «مُواءَم».</li><li>اضغط «جرّب مثال إيفيا 2007».</li><li>يفتح التقويم على آب 2007 مع التفاصيل: ≈ 1,086 بؤرة، مقدَّرة من MODIS بمقياس VIIRS (±44%).</li><li>قارنها بآب في السنوات الأخرى في الرسم، ثم افتح صفحة <b>التحقق</b> لنتيجة الاختبار المستقل.</li></ol>
+</section>
+
+<section>
+  <h2>6. كيف تعمل البيانات (بشكل مبسّط)</h2>
+  <h3>قيم مرصودة وقيم مقدَّرة</h3>
+  <p>من 2012 فصاعدًا القيم <b>مرصودة</b> مباشرة من <span class="en">VIIRS</span> (خلايا مصمتة). قبل 2012 القيم <b>مقدَّرة من MODIS بمقياس VIIRS</b> (خلايا مخطَّطة وعلامة ≈) ومعها نطاق خطأ: نحو ±40% لشهر الدولة، و±16% لمجموع سنة الدولة، و±44% لشهر في منطقة صغيرة. هذه الأرقام هي الخطأ المعتاد في سنوات الاختبار المستقل.</p>
+  <figure><img src="img/anomaly.jpg" alt=""><figcaption>التقويم بوضع «مقارنةً بالمعتاد»: نص ورموز بجانب كل لون.</figcaption></figure>
+  <h3>التحديث كل 3 ساعات</h3>
+  <p>كل 3 ساعات يجلب الموقع تلقائيًا أحدث كشوفات <span class="en">NOAA-20</span> من واجهة ناسا <span class="en">FIRMS</span> ويحسب مستوى الإنذار لكل منطقة. وكل شهر يُعاد بناء الأرشيف التاريخي من ملفات ناسا. إذا فشل التحديث تبقى آخر بيانات سليمة وتظهر حالة واضحة.</p>
+  <h3>تحوّل S-NPP إلى NOAA-20</h3>
+  <p>أوقفت ناسا بيانات قمر <span class="en">S-NPP</span> في 2 تشرين الثاني 2026. قمر <span class="en">NOAA-20</span> يحمل جهاز <span class="en">VIIRS</span> نفسه وفي المدار نفسه تقريبًا. قِسنا العلاقة بينهما في بيانات 2018–2025 فوجدنا معاملًا قدره <b>0.97</b>، ونضرب به أعداد <span class="en">NOAA-20</span> لتبقى على مقياس سجلّنا.</p>
+</section>
+
+<section>
+  <h2>7. نتائج التحقق والحدود</h2>
+  <p><b>تصميم الاختبار:</b> سنوات التطوير (2012–2020 دون 2021) لبناء النموذج واختيار إعداداته، وسنوات الاختبار (2022، 2023، 2024، 2025) محجوزة ولم تُلمس أثناء التطوير. النموذج المختار: <span class="en">M3</span> (نسبة لكل دولة وشهر مع «انكماش» نحو قيمة الدولة).</p>
+  <div class="kpis">
+    <div class="kpi"><b>87% ← 40%</b>الخطأ المعتاد لشهر الدولة في سنوات الاختبار: MODIS الخام ← بعد المواءمة</div>
+    <div class="kpi"><b>16%</b>الخطأ المعتاد لمجموع سنة الدولة (الخام: 85%)</div>
+    <div class="kpi"><b>82 من 121</b>الأشهر عالية النشاط التي اكتُشفت (نسبة الاكتشاف 68%)، مع 37 إنذارًا خاطئًا؛ MODIS الخام اكتشف 5 فقط</div>
+    <div class="kpi"><b>55%</b>الخطأ المعتاد لشهر في 239 منطقة بحجم 1°، و44% في مناطق الحرائق التسع</div>
+  </div>
+  <h3>المعامل المحلي للمناطق الصغيرة</h3>
+  <table><thead><tr><th>المناطق</th><th>معامل الدولة: الخطأ (MAE)</th><th>المعامل المحلي: الخطأ (MAE)</th><th>الاكتشاف (دولة / محلي)</th></tr></thead><tbody>
+  <tr><td>مناطق الحرائق (9)</td><td>19.7</td><td>19.6</td><td>62 / 62</td></tr>
+  <tr><td>مناطق 1° (239)</td><td>9.23</td><td>8.97</td><td>1274 / 1286</td></tr>
+  </tbody></table>
+  <p><b>القرار:</b> اعتُمد المعامل المحلي لأنه خفّض خطأ المناطق الصغيرة في سنوات الاختبار؛ والتحسّن صغير لكنه ثابت.</p>
+  <h3>اختبار FRP</h3>
+  <p>اختبرنا فكرة أن مجموع قوة الإشعاع (<span class="en">FRP</span>) أكثر ثباتًا بين القمرين من عدد البؤر: لم تؤيدها بياناتنا (تذبذب النسبة 0.57 مقابل 0.40 للأعداد)، لذلك يعتمد التقويم على عدد البؤر.</p>
+  <h3>الحدود</h3>
+  <ul><li>البؤرة ليست حريقًا وليست مساحة محروقة.</li><li>الغيوم والدخان تخفي الحرائق، والحرائق الصغيرة تفوت MODIS أكثر.</li><li>المناطق الصغيرة أقل دقة لأن عدد البؤر فيها قليل.</li><li>انجراف مدارات الأقمار القديمة، وتغيّر الأقمار (S-NPP ← NOAA-20).</li><li>بعض البؤر من الزراعة أو الصناعة، وفي مناطق النزاع من انفجارات أو مبانٍ تحترق.</li><li>التأخير ساعات: ليست خدمة طوارئ.</li></ul>
+</section>
+
+<section>
+  <h2>8. الفريق وتوزيع العمل</h2>
+  <table><thead><tr><th>العضو</th><th>يقود ويملك (في الموقع)</th><th>يقدّم</th></tr></thead><tbody>
+  <tr><td>شهد فرّاج</td><td>بحث المشكلة والمستخدمين: من يحتاج جمرة ولماذا. قصة الصفحة الرئيسية والمستخدمين المستهدفين. كتابة وصف المشروع في Space Apps.</td><td>الشريحتان 1–2</td></tr>
+  <tr><td>أحمد اتكيدك</td><td>بيانات ناسا والنظام المباشر: أرشيف FIRMS وواجهته، مفتاح MAP_KEY، GitHub Pages والتحديث كل 3 ساعات. صفحات التنبيهات والبيانات المباشرة والحدود (تحوّل S-NPP ← NOAA-20).</td><td>الشريحة 3</td></tr>
+  <tr><td>آية سلمان</td><td>العلم: طريقة المواءمة والمعامل المحلي (كيف تعمل)، والاختبار المستقل ونتائج المناطق الصغيرة (التحقق).</td><td>الشريحتان 4 و6</td></tr>
+  <tr><td>أحمد الأخرس</td><td>صفحة التقويم: اختيار المنطقة، التقويم، تفاصيل الشهر، علامات عدم اليقين، التنزيلات. مسار عرض إيفيا 2007، العرض المباشر، واختبار الهاتف ولوحة المفاتيح.</td><td>الشريحة 5</td></tr>
+  <tr><td>تالا يوسف</td><td>تجربة المستخدم والتواصل: التنقل بين الصفحات ومراجعة التصميم، إمكانية الوصول، صفحة المصادر والفريق، مراجعة الدليل العربي، تصميم الشرائح، الأثر والخطوات القادمة، وختام العرض.</td><td>الشريحة 7</td></tr>
+  </tbody></table>
+  <p><b>عمل مشترك:</b> اختيار الفكرة والطريقة، اختبار الموقع مع مستخدمين حقيقيين، والتدرّب على العرض.</p>
+
+  <h2 style="margin-top:8mm">9. مسرد المصطلحات</h2>
+  <table><thead><tr><th>بالعربية</th><th>بالإنجليزية</th><th>المعنى</th></tr></thead><tbody>
+  <tr><td>بؤرة حرارية</td><td class="en">Hotspot</td><td>بكسل ساخن في صورة القمر الصناعي، غالبًا حريق.</td></tr>
+  <tr><td>مواءمة</td><td class="en">Harmonization</td><td>تحويل أعداد MODIS إلى ما يعادلها بمقياس VIIRS.</td></tr>
+  <tr><td>شذوذ / مقارنة بالمعتاد</td><td class="en">Anomaly</td><td>كم يختلف الشهر عن الوسيط لنفس الشهر في السنوات الأخرى.</td></tr>
+  <tr><td>الوسيط</td><td class="en">Median</td><td>القيمة الوسطى: نصف السنوات أعلى منها ونصفها أدنى.</td></tr>
+  <tr><td>الرتبة المئوية</td><td class="en">Percentile rank</td><td>«أعلى من 90% من السنوات» تعني أن سنة واحدة من كل عشر كانت أعلى.</td></tr>
+  <tr><td>قوة الإشعاع الحراري</td><td class="en">FRP</td><td>الحرارة التي يطلقها الحريق بالميغاواط.</td></tr>
+  <tr><td>نطاق الخطأ</td><td class="en">Uncertainty</td><td>المدى المتوقع للقيمة الحقيقية حول التقدير.</td></tr>
+  <tr><td>سنوات الاختبار</td><td class="en">Test years</td><td>سنوات محجوزة لم تُستخدم في بناء النموذج، لقياس دقته بعدل.</td></tr>
+  <tr><td>إنذار خاطئ</td><td class="en">False alarm</td><td>قال النموذج «أعلى من المعتاد» ولم يكن كذلك.</td></tr>
+  <tr><td>شبه آني</td><td class="en">Near real time (NRT)</td><td>بيانات تصل خلال ساعات من مرور القمر.</td></tr>
+  </tbody></table>
+</section>
+
+<section>
+  <h2>10. المصادر والمراجع والإفصاح</h2>
+  <p class="en" style="text-align:left">We acknowledge the use of data and/or imagery from NASA's Fire Information for Resource Management System (FIRMS) (https://earthdata.nasa.gov/firms), part of NASA's Land, Atmosphere Near real-time Capability for Earth observations (LANCE) (https://earthdata.nasa.gov/lance) and NASA's Earth Science Data and Information System (ESDIS).</p>
+  <h3>المراجع</h3>
+  <ul class="en" style="text-align:left;direction:ltr">
+    <li>Giglio, L., Schroeder, W., &amp; Justice, C. O. (2016). The collection 6 MODIS active fire detection algorithm and fire products. Remote Sensing of Environment, 178, 31–41.</li>
+    <li>Schroeder, W., Oliva, P., Giglio, L., &amp; Csiszar, I. A. (2014). The New VIIRS 375 m active fire detection data product. Remote Sensing of Environment, 143, 85–96.</li>
+    <li>Davies, D. K., Ilavajhala, S., Wong, M. M., &amp; Justice, C. O. (2009). Fire Information for Resource Management System. IEEE TGRS, 47(1), 72–79.</li>
+    <li>NASA Earthdata (2026). Transitioning from Suomi NPP VIIRS &amp; OMPS: What FIRMS Users Need to Know.</li>
+  </ul>
+  <h3>البرمجيات والخرائط</h3>
+  <p>MapLibre GL JS (BSD-3) · OpenFreeMap · © OpenStreetMap contributors · لوحات الألوان Viridis و Cividis و ColorBrewer. لا نستخدم شعارات ناسا، وناسا لا تتبنّى هذا المشروع.</p>
+  <h3>الإفصاح عن استخدام الذكاء الفائق (<span class="en">SI</span>)</h3>
+  <div class="box">استخدمنا مساعد برمجة بالذكاء الفائق (<span class="en">Claude Code</span> من <span class="en">Anthropic</span>) لكتابة كود معالجة البيانات والموقع والنظام المباشر والشرائح وهذا الدليل، وفق تصميمنا وقراراتنا. الفريق اختار الطريقة، وتحقق من النتائج مقابل بيانات ناسا FIRMS، وتأكد من كل مرجع، وكتب العرض وتدرّب عليه.</div>
+  <p class="small">الكود مفتوح المصدر (MIT): <span class="en">https://github.com/ahmedetk/jamra</span></p>
+</section>
+</body></html>

@@ -6,13 +6,11 @@
  "p_harm": "0.7",
  "ncal": "13",
  "chosen": "M3",
- "g07": "August 2007, Greece: 8,896 hotspots",
- "g07x": "11.7× a typical August",
- "unc": "31%",
- "g07raw": "1,455",
- "g21raw": "6,699",
- "err": "87% → 31%",
- "col": "54%",
- "yr": "±12%",
- "ta": "26% error"
+ "ev07": "August 2007, Evia: ≈ 1,086 hotspots",
+ "ev07x": "17.2× a typical August",
+ "unc": "44%",
+ "err": "87% → 40%",
+ "hits": "82 of 121",
+ "small": "44%",
+ "ta": "26% vs 31% error"
 }

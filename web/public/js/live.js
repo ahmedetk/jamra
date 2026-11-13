@@ -129,8 +129,10 @@ const COLS = [
   ['frp', 'FRP (MW)'], ['latitude', 'Latitude'], ['longitude', 'Longitude'],
 ];
 
-export async function fetchLive(area, days, site, live) {
-  const ring = area.ring;
+export async function fetchLive(area, days, site, live, opts = {}) {
+  // opts.ring: query box outline; opts.keep(lat, lon): keep a point (countries use the archive's cell -> country map)
+  const ring = opts.ring || area.ring;
+  const keep = opts.keep || ((lat, lon) => pointInRing(lon, lat, ring));
   const stamp = $('#live-stamp');
   if (!ring) { stamp.textContent = 'Choose an area first.'; return []; }
   const [w, s, e, n] = ringBBox(ring).map((v) => +v.toFixed(3));
@@ -160,7 +162,7 @@ export async function fetchLive(area, days, site, live) {
     source = live.source;
     when = live.fetched_utc;
   }
-  rows = rows.filter((r) => pointInRing(r.longitude, r.latitude, ring));
+  rows = rows.filter((r) => keep(r.latitude, r.longitude));
   lastRows = rows;
   const t = new Date(when);
   stamp.innerHTML = '';

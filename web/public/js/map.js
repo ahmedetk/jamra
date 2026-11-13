@@ -30,7 +30,7 @@ export function initMap(container, { onFallback } = {}) {
     });
     map.addControl(new ml.NavigationControl({ showCompass: false }), 'top-right');
     await new Promise((res, rej) => {
-      const t = setTimeout(() => rej(new Error('map timeout')), 20000);
+      const t = /guide=1/.test(location.search) ? 0 : setTimeout(() => rej(new Error('map timeout')), 20000);
       map.on('load', () => { clearTimeout(t); res(); });
       map.on('error', (e) => { if (!map.loaded()) console.warn('map error', e?.error?.message); });
     });

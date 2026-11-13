@@ -62,6 +62,7 @@ function readURL() {
   if (p.get('pal')) state.palette = p.get('pal');
   if (p.get('month')) { const [y, m] = p.get('month').split('-').map(Number); state.sel = [y, m - 1]; }
   state.openDetail = p.get('detail') === '1';
+  if (p.get('hero') === 'harm' || p.get('hero') === 'raw') state.hero = p.get('hero');
   if (p.get('bbox')) { const b = p.get('bbox').split(',').map(Number); if (b.length === 4 && b.every(Number.isFinite)) state.custom = { ring: boxRing(b), label: `Box ${b.join(', ')}` }; }
   if (p.get('pt')) { const [la, lo, r] = p.get('pt').split(',').map(Number); if ([la, lo, r].every(Number.isFinite)) state.custom = { ring: circleRing(la, lo, r), label: `${r} km around ${la}, ${lo}` }; }
   if (p.get('poly')) {
@@ -241,7 +242,7 @@ function buildControls() {
   on('#live-form', 'submit', async (e) => {
     e.preventDefault();
     const days = +new FormData(e.target).get('days');
-    const rows = await fetchLive(area, days, site, live);
+    const rows = await fetchLive(area, days, site, live, await liveFilter());
     if (rows.length) showLive(rows.map((r) => ({ lat: r.latitude, lon: r.longitude, date: r.acq_date, time: r.acq_time, frp: r.frp, conf: r.confidence, sat: r.satellite })));
   });
   on('#dl-live-csv', 'click', () => downloadLiveCSV(area.label));
@@ -289,6 +290,22 @@ async function selectArea(id, custom = null) {
   }
 }
 
+async function liveFilter() {
+  if (area.kind !== 'country') return {};
+  // countries: query the country's box, then keep points whose 0.1° cell belongs to the country
+  const grid = await getJSON('data/cells.json');
+  const deg = grid.cell_deg;
+  const own = (lat, lon) => {
+    const ix = Math.floor((lon + 180) / deg + 1e-9), iy = Math.floor((lat + 90) / deg + 1e-9);
+    for (const r of [0, 1, 2]) for (let dx = -r; dx <= r; dx++) for (let dy = -r; dy <= r; dy++) {
+      const c = grid.cells[`${ix + dx}_${iy + dy}`];
+      if (c) return c.c;
+    }
+    return null;
+  };
+  return { ring: countryRing(area), keep: (lat, lon) => own(lat, lon) === area.country };
+}
+
 function countryRing(a) {
   // countries: frame the map on the live box that contains them (outline drawn by the basemap)
   const boxes = { portugal: [-9.6, 36.9, -6.1, 42.2], spain: [-9.4, 35.9, 4.4, 43.9], greece: [19.3, 34.8, 29.7, 41.8], turkiye: [25.6, 35.8, 44.9, 42.2], cyprus: [32.2, 34.5, 34.7, 35.8], lebanon: [35.0, 33.0, 36.7, 34.8], jordan: [34.9, 29.1, 39.4, 33.4], palestine: [34.2, 31.2, 35.6, 32.6] };
@@ -319,7 +336,8 @@ function update() {
 }
 
 // ---------------------------------------------------------------- helpers
-const val = (y, m) => { const i = monthIndex(meta, y, m + 1); return i >= 0 && i < monthly.length ? monthly[i] : null; };
+// undefined = after the end of the data (future month), null = data gap
+const val = (y, m) => { const i = monthIndex(meta, y, m + 1); return i < 0 ? null : i < monthly.length ? monthly[i] : undefined; };
 const srcOf = (y, m) => { const i = monthIndex(meta, y, m + 1); return area.src[i] || 'G'; };
 const winYears = () => years.filter((y) => y >= state.from && y <= state.to);
 function annual(y, arr = monthly) {
@@ -434,7 +452,7 @@ function weeklyGrid() {
         const wk = Math.min(51, Math.floor((k - start) / 7));
         if (v !== null) { arr[wk] += v; has[wk] = true; }
       }
-      cache[key] = arr.map((v, i) => (has[i] ? Math.round(v * 10) / 10 : null));
+      cache[key] = arr.map((v, i) => (has[i] ? Math.round(v * 10) / 10 : (start + i * 7 >= area.daily.length ? undefined : null)));
     }
     return cache[key][c];
   };
@@ -700,3 +718,26 @@ boot().catch((err) => {
   console.error(err);
   $('#main').prepend(el('div', { class: 'wrap card', style: 'margin-top:16px;border-color:#c92a2a' }, `Sorry, the data could not be loaded (${err.message}). Please reload the page.`));
 });
+
+// ---------------------------------------------------------------- user-guide callouts (?guide=1)
+// Used only to make the numbered screenshots in the user guide; normal visitors never see it.
+if (new URLSearchParams(location.search).get('guide') === '1') {
+  setTimeout(async () => {
+    try {
+      if (PAGE === 'live' && has('#live-form')) $('#live-form').requestSubmit();
+      await new Promise((r) => setTimeout(r, 2500));
+      const g = await getJSON('data/guide.json');
+      (g[PAGE] || []).forEach((sel, i) => {
+        const n = document.querySelector(sel);
+        if (!n) return;
+        const r = n.getBoundingClientRect();
+        n.style.outline = '3px dashed #d9480f';
+        n.style.outlineOffset = '2px';
+        const b = el('div', { class: 'guide-badge', text: String(i + 1) });
+        b.style.left = `${Math.max(2, r.left + scrollX - 14)}px`;
+        b.style.top = `${Math.max(2, r.top + scrollY - 14)}px`;
+        document.body.append(b);
+      });
+    } catch (e) { console.warn(e); }
+  }, 2500);
+}

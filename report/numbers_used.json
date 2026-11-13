@@ -1,0 +1,14 @@
+{
+ "k_global": 6.2,
+ "test_err_raw": "87%",
+ "test_err_harm": "40%",
+ "test_err_year": "16%",
+ "hits": 82,
+ "high_months": 121,
+ "false_alarms": 37,
+ "small_grid_err": "55%",
+ "small_preset_err": "44%",
+ "k_jn": 0.97,
+ "evia_2007_08": 1086,
+ "local_adopted": true
+}

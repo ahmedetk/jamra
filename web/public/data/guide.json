@@ -1,0 +1,11 @@
+{
+  "note": "Numbered callouts for the user guide screenshots (?guide=1). Each entry: CSS selector of a control on that page.",
+  "home": ["#site-nav", "#status-badge", "#hero-area", "[data-hero=raw]", "[data-hero=harm]", "#hero-chart", "#evia-btn"],
+  "calendar": ["#tab-preset", "#tab-country", "#tab-draw", "#tab-coords", "#map", "[data-livewin='1']", "#area-info", "#from-year", "#static-filter", "#kpi-grid", "[data-mode=anomaly]", "[data-res=week]", "#palette", "#cal", "#dl-cal-csv", "#dl-cal-png", "#dl-summary-png", "#dl-summary-pdf", "#detail"],
+  "alerts": ["#data-status", "#scale-note", "#alert-list", ".feeds"],
+  "live": ["#tab-preset", "#map", "#live-form select", "#live-form button[type=submit]", "#dl-live-csv", "#live-table"],
+  "how-it-works": [".steps", "#why-table", ".arch"],
+  "validation": ["#split-text", "#test-kpis", "#conf-country", "#small-table", "#preset-table", "#scatter", "#drift"],
+  "limits": ["#unc-kpis", ".limits"],
+  "credits": [".ack", ".si", "#repo-link", "#team-grid"]
+}

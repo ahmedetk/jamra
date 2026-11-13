@@ -2,7 +2,7 @@
 // App files and history data: cache first, refreshed in the background.
 // Live files: network first, cached copy if offline.
 // Written with the help of an SI coding assistant (Claude Code).
-const VERSION = 'jamra-v4';
+const VERSION = 'jamra-v5';
 const CORE = [
   './', 'index.html', 'calendar/', 'alerts/', 'live/', 'how-it-works/', 'validation/', 'limits/', 'credits/',
   'css/app.css', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png',

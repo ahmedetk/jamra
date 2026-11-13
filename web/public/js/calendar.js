@@ -32,11 +32,11 @@ export function renderCalendar(container, legend, grid, opts) {
   // values + colour
   const [b0, b1] = opts.baselineYears;
   const all = [];
-  years.forEach((y) => { for (let c = 0; c < cols; c++) { const v = grid.value(y, c); if (v !== null) all.push(v); } });
+  years.forEach((y) => { for (let c = 0; c < cols; c++) { const v = grid.value(y, c); if (v !== null && v !== undefined) all.push(v); } });
   const scale = logScale(Math.max(...all, 1));
   const colInfo = [];
   for (let c = 0; c < cols; c++) {
-    const vals = years.filter((y) => y >= b0 && y <= b1).map((y) => [y, grid.value(y, c)]).filter(([, v]) => v !== null);
+    const vals = years.filter((y) => y >= b0 && y <= b1).map((y) => [y, grid.value(y, c)]).filter(([, v]) => v !== null && v !== undefined);
     colInfo.push(vals);
   }
   const cellData = (y, c) => {
@@ -57,6 +57,7 @@ export function renderCalendar(container, legend, grid, opts) {
   years.forEach((y, r) => {
     root.append(svg('text', { x: labelW - 6, y: top + r * ch + ch / 2 + 4, 'text-anchor': 'end' }, document.createTextNode(String(y))));
     for (let c = 0; c < cols; c++) {
+      if (grid.value(y, c) === undefined) continue; // future: nothing to show
       const d = cellData(y, c);
       const g = svg('g', { class: 'cell', role: 'gridcell', tabindex: '-1', 'data-y': y, 'data-c': c });
       const x = labelW + c * cw, yy = top + r * ch;

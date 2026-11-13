@@ -45,8 +45,8 @@
  "frp_cv": 0.568,
  "count_cv": 0.397,
  "k_jn": 0.973,
- "uncertainty_month_pct": 31,
- "uncertainty_year_pct": 12,
+ "uncertainty_month_pct": 40,
+ "uncertainty_year_pct": 16,
  "terra_aqua_mdape_pct": 26,
  "greece_jump": {
   "raw_ratio": 4.0,
@@ -110,7 +110,7 @@
    "month": "August",
    "value": 4998,
    "typical": 63,
-   "times_typical": 80.0,
+   "times_typical": 79.1,
    "percentile": 100,
    "src": "N",
    "raw": 4998
@@ -138,7 +138,61 @@
    "percentile": 100,
    "src": "N",
    "raw": 2156
+  },
+  "evia_2007_08": {
+   "area": "Evia (Greece)",
+   "area_id": "evia",
+   "year": 2007,
+   "month": "August",
+   "value": 1086,
+   "typical": 63,
+   "times_typical": 17.2,
+   "percentile": 91,
+   "src": "M",
+   "raw": 189,
+   "lo": 605,
+   "hi": 1567
   }
  },
- "data_through": "2026-10-31"
+ "data_through": "2026-10-31",
+ "test": {
+  "dev_years": [
+   2012,
+   2013,
+   2014,
+   2015,
+   2016,
+   2017,
+   2018,
+   2019,
+   2020
+  ],
+  "test_years": [
+   2022,
+   2023,
+   2024,
+   2025
+  ],
+  "err_raw_pct": 87,
+  "err_harm_pct": 40,
+  "err_year_pct": 16,
+  "hits": 82,
+  "high_total": 121,
+  "false_alarms": 37,
+  "raw_hits": 5,
+  "small_preset_pct": 44,
+  "small_grid_pct": 55,
+  "grid_regions": 239,
+  "local_adopted": true,
+  "by_model_pct": {
+   "M0": 87,
+   "M1": 45,
+   "M2": 45,
+   "M3": 40,
+   "M4": 35,
+   "M5": 32
+  }
+ },
+ "cv_aqua_mdape_pct": 31,
+ "unc_small_pct": 44
 }
