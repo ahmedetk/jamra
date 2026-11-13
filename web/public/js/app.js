@@ -8,12 +8,12 @@ import { loadLive, loadStatus, renderBadge, renderAlerts, areaWarning, fetchLive
 import { baseline, percentileRank, category, CAT_LABEL, seasonStart, theilSen, mannKendall } from './stats.js';
 
 const TEAM = [
-  ['Shahd Farraj', 'Problem and users', 'Framed the problem for emergency teams and forest managers; slides 1–2.'],
-  ['Ahmed Etkadiek', 'NASA data expert', 'FIRMS, MODIS vs VIIRS, sensor limits; slide 3.'],
-  ['Aya Salman', 'Harmonization method', 'Overlap calibration, shrinkage factor, model comparison; slide 4.'],
-  ['Ahmad Akhras', 'Live demo owner', 'Demo story and click path, live system checks; slide 5.'],
-  ['Diala Abubaker', 'Validation and limits', 'Cross-validation reading, honest limits; slide 6.'],
-  ['Tala Yousef', 'UX, design and impact', 'Calendar design, colour accessibility, roadmap; slide 7.'],
+  ['Shahd Farraj', 'Problem & users', 'Framed the problem for emergency teams, forest managers and firefighters; slides 1–2.'],
+  ['Ahmed Etkaidek', 'NASA data', 'NASA FIRMS, MODIS vs VIIRS, sensor limits and the S-NPP to NOAA-20 change; slide 3.'],
+  ['Aya Salman', 'Harmonization', 'Overlap calibration, shrinkage factor and model comparison; slide 4.'],
+  ['Ahmad Akhras', 'Live demo', 'Demo story, click path and live system checks; slide 5.'],
+  ['Diala Abubaker', 'Validation & limits', 'Cross-validation results and honest limits; slide 6.'],
+  ['Tala Yousef', 'UX, impact & next steps', 'Calendar design, colour accessibility, impact and roadmap; slide 7.'],
 ];
 
 const TERMS = {
@@ -90,6 +90,7 @@ async function boot() {
   document.title = `${meta.product.name} · Burning Activity Calendar`;
   $$('[data-k-global]').forEach((n) => { n.textContent = `${meta.viirs_vs_modis_ratio.toFixed(1)}×`; });
   if (site.repo) $('#repo-link').href = site.repo;
+  $$('[data-k-jn]').forEach((n) => { n.textContent = Number(report.noaa20_to_snpp.global).toFixed(2); });
   const lastYear = +meta.data_through.slice(0, 4) - (meta.data_through.slice(5, 7) === '12' ? 0 : 1);
   years = []; for (let y = +meta.start.slice(0, 4); y <= +meta.data_through.slice(0, 4); y++) years.push(y);
   state.from = Math.max(years[0], Math.min(state.from, lastYear));
@@ -347,7 +348,7 @@ function renderKPIs() {
     const ch = w.median > 0 ? (w.mtd - w.median) / w.median : null;
     const [ly, lm] = live.month.split('-').map(Number);
     changeV = ch === null ? (w.mtd > 0 ? 'new' : '0%') : `${ch >= 0 ? '+' : ''}${Math.round(ch * 100)}%`;
-    changeD = `${MONTHS[lm - 1]} ${w.from_day ?? 1}–${w.day}, ${ly}: ${fmt(w.mtd, 0)} vs usual ${fmt(w.median, 0)}${w.approximate ? ' (approximate)' : ''}`;
+    changeD = `${MONTHS[lm - 1]} ${w.from_day ?? 1}–${w.day}, ${ly}: ${fmt(w.mtd, 0)} vs usual ${fmt(w.median, 0)} (NOAA-20 on the S-NPP scale${w.approximate ? ', approximate' : ''})`;
   } else {
     // latest archive month vs its usual
     const li = monthly.length - 1, lab = monthLabel(meta, li);
@@ -603,10 +604,10 @@ function renderStatic() {
   const fr = report.frp_test;
   kp('FRP test', fr.validated ? 'Passed' : 'Not supported', `Is summed fire heat (FRP) more stable between sensors than counts? Variation of the ratio: FRP ${fmt(fr.pooled_cv_frp_ratio, 2)} vs counts ${fmt(fr.pooled_cv_count_ratio, 2)}. ${fr.validated ? 'FRP could be offered.' : 'So the calendar uses counts.'}`);
   const jn = report.noaa20_to_snpp;
-  kp('NOAA-20 → S-NPP', `×${fmt(jn.global, 2)}`, `Live data come from NOAA-20 since S-NPP stopped (2 Nov 2026). Factor measured on ${fmtInt(jn.months_used)} country-months, 2018–2025.`);
+  kp('NOAA-20 → S-NPP scale', `×${fmt(jn.global, 2)}`, `Live counts come from NOAA-20 since S-NPP stopped (2 Nov 2026) and are multiplied by this factor to stay on the S-NPP scale. Measured on ${fmtInt(jn.months_used)} country-months, 2018–2025.`);
   const ref = median(report.drift.filter((d) => d.ratio_N_over_A && d.months >= 10).map((d) => d.ratio_N_over_A));
   driftChart($('#drift'), { drift: report.drift, ref, tol: 0.15, tip });
-  $('#drift-cap').textContent = `${report.calibration.rule} Filled dots = years used to calibrate. MODIS satellites have been drifting in orbit in recent years, so the ratio can shift; we check it every year.`;
+  $('#drift-cap').textContent = `Each dot = one year's VIIRS S-NPP ÷ MODIS Aqua hotspots (8 countries). ${report.calibration.rule} The headline ${meta.viirs_vs_modis_ratio.toFixed(1)}× pools all hotspots of the calibration years instead of taking the median year. Filled dots = years used to calibrate. MODIS satellites have been drifting in orbit in recent years, so the ratio can shift; we check it every year.`;
   // where it struggles: per-country error
   const per = {};
   report.scatter.forEach((p) => { if (p.V >= 10) { (per[p.c] = per[p.c] || []).push(Math.abs(p.P - p.V) / p.V); } });

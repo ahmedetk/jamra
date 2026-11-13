@@ -33,6 +33,12 @@ export function initMap(container, { onFallback } = {}) {
       map.on('load', () => { clearTimeout(t); res(); });
       map.on('error', (e) => { if (!map.loaded()) console.warn('map error', e?.error?.message); });
     });
+    // English-only place labels (OpenMapTiles name:en / name_en)
+    for (const layer of map.getStyle().layers) {
+      if (layer.type === 'symbol' && map.getLayoutProperty(layer.id, 'text-field') !== undefined) {
+        map.setLayoutProperty(layer.id, 'text-field', ['coalesce', ['get', 'name:en'], ['get', 'name_en'], '']);
+      }
+    }
     map.addSource('area', { type: 'geojson', data: empty });
     map.addLayer({ id: 'area-fill', type: 'fill', source: 'area', paint: { 'fill-color': '#14213d', 'fill-opacity': 0.08 } });
     map.addLayer({ id: 'area-line', type: 'line', source: 'area', paint: { 'line-color': '#14213d', 'line-width': 2 } });

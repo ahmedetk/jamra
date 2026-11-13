@@ -53,7 +53,7 @@ export function renderAlerts(live, meta, onPick) {
     const card = el('button', { class: `alert ${a.level}`, type: 'button', style: 'text-align:left;cursor:pointer;font:inherit', onclick: () => onPick(id) },
       el('h3', {}, `${label[id] || id} `, el('span', { class: `lvl lvl-${a.level}`, text: LEVEL_LABEL[a.level] })),
       el('p', { text: a.level === 'unknown' ? 'Not enough history to compare.' :
-        `${monthName} ${a.from_day ?? 1}–${a.day}: ${fmt(a.mtd, 0)} hotspots. Usual for these days: ${fmt(a.median, 0)} (middle half ${fmt(a.p25, 0)}–${fmt(a.p75, 0)}). Higher than ${Math.round(a.percentile)}% of past years.` }));
+        `${monthName} ${a.from_day ?? 1}–${a.day}: ${fmt(a.mtd, 0)} hotspots on the S-NPP scale (${fmtInt(a.mtd_raw)} NOAA-20 × ${fmt(a.k_jn, 2)}). Usual for these days: ${fmt(a.median, 0)} (middle half ${fmt(a.p25, 0)}–${fmt(a.p75, 0)}). Higher than ${Math.round(a.percentile)}% of past years.` }));
     if (id === 'palestine' || id === 'lebanon') card.append(el('p', { class: 'fine', text: 'Conflict-related heat sources possible.' }));
     box.append(card);
   }

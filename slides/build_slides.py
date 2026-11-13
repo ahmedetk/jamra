@@ -173,7 +173,7 @@ def build(url, out_path, screenshot=None):
     tb(s, 0.55, 1.45, 6.2, 0.5, "Challenge: Harmonization of MODIS and VIIRS Hot Spots", size=16, color=INK2)
     tb(s, 0.55, 1.95, 6.2, 1.6, [
         [("Team Astro Byte", {"bold": True, "size": 16})],
-        [("Shahd Farraj · Ahmed Etkadiek · Aya Salman", {"size": 14})],
+        [("Shahd Farraj · Ahmed Etkaidek · Aya Salman", {"size": 14})],
         [("Ahmad Akhras · Diala Abubaker · Tala Yousef", {"size": 14})],
         [("Local event by NOVA · NASA Space Apps Challenge 2026", {"size": 12, "color": MUTED})],
     ])
@@ -197,7 +197,7 @@ def build(url, out_path, screenshot=None):
     tb(s, 0.75, 1.85, 4.2, 1.6, u("k_global", f"{N['k_global']}×"), size=88, bold=True, color=EMBER, align=PP_ALIGN.CENTER)
     tb(s, 0.75, 3.55, 4.2, 2.2, [
         [("more hotspots seen by VIIRS than MODIS for the same fires", {"size": 17, "bold": True})],
-        [("8 countries, 2012–2025 overlap years", {"size": 13, "color": MUTED})],
+        [("VIIRS S-NPP ÷ MODIS Aqua, all hotspots, 8 countries, calibration years 2012–2025", {"size": 12, "color": MUTED})],
     ], align=PP_ALIGN.CENTER)
     # bars: raw jump
     cd = CategoryChartData()
@@ -231,7 +231,7 @@ def build(url, out_path, screenshot=None):
 
     # ------------------------------------------------------------------ 3 sensors
     s = base(prs, 3, "Two eyes in the sky: MODIS 1 km since 2000, VIIRS 375 m since 2012, same afternoon orbit for Aqua and S-NPP, so we can compare them fairly",
-             speaker="Ahmed Etkadiek", notes=(
+             speaker="Ahmed Etkaidek", notes=(
                  "Let me introduce the two eyes. MODIS flies on Terra and Aqua and has watched since 2000 with pixels about one kilometre wide. "
                  "VIIRS, since 2012, sees 375 metre pixels, so about seven VIIRS pixels fit in one MODIS pixel and small fires are caught. "
                  "Aqua and S-NPP cross the equator at about 1:30 in the afternoon and night, so they look at the same fires at the same hour: "
@@ -250,7 +250,7 @@ def build(url, out_path, screenshot=None):
             h = min(side, 2.0 - j * side)
             if w > 0.02 and h > 0.02:
                 rect(s, 3.1 + i * side, 2.25 + j * side, w - 0.03, h - 0.03, NAVY)
-    tb(s, 3.0, 4.3, 2.3, 0.6, "VIIRS: ~7 pixels (375 m)", size=12, align=PP_ALIGN.CENTER)
+    tb(s, 3.0, 4.3, 2.3, 0.6, ["VIIRS: ~7 pixels (375 m)", [("pixel geometry, not a count", {"size": 9, "color": MUTED})]], size=12, align=PP_ALIGN.CENTER)
     tb(s, 0.55, 5.0, 4.8, 1.0, "Smaller pixels catch smaller fires, so VIIRS counts more hotspots.", size=13, color=INK2)
     # timeline
     tb(s, 5.8, 1.75, 7.0, 0.4, "Who watched when", size=14, bold=True)
@@ -414,8 +414,8 @@ def build(url, out_path, screenshot=None):
                  "Each of us owned one part, shown here, and we made the big decisions together. "
                  "We used an SI coding assistant to write the code, following our design; we checked the numbers against NASA FIRMS. "
                  "Thank you, scan the code and try Jamra yourself."))
-    team = [("Shahd Farraj", "Problem and users"), ("Ahmed Etkadiek", "NASA data (FIRMS, MODIS, VIIRS)"), ("Aya Salman", "Harmonization method"),
-            ("Ahmad Akhras", "Live demo and system"), ("Diala Abubaker", "Validation and limits"), ("Tala Yousef", "UX, design and impact")]
+    team = [("Shahd Farraj", "Problem & users"), ("Ahmed Etkaidek", "NASA data"), ("Aya Salman", "Harmonization"),
+            ("Ahmad Akhras", "Live demo"), ("Diala Abubaker", "Validation & limits"), ("Tala Yousef", "UX, impact & next steps")]
     for i, (nme, role) in enumerate(team):
         xx = 0.55 + (i % 3) * 2.75
         yy = 1.75 + (i // 3) * 1.15

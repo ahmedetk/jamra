@@ -40,7 +40,7 @@
     <div class="wrap">
       <p class="eyebrow">NASA FIRMS · MODIS + VIIRS · 2003 to today</p>
       <h1>Did fires really increase, or did our satellites get sharper eyes?</h1>
-      <p class="lead">In 2012 a sharper satellite sensor (VIIRS) joined the older one (MODIS). It sees about <strong data-k-global>2–3×</strong> more <span class="term" data-term="hotspot">hotspots</span> for the same fires. Joining the two records raw creates a fake rise. <span data-product-name>Jamra</span> puts both on one fair scale.</p>
+      <p class="lead">In 2012 a sharper satellite sensor (VIIRS) joined the older one (MODIS). In our 8 countries it recorded <strong data-k-global>6.2×</strong> as many <span class="term" data-term="hotspot">hotspots</span> as MODIS in the same months <span class="fine">(VIIRS S-NPP ÷ MODIS Aqua, all hotspots in the 2012–2025 calibration years, computed from NASA FIRMS)</span>. Joining the two records raw creates a fake rise. <span data-product-name>Jamra</span> puts both on one fair scale.</p>
       <div class="hero-card card">
         <div class="hero-head">
           <h2 id="hero-title" class="h3">Yearly hotspots</h2>
@@ -178,6 +178,7 @@
   <section id="alerts" class="wrap">
     <h2>Alert Center</h2>
     <p class="sub">Every 3 hours <span data-product-name>Jamra</span> pulls the newest NOAA-20 VIIRS hotspots from NASA FIRMS and asks: <em>is this month unusual here, compared with the same days in past years?</em></p>
+    <p class="note" id="scale-note">S-NPP stopped on 2 Nov 2026, so live counts come from VIIRS NOAA-20 and are converted to the S-NPP scale of our history (NOAA-20 × <span data-k-jn>0.97</span>, a factor measured on 2018–2025 overlap data). All live numbers in the Alert Center and the KPI cards are on the S-NPP scale; the live data table lists raw NOAA-20 detections.</p>
     <div id="alert-list" class="alert-list"></div>
     <p class="feeds">Public feeds: <a href="data/live/alerts.json">alerts.json</a> · <a href="data/live/alerts.xml">RSS</a> · <a href="data/live/status.json">status.json</a></p>
     <p class="note">Not an emergency service. Satellite data arrive with hours of delay. In an emergency, call your local emergency number (for example 112 in the EU and Türkiye).</p>
@@ -272,7 +273,7 @@
       <p>MapLibre GL JS (BSD-3-Clause) · OpenFreeMap tiles · © OpenStreetMap contributors (ODbL) · OpenMapTiles · Colour ramps: Viridis and Cividis (matplotlib, CC0), YlOrRd and RdBu (ColorBrewer, Apache-2.0). No NASA logos are used; NASA does not endorse this project.</p>
       <h3 class="h4">Use of Super Intelligence (SI)</h3>
       <p class="si">We used an SI coding assistant (Claude Code by Anthropic) to write the code for the data pipeline, website, live system and slides, following our design and decisions. The team chose the method, checked results against NASA FIRMS data, verified every reference, and wrote and rehearsed the pitch.</p>
-      <p>Open source (MIT licence): <a id="repo-link" href="#">GitHub repository</a></p>
+      <p>Open source (MIT licence): <a id="repo-link" href="https://github.com/ahmedetk/jamra">github.com/ahmedetk/jamra</a></p>
     </div>
   </section>
 
