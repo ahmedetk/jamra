@@ -32,13 +32,11 @@ jobs:
       - name: Unit tests
         run: PYTHONPATH=pipeline python -m pytest -q
       - name: Live ingest from NASA FIRMS (keeps last good data on failure)
-        if: github.event_name != 'push'
         env:
           FIRMS_MAP_KEY: ${{ secrets.FIRMS_MAP_KEY }}
           PYTHONPATH: pipeline
         run: python -m jamra.live --regions Global
       - name: Commit live data
-        if: github.event_name != 'push'
         run: |
           git config user.name "jamra-bot"
           git config user.email "jamra-bot@users.noreply.github.com"
