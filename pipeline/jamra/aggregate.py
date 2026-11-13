@@ -49,7 +49,7 @@ def raw_files(cache: Path) -> list[tuple[str, int, str, Path]]:
     out = []
     for sensor_dir in SENSOR_DIRS:
         s = cfg["firms"]["sensors"][sensor_dir]
-        for year in range(s["first_year"], s["last_year"] + 1):
+        for year in range(s["first_year"], s["last_year"] + 2):  # +1: months filled from the API (jamra.recent)
             for country in cfg["countries"]:
                 f = cache / "raw" / sensor_dir / str(year) / f"{s['prefix']}_{year}_{country}.csv"
                 if f.exists():

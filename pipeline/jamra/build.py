@@ -88,12 +88,14 @@ def build() -> dict:
                       "ratio_T_over_A": rnd(st / sa, 3) if sa else None,
                       "ratio_J_over_N": rnd(sj / sn_j, 3) if sn_j else None,
                       "per_country_N_over_A": per_country})
-    ratios = [d["ratio_N_over_A"] for d in drift if d["ratio_N_over_A"] and d["months"] >= 10]
+    ratios = [d["ratio_N_over_A"] for d in drift if d["ratio_N_over_A"] and d["months"] >= 10
+              and (d["year"] < last_day.year or last_day.month == 12)]
     ref = median(ratios)
     tol = 0.15
     if hcfg["calibration_years"] == "auto":
+        full_until = last_day.year if last_day.month == 12 else last_day.year - 1
         cal_years = [d["year"] for d in drift if d["ratio_N_over_A"] and d["months"] >= 10
-                     and abs(d["ratio_N_over_A"] / ref - 1) <= tol]
+                     and d["year"] <= full_until and abs(d["ratio_N_over_A"] / ref - 1) <= tol]
     else:
         cal_years = list(hcfg["calibration_years"])
     for d in drift:

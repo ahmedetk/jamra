@@ -1,6 +1,6 @@
 {
- "generated_utc": "2026-11-13T19:38:09+00:00",
- "data_through": "2025-12-31",
+ "generated_utc": "2026-11-13T20:38:34+00:00",
+ "data_through": "2026-10-31",
  "sensors": {
   "A": "MODIS Aqua",
   "T": "MODIS Terra",
@@ -339,6 +339,27 @@
     "Palestine": 9.357
    },
    "used_for_calibration": true
+  },
+  {
+   "year": 2026,
+   "months": 10,
+   "MODIS_Aqua": 7754,
+   "VIIRS_SNPP": 50825,
+   "MODIS_Terra": 7517,
+   "ratio_N_over_A": 6.555,
+   "ratio_T_over_A": 0.969,
+   "ratio_J_over_N": 1.026,
+   "per_country_N_over_A": {
+    "Portugal": 5.091,
+    "Spain": 6.347,
+    "Greece": 5.646,
+    "Turkey": 7.074,
+    "Cyprus": 9.308,
+    "Lebanon": 9.812,
+    "Jordan": 20.074,
+    "Palestine": 7.536
+   },
+   "used_for_calibration": false
   }
  ],
  "outages": [],
@@ -605,69 +626,69 @@
  },
  "noaa20_to_snpp": {
   "choice": "M1",
-  "why": "M1 (One global ratio) is the simplest model whose cross-validated MAE (40.1) is within 5% of the best (M1: 40.1).",
-  "global": 0.972,
+  "why": "M1 (One global ratio) is the simplest model whose cross-validated MAE (39.2) is within 5% of the best (M1: 39.2).",
+  "global": 0.973,
   "by_country": {
-   "Portugal": 0.972,
-   "Spain": 0.972,
-   "Greece": 0.972,
-   "Turkey": 0.972,
-   "Cyprus": 0.972,
-   "Lebanon": 0.972,
-   "Jordan": 0.972,
-   "Palestine": 0.972
+   "Portugal": 0.973,
+   "Spain": 0.973,
+   "Greece": 0.973,
+   "Turkey": 0.973,
+   "Cyprus": 0.973,
+   "Lebanon": 0.973,
+   "Jordan": 0.973,
+   "Palestine": 0.973
   },
   "cv": {
    "M0": {
     "monthly": {
-     "mae": 40.0,
-     "mdape": 0.13135113939704707,
-     "bias": 0.02847168672178087,
-     "r_log": 0.982530083066353,
-     "n": 736
+     "mae": 39.91789215686274,
+     "mdape": 0.12507046223224352,
+     "bias": 0.028149754931850558,
+     "r_log": 0.983489599210068,
+     "n": 816
     },
     "annual": {
-     "mae": 222.8125,
-     "mdape": 0.057698022646166205,
-     "bias": 0.02847168672178087,
-     "r_log": 0.9979934096426474,
-     "n": 64
+     "mae": 220.95833333333334,
+     "mdape": 0.05673707487903535,
+     "bias": 0.028149754931850558,
+     "r_log": 0.9978039279471863,
+     "n": 72
     }
    },
    "M1": {
     "monthly": {
-     "mae": 40.1219794768571,
-     "mdape": 0.1276746741298092,
-     "bias": 0.00013552543031917106,
-     "r_log": 0.9825409921191319,
-     "n": 736
+     "mae": 39.20310509527419,
+     "mdape": 0.12433415540942866,
+     "bias": 9.574926147500459e-05,
+     "r_log": 0.9835059573764523,
+     "n": 816
     },
     "annual": {
-     "mae": 233.30560104361922,
-     "mdape": 0.055246333953714935,
-     "bias": 0.00013552543031917106,
-     "r_log": 0.9979468958424749,
-     "n": 64
+     "mae": 215.7643598589586,
+     "mdape": 0.052662477304890695,
+     "bias": 9.574926147500459e-05,
+     "r_log": 0.9977692272161985,
+     "n": 72
     }
    },
    "M2": {
     "monthly": {
-     "mae": 40.73305832630395,
-     "mdape": 0.1347463443307903,
-     "bias": -0.0002723072591000792,
-     "r_log": 0.9826049423731734,
-     "n": 736
+     "mae": 39.56207969218553,
+     "mdape": 0.1323623643313006,
+     "bias": -9.086487524591366e-05,
+     "r_log": 0.983655387383251,
+     "n": 816
     },
     "annual": {
-     "mae": 251.09035606012117,
-     "mdape": 0.061458289595281566,
-     "bias": -0.0002723072591000792,
-     "r_log": 0.9976996814552517,
-     "n": 64
+     "mae": 227.3297440409868,
+     "mdape": 0.06415444194424397,
+     "bias": -9.086487524591366e-05,
+     "r_log": 0.9975610427207124,
+     "n": 72
     }
    }
   },
-  "months_used": 736
+  "months_used": 816
  },
  "frp_test": {
   "hypothesis": "Summed FRP is more stable between sensors than counts.",
@@ -1840,6 +1861,15 @@
   },
   {
    "country": "Portugal",
+   "sensor": "A",
+   "year": 2026,
+   "kept": 914,
+   "type_2": 9,
+   "low_confidence": 43,
+   "persistent_cell": 17
+  },
+  {
+   "country": "Portugal",
    "sensor": "T",
    "year": 2003,
    "kept": 2714,
@@ -2044,6 +2074,15 @@
   },
   {
    "country": "Portugal",
+   "sensor": "T",
+   "year": 2026,
+   "kept": 870,
+   "low_confidence": 37,
+   "persistent_cell": 18,
+   "type_2": 2
+  },
+  {
+   "country": "Portugal",
    "sensor": "N",
    "year": 2012,
    "type_2": 390,
@@ -2184,6 +2223,16 @@
   },
   {
    "country": "Portugal",
+   "sensor": "N",
+   "year": 2026,
+   "kept": 4697,
+   "type_2": 204,
+   "type_3": 25,
+   "low_confidence": 265,
+   "persistent_cell": 130
+  },
+  {
+   "country": "Portugal",
    "sensor": "J",
    "year": 2018,
    "type_2": 304,
@@ -2260,6 +2309,16 @@
    "persistent_cell": 71,
    "low_confidence": 792,
    "type_3": 2
+  },
+  {
+   "country": "Portugal",
+   "sensor": "J",
+   "year": 2026,
+   "kept": 4537,
+   "type_2": 224,
+   "persistent_cell": 133,
+   "type_3": 23,
+   "low_confidence": 250
   },
   {
    "country": "Spain",
@@ -2489,6 +2548,15 @@
    "type_2": 113,
    "low_confidence": 204,
    "type_3": 1
+  },
+  {
+   "country": "Spain",
+   "sensor": "A",
+   "year": 2026,
+   "type_2": 97,
+   "kept": 2938,
+   "low_confidence": 138,
+   "persistent_cell": 40
   },
   {
    "country": "Spain",
@@ -2727,6 +2795,15 @@
   },
   {
    "country": "Spain",
+   "sensor": "T",
+   "year": 2026,
+   "kept": 2900,
+   "type_2": 118,
+   "low_confidence": 145,
+   "persistent_cell": 56
+  },
+  {
+   "country": "Spain",
    "sensor": "N",
    "year": 2012,
    "kept": 16370,
@@ -2870,6 +2947,16 @@
   },
   {
    "country": "Spain",
+   "sensor": "N",
+   "year": 2026,
+   "kept": 19365,
+   "persistent_cell": 971,
+   "type_2": 1564,
+   "low_confidence": 1386,
+   "type_3": 12
+  },
+  {
+   "country": "Spain",
    "sensor": "J",
    "year": 2018,
    "type_2": 3945,
@@ -2948,6 +3035,16 @@
    "persistent_cell": 492,
    "low_confidence": 1811,
    "type_3": 15
+  },
+  {
+   "country": "Spain",
+   "sensor": "J",
+   "year": 2026,
+   "kept": 19816,
+   "persistent_cell": 1009,
+   "type_2": 1849,
+   "low_confidence": 1589,
+   "type_3": 26
   },
   {
    "country": "Greece",
@@ -3159,6 +3256,16 @@
    "persistent_cell": 1,
    "type_2": 9,
    "type_3": 1
+  },
+  {
+   "country": "Greece",
+   "sensor": "A",
+   "year": 2026,
+   "kept": 548,
+   "low_confidence": 32,
+   "type_2": 18,
+   "persistent_cell": 6,
+   "type_3": 5
   },
   {
    "country": "Greece",
@@ -3377,6 +3484,16 @@
   },
   {
    "country": "Greece",
+   "sensor": "T",
+   "year": 2026,
+   "kept": 298,
+   "type_2": 19,
+   "low_confidence": 30,
+   "persistent_cell": 5,
+   "type_3": 7
+  },
+  {
+   "country": "Greece",
    "sensor": "N",
    "year": 2012,
    "kept": 7208,
@@ -3517,6 +3634,16 @@
   },
   {
    "country": "Greece",
+   "sensor": "N",
+   "year": 2026,
+   "type_2": 327,
+   "kept": 3129,
+   "persistent_cell": 69,
+   "low_confidence": 187,
+   "type_3": 13
+  },
+  {
+   "country": "Greece",
    "sensor": "J",
    "year": 2018,
    "kept": 2311,
@@ -3594,6 +3721,16 @@
    "persistent_cell": 72,
    "type_3": 38,
    "low_confidence": 280
+  },
+  {
+   "country": "Greece",
+   "sensor": "J",
+   "year": 2026,
+   "kept": 3195,
+   "type_2": 413,
+   "type_3": 15,
+   "persistent_cell": 97,
+   "low_confidence": 225
   },
   {
    "country": "Turkey",
@@ -3814,6 +3951,15 @@
    "type_2": 377,
    "low_confidence": 193,
    "type_3": 2
+  },
+  {
+   "country": "Turkey",
+   "sensor": "A",
+   "year": 2026,
+   "kept": 3732,
+   "persistent_cell": 504,
+   "type_2": 322,
+   "low_confidence": 183
   },
   {
    "country": "Turkey",
@@ -4048,6 +4194,16 @@
   },
   {
    "country": "Turkey",
+   "sensor": "T",
+   "year": 2026,
+   "kept": 4211,
+   "type_2": 789,
+   "low_confidence": 271,
+   "persistent_cell": 791,
+   "type_3": 3
+  },
+  {
+   "country": "Turkey",
    "sensor": "N",
    "year": 2012,
    "kept": 21445,
@@ -4188,6 +4344,16 @@
   },
   {
    "country": "Turkey",
+   "sensor": "N",
+   "year": 2026,
+   "type_2": 7018,
+   "type_3": 111,
+   "kept": 28801,
+   "persistent_cell": 5965,
+   "low_confidence": 3712
+  },
+  {
+   "country": "Turkey",
    "sensor": "J",
    "year": 2018,
    "kept": 21198,
@@ -4265,6 +4431,16 @@
    "persistent_cell": 5400,
    "low_confidence": 2500,
    "type_3": 279
+  },
+  {
+   "country": "Turkey",
+   "sensor": "J",
+   "year": 2026,
+   "type_2": 8513,
+   "kept": 29988,
+   "persistent_cell": 6344,
+   "type_3": 126,
+   "low_confidence": 4198
   },
   {
    "country": "Cyprus",
@@ -4425,6 +4601,12 @@
   },
   {
    "country": "Cyprus",
+   "sensor": "A",
+   "year": 2026,
+   "kept": 13
+  },
+  {
+   "country": "Cyprus",
    "sensor": "T",
    "year": 2003,
    "kept": 52,
@@ -4580,6 +4762,12 @@
   },
   {
    "country": "Cyprus",
+   "sensor": "T",
+   "year": 2026,
+   "kept": 7
+  },
+  {
+   "country": "Cyprus",
    "sensor": "N",
    "year": 2012,
    "kept": 207,
@@ -4694,6 +4882,14 @@
   },
   {
    "country": "Cyprus",
+   "sensor": "N",
+   "year": 2026,
+   "kept": 121,
+   "type_2": 58,
+   "low_confidence": 11
+  },
+  {
+   "country": "Cyprus",
    "sensor": "J",
    "year": 2018,
    "type_2": 175,
@@ -4757,6 +4953,14 @@
    "type_2": 119,
    "low_confidence": 22,
    "type_3": 2
+  },
+  {
+   "country": "Cyprus",
+   "sensor": "J",
+   "year": 2026,
+   "kept": 192,
+   "type_2": 75,
+   "low_confidence": 14
   },
   {
    "country": "Lebanon",
@@ -4945,6 +5149,15 @@
   },
   {
    "country": "Lebanon",
+   "sensor": "A",
+   "year": 2026,
+   "kept": 85,
+   "type_2": 5,
+   "persistent_cell": 5,
+   "low_confidence": 1
+  },
+  {
+   "country": "Lebanon",
    "sensor": "T",
    "year": 2003,
    "kept": 19,
@@ -5125,6 +5338,15 @@
   },
   {
    "country": "Lebanon",
+   "sensor": "T",
+   "year": 2026,
+   "kept": 43,
+   "type_2": 6,
+   "persistent_cell": 2,
+   "low_confidence": 4
+  },
+  {
+   "country": "Lebanon",
    "sensor": "N",
    "year": 2012,
    "kept": 391,
@@ -5263,6 +5485,16 @@
   },
   {
    "country": "Lebanon",
+   "sensor": "N",
+   "year": 2026,
+   "kept": 845,
+   "type_2": 270,
+   "persistent_cell": 60,
+   "type_3": 4,
+   "low_confidence": 131
+  },
+  {
+   "country": "Lebanon",
    "sensor": "J",
    "year": 2018,
    "kept": 355,
@@ -5338,6 +5570,15 @@
    "persistent_cell": 78,
    "type_3": 4,
    "low_confidence": 65
+  },
+  {
+   "country": "Lebanon",
+   "sensor": "J",
+   "year": 2026,
+   "type_2": 301,
+   "kept": 915,
+   "persistent_cell": 80,
+   "low_confidence": 127
   },
   {
    "country": "Jordan",
@@ -5501,6 +5742,14 @@
   },
   {
    "country": "Jordan",
+   "sensor": "A",
+   "year": 2026,
+   "kept": 27,
+   "low_confidence": 1,
+   "type_2": 8
+  },
+  {
+   "country": "Jordan",
    "sensor": "T",
    "year": 2003,
    "kept": 9
@@ -5657,6 +5906,14 @@
   },
   {
    "country": "Jordan",
+   "sensor": "T",
+   "year": 2026,
+   "kept": 26,
+   "low_confidence": 2,
+   "type_2": 7
+  },
+  {
+   "country": "Jordan",
    "sensor": "N",
    "year": 2012,
    "kept": 262,
@@ -5785,6 +6042,15 @@
   },
   {
    "country": "Jordan",
+   "sensor": "N",
+   "year": 2026,
+   "type_2": 217,
+   "kept": 564,
+   "low_confidence": 67,
+   "persistent_cell": 22
+  },
+  {
+   "country": "Jordan",
    "sensor": "J",
    "year": 2018,
    "type_2": 160,
@@ -5857,6 +6123,16 @@
    "type_3": 1,
    "low_confidence": 65,
    "persistent_cell": 28
+  },
+  {
+   "country": "Jordan",
+   "sensor": "J",
+   "year": 2026,
+   "type_2": 269,
+   "kept": 579,
+   "persistent_cell": 35,
+   "low_confidence": 62,
+   "type_3": 2
   },
   {
    "country": "Palestine",
@@ -6039,6 +6315,15 @@
    "persistent_cell": 4,
    "type_2": 4,
    "low_confidence": 2
+  },
+  {
+   "country": "Palestine",
+   "sensor": "A",
+   "year": 2026,
+   "kept": 73,
+   "type_2": 6,
+   "persistent_cell": 4,
+   "low_confidence": 1
   },
   {
    "country": "Palestine",
@@ -6225,6 +6510,14 @@
   },
   {
    "country": "Palestine",
+   "sensor": "T",
+   "year": 2026,
+   "kept": 40,
+   "type_2": 2,
+   "persistent_cell": 6
+  },
+  {
+   "country": "Palestine",
    "sensor": "N",
    "year": 2012,
    "kept": 214,
@@ -6347,6 +6640,15 @@
   },
   {
    "country": "Palestine",
+   "sensor": "N",
+   "year": 2026,
+   "kept": 586,
+   "low_confidence": 85,
+   "type_2": 149,
+   "persistent_cell": 66
+  },
+  {
+   "country": "Palestine",
    "sensor": "J",
    "year": 2018,
    "kept": 175,
@@ -6414,6 +6716,16 @@
    "kept": 356,
    "persistent_cell": 113,
    "low_confidence": 56
+  },
+  {
+   "country": "Palestine",
+   "sensor": "J",
+   "year": 2026,
+   "kept": 711,
+   "type_2": 168,
+   "persistent_cell": 87,
+   "low_confidence": 77,
+   "type_3": 2
   }
  ],
  "scatter": [

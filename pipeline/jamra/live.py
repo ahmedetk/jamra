@@ -270,7 +270,7 @@ def write_feeds(live_dir: Path, live: dict, meta: dict) -> None:
         f"<guid isPermaLink=\"false\">{escape(a['area'])}-{a['month']}-{a['level']}</guid><pubDate>{pub}</pubDate></item>"
         for a in alerts)
     rss = (f'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Jamra unusual fire activity alerts</title>'
-           f"<link>https://github.com/</link><description>Areas where this month's satellite hotspots are unusual "
+           f"<link>https://ahmedetk.github.io/jamra/</link><description>Areas where this month's satellite hotspots are unusual "
            f"compared with the same days in past years. Data: NASA FIRMS.</description><lastBuildDate>{pub}</lastBuildDate>"
            f"{items}</channel></rss>")
     (live_dir / "alerts.xml").write_text(rss, encoding="utf-8")

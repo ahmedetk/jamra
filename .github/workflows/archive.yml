@@ -29,6 +29,11 @@ jobs:
         env:
           PYTHONPATH: pipeline
         run: python -m jamra.download --workers 6
+      - name: Fill months after the newest yearly archive from the FIRMS API
+        env:
+          PYTHONPATH: pipeline
+          FIRMS_MAP_KEY: ${{ secrets.FIRMS_MAP_KEY }}
+        run: python -m jamra.build && python -m jamra.recent || echo "API fill skipped"
       - name: Rebuild harmonization and website data
         env:
           PYTHONPATH: pipeline
