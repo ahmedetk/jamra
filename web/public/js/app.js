@@ -3,7 +3,7 @@ import { $, $$, el, svg, fmt, fmtInt, pct, MONTHS, MONTHS_LONG, store, downloadB
 import { BASE, getJSON, loadArea, customArea, monthlyValues, monthLabel, monthIndex } from './data.js';
 import { heroChart, monthBars, scatter, errorBars, driftChart } from './charts.js';
 import { renderCalendar, CAT_TEXT } from './calendar.js';
-import { initMap, showArea, showLive, startDraw, clearDraw } from './map.js';
+import { initMap, showArea, showLive, startDraw, clearDraw, initGlobe, webglOK } from './map.js';
 import { loadLive, loadStatus, renderBadge, renderAlerts, renderStatusPanel, areaWarning, fetchLive, renderTable, downloadLiveCSV, LEVEL_LABEL, liveState, periodText } from './live.js';
 import { renderValidation, renderLimits } from './pages.js';
 import { downloadSummary } from './summary.js';
@@ -124,9 +124,44 @@ async function boot() {
   renderStatic();
   if (has('#map')) initMap($('#map'));
   if (['home', 'calendar', 'live'].includes(PAGE)) await selectArea(state.custom ? null : state.areaId, state.custom);
-  refreshLive();
+  await refreshLive();
   setInterval(refreshLive, 10 * 60 * 1000);
+  if (PAGE === 'home') homeExtras();
   if ('serviceWorker' in navigator && location.hostname !== 'localhost') navigator.serviceWorker.register(BASE + 'sw.js', { scope: BASE }).catch(() => {});
+}
+
+function renderLiveChip() {
+  const t = $('#live-chip .txt');
+  const s = liveState(status, live);
+  if (s.state === 'none') { t.textContent = 'Live data unavailable right now · Data: NASA FIRMS'; return; }
+  const h = s.hours;
+  const ago = h < 1 ? `${Math.max(1, Math.round(h * 60))} min ago` : h < 48 ? `${Math.round(h)} h ago` : `${Math.round(h / 24)} days ago`;
+  t.textContent = `${fmtInt(live.points.length)} hotspots in the last 7 days · updated ${ago} · Data: NASA FIRMS`;
+}
+
+function homeExtras() {
+  const v = report.validation;
+  if (v && has('#big-err')) {
+    const tc = v.test_countries;
+    $('#big-err').textContent = `${pct(tc.M0.mdape)} → ${pct(tc[report.chosen_model].mdape)}`;
+    $('#big-err-text').textContent = `Typical monthly error, raw MODIS → harmonized, on test years ${v.test_years[0]}–${v.test_years[v.test_years.length - 1]} that the model never saw. High-fire months caught: ${v.confusion_countries.harmonized.hits} of ${v.confusion_countries.harmonized.hits + v.confusion_countries.harmonized.misses}.`;
+  }
+  // the 3D globe: only when it helps and costs little (wide screen, motion allowed, WebGL available)
+  const ok = has('#globe') && innerWidth >= 900 && !matchMedia('(prefers-reduced-motion: reduce)').matches && webglOK() && !(navigator.connection && navigator.connection.saveData);
+  if (!ok) return;
+  const go = () => {
+    const lvl = live?.areas || {};
+    const areas = meta.areas.filter((a) => a.kind === 'preset').map((a) => ({
+      id: a.id, label: a.label, center: [(a.box[0] + a.box[2]) / 2, (a.box[1] + a.box[3]) / 2], level: LEVEL_LABEL[lvl[a.id]?.level || 'unknown'],
+    }));
+    initGlobe($('#globe'), {
+      points: live?.points || [], areas,
+      onPick: (id) => { location.href = `${BASE}calendar/?area=${id}&from=${state.from}&to=${state.to}`; },
+      onReady: () => { $('#globe-fallback').style.display = 'none'; },
+    }).catch((e) => console.warn('globe unavailable', e?.message));
+  };
+  const later = window.requestIdleCallback || ((f) => setTimeout(f, 1200));
+  if (document.readyState === 'complete') later(go); else addEventListener('load', () => later(go));
 }
 
 function setupMenu() {
@@ -148,6 +183,7 @@ async function refreshLive() {
   renderAlerts(live, meta, status, (id) => { location.href = `${BASE}calendar/?area=${id}&from=${state.from}&to=${state.to}`; });
   applyLiveLayer();
   if (area && has('#kpi-grid')) renderKPIs();
+  if (has('#live-chip')) renderLiveChip();
 }
 
 function applyLiveLayer() {
@@ -464,7 +500,7 @@ function areaUnc() {
 }
 
 function renderCalendarNow() {
-  if (!area) return;
+  if (!area || !has('#cal')) return;
   $$('[data-unc-label]').forEach((n) => { n.textContent = `±${Math.round(areaUnc() * 100)}% on a month`; });
   const ys = years;
   let grid;
@@ -584,7 +620,7 @@ function renderSeason() {
   const x = (y) => mL + ((y - ys[0]) / Math.max(1, ys[ys.length - 1] - ys[0])) * (W - mL - 20);
   const yy = (m) => 10 + ((m - 1) / 11) * (H - 30);
   [1, 4, 7, 10].forEach((m) => { s.append(svg('text', { x: 4, y: yy(m) + 4, 'font-size': 11, fill: '#5f6b80' }, document.createTextNode(MONTHS[m - 1]))); s.append(svg('line', { x1: mL, x2: W - 20, y1: yy(m), y2: yy(m), stroke: '#eef0f4' })); });
-  sy.forEach((y, i) => s.append(svg('circle', { cx: x(y), cy: yy(starts[i]), r: 5, fill: y < 2012 ? '#7b8db5' : '#14213d' })));
+  sy.forEach((y, i) => s.append(svg('circle', { cx: x(y), cy: yy(starts[i]), r: 5, fill: y < 2012 ? '#3FA9F5' : '#1F4FD8' })));
   sy.filter((y, i) => i % 3 === 0).forEach((y) => s.append(svg('text', { x: x(y), y: H - 4, 'text-anchor': 'middle', 'font-size': 11, fill: '#5f6b80' }, document.createTextNode(String(y)))));
   box.append(s);
 }

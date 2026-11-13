@@ -23,9 +23,9 @@ export function rampCSS(name) {
   return `linear-gradient(90deg, ${stops.join(', ')})`;
 }
 
-// Diverging, colourblind-safe 5-class RdBu for anomaly categories.
+// Diverging blue <-> orange (colourblind-safe), matching Jamra's sky blue and ember.
 export const CAT_COLOR = {
-  much_lower: '#2166ac', lower: '#92c5de', typical: '#f7f7f7', higher: '#f4a582', much_higher: '#b2182b',
+  much_lower: '#1D4E9E', lower: '#8CBDEB', typical: '#F1F3F7', higher: '#FDB07F', much_higher: '#D9480F',
 };
 
 export function textOn(hex) {

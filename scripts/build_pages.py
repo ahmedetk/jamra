@@ -9,6 +9,50 @@ from pathlib import Path
 
 PUB = Path(__file__).resolve().parents[1] / "web" / "public"
 
+def logo(ring="#FFFFFF", size=34):
+    """Flat Jamra mark: an ember flame with one orbit ring."""
+    return (f'<svg viewBox="0 0 48 48" width="{size}" height="{size}" aria-hidden="true">'
+            f'<ellipse cx="24" cy="28" rx="21" ry="8.5" transform="rotate(-20 24 28)" fill="none" stroke="{ring}" stroke-width="2.6" opacity=".9"/>'
+            '<path d="M24 5c2.6 6.6 10.5 10.6 10.5 20.4A10.5 10.5 0 0 1 13.5 25.4c0-5.6 2.8-8.6 4.7-11.4 1 3.6 2.6 5.4 4.8 5.6-1.6-5.6 0-10.6 1-14.6z" fill="#FF6A2B"/>'
+            '<path d="M24 20.5c1.4 3 4.8 4.7 4.8 8.6a4.8 4.8 0 0 1-9.6 0c0-2.2 1.2-3.6 2-4.6.5 1.4 1.2 2.2 2 2.2-.6-2.4.2-4.4.8-6.2z" fill="#FFD3B8"/>'
+            '</svg>')
+
+
+# Lucide icons (ISC licence), inline so no icon font is needed
+ICON = {
+    "calendar": '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+    "bell": '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+    "radio": '<path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/>',
+    "check": '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>',
+    "arrow": '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+}
+
+
+def icon(name, cls="icon"):
+    return f'<svg class="{cls}" viewBox="0 0 24 24" aria-hidden="true">{ICON[name]}</svg>'
+
+
+PURPOSE = {
+    "calendar": ("Burning Activity Calendar", "Fire activity for any area, month by month from 2003 to today, compared with its usual."),
+    "alerts": ("Alerts", "Is this month unusual here? Checked every 3 hours against the same days in past years."),
+    "live": ("Live Data", "The newest satellite fire detections from NASA FIRMS for any area, ready to download."),
+    "how-it-works": ("How It Works", "How we put 20+ years of MODIS and VIIRS hotspots on one fair scale."),
+    "validation": ("Validation", "How well it works, tested on years the model never saw."),
+    "limits": ("Limits", "What the data can and cannot tell you, and how sure each number is."),
+    "credits": ("Credits", "Data sources, references, our use of Super Intelligence (SI), and the team."),
+}
+
+GLOBE_FALLBACK = """<svg viewBox="0 0 400 400" role="img" aria-label="Globe illustration">
+  <defs><radialGradient id="gsea" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#4F86F0"/><stop offset=".7" stop-color="#2B5FDB"/><stop offset="1" stop-color="#173C9E"/></radialGradient></defs>
+  <circle cx="200" cy="200" r="170" fill="url(#gsea)"/>
+  <g fill="none" stroke="#9DBBF5" stroke-opacity=".35" stroke-width="1.2">
+    <ellipse cx="200" cy="200" rx="170" ry="60"/><ellipse cx="200" cy="200" rx="170" ry="120"/><ellipse cx="200" cy="200" rx="60" ry="170"/><ellipse cx="200" cy="200" rx="120" ry="170"/><path d="M30 200h340M200 30v340"/>
+  </g>
+  <path d="M118 128c22-14 58-18 82-8 18 8 40 4 56 14 12 8 6 22-8 26-18 6-26 20-46 22-22 2-30-12-50-10-18 2-40-4-46-18-4-10 2-20 12-26z" fill="#CFE0FA" opacity=".85"/>
+  <path d="M182 196c14-6 34 0 40 14 6 16-4 40-16 58-8 12-22 10-26-4-4-18-14-26-12-44 1-12 4-20 14-24z" fill="#CFE0FA" opacity=".85"/>
+  <g fill="#FF6A2B"><circle cx="160" cy="152" r="3.5"/><circle cx="214" cy="146" r="3.5"/><circle cx="236" cy="158" r="3"/><circle cx="140" cy="140" r="3"/><circle cx="196" cy="160" r="2.5"/></g>
+</svg>"""
+
 PAGES = [  # slug, nav label, title
     ("", "Home", "Jamra · Burning Activity Calendar"),
     ("calendar", "Calendar", "Calendar · Jamra"),
@@ -80,14 +124,39 @@ AREA_PICKER = """
 
 BODY = {
 "": """
-  <section id="hero" class="hero">
+  <section class="hero" id="hero">
+    <span class="orbit" style="width:760px;height:760px;right:-220px;top:-120px"></span>
+    <span class="orbit" style="width:1040px;height:1040px;right:-360px;top:-260px"></span>
+    <span class="orbit" style="width:1320px;height:1320px;right:-500px;top:-400px"></span>
+    <div class="wrap hero-grid">
+      <div class="hero-text">
+        <p class="eyebrow">NASA FIRMS · MODIS + VIIRS · 2003 to today</p>
+        <h1>Did fires really increase — or did our satellites get sharper eyes?</h1>
+        <p class="lead">Jamra joins 20+ years of NASA MODIS and VIIRS fire data into one fair calendar, with live early warning.</p>
+        <div class="cta-row">
+          <a class="btn primary big" id="evia-btn" href="calendar/?area=evia&amp;from=2003&amp;to=2025&amp;month=2007-08&amp;mode=abs&amp;detail=1">Try the Evia 2007 example</a>
+          <a class="btn outline-white big" data-nav href="calendar/">Open the Calendar</a>
+        </div>
+        <p class="live-chip" id="live-chip"><span class="dot" aria-hidden="true"></span><span class="txt">Loading live NASA FIRMS data…</span></p>
+      </div>
+      <div class="hero-globe">
+        <div class="globe-box">
+          <div class="globe-fallback" id="globe-fallback">""" + GLOBE_FALLBACK + """</div>
+          <div id="globe" class="map" role="img" aria-label="Globe with recent fire hotspots from NASA FIRMS"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="problem" class="band">
     <div class="wrap">
-      <p class="eyebrow">NASA FIRMS · MODIS + VIIRS · 2003 to today</p>
-      <h1>Did fires really increase, or did our satellites get sharper eyes?</h1>
-      <p class="lead">In 2012 a sharper satellite sensor (VIIRS) joined the older one (MODIS). In our 8 countries it recorded <strong data-k-global>6.2×</strong> as many <span class="term" data-term="hotspot">hotspots</span> as MODIS in the same months <span class="fine">(VIIRS S-NPP ÷ MODIS Aqua, all hotspots in the calibration years 2012–2025, from NASA FIRMS)</span>. Joining the two records raw creates a fake rise. <span data-product-name>Jamra</span> puts both on one fair scale.</p>
-      <div class="hero-card card">
-        <div class="hero-head">
-          <h2 id="hero-title" class="h3">Yearly hotspots</h2>
+      <div class="section-head">
+        <h2>The problem in one picture</h2>
+        <p>In our 8 countries the sharper VIIRS sensor recorded <strong data-k-global>6.2×</strong> as many <span class="term" data-term="hotspot">hotspots</span> as MODIS in the same months, so the raw record jumps in 2012. Switch to Harmonized to see the fair record.</p>
+      </div>
+      <div class="card">
+        <div class="hero-head row" style="justify-content:space-between">
+          <h3 id="hero-title" style="margin:0">Yearly hotspots</h3>
           <div class="row">
             <label class="sr" for="hero-area">Area</label>
             <select id="hero-area" aria-label="Area for the chart"></select>
@@ -100,30 +169,33 @@ BODY = {
         <div id="hero-chart" class="chart" role="img" aria-label="Yearly hotspot chart"></div>
         <p id="hero-caption" class="caption"></p>
       </div>
-      <div class="cta-row">
-        <a class="btn primary big" id="evia-btn" href="calendar/?area=evia&amp;from=2003&amp;to=2025&amp;month=2007-08&amp;mode=abs&amp;detail=1">Try the Evia 2007 example</a>
-        <a class="btn big" data-nav href="calendar/">Open the calendar</a>
-        <a class="btn big" data-nav href="alerts/">See today's alerts</a>
-      </div>
     </div>
   </section>
-  <section class="band">
+
+  <section id="what">
     <div class="wrap">
-      <h2 class="h3">Who it is for</h2>
-      <div class="users">
-        <div class="card"><b>Emergency managers and early-warning teams</b><span>Is this month unusual here, right now?</span></div>
-        <div class="card"><b>Firefighting teams</b><span>Where are the newest hotspots?</span></div>
-        <div class="card"><b>Land and forest managers</b><span>When does the fire season start and peak?</span></div>
-        <div class="card"><b>Scientists and researchers</b><span>A consistent 2003–today record, with CSV downloads.</span></div>
+      <div class="section-head"><h2>What you can do</h2><p>For emergency managers, firefighting teams, land and forest managers, and scientists.</p></div>
+      <div class="feature-cards">
+        <div class="card feature"><span class="ic">""" + icon("calendar") + """</span><h3>Calendar</h3><p>See any area's fire history, month by month, compared with its usual.</p><a data-nav href="calendar/">Open the Calendar →</a></div>
+        <div class="card feature"><span class="ic">""" + icon("bell") + """</span><h3>Alerts</h3><p>Know if this month is unusual, checked every 3 hours.</p><a data-nav href="alerts/">See today's alerts →</a></div>
+        <div class="card feature"><span class="ic">""" + icon("radio") + """</span><h3>Live data</h3><p>Get the newest NASA FIRMS detections for your area as a table or CSV.</p><a data-nav href="live/">Get live data →</a></div>
       </div>
-      <p class="fine">Village councils, municipalities and farmers benefit through the local authorities and civil protection teams that use Jamra.</p>
+      <p class="fine" style="margin-top:14px">Village councils, municipalities and farmers benefit through the local authorities and civil protection teams that use Jamra.</p>
+    </div>
+  </section>
+
+  <section id="works" class="band">
+    <div class="wrap bignum">
+      <div><h2 style="margin-bottom:6px">Does it work?</h2><span class="n" id="big-err">87% → 40%</span></div>
+      <p id="big-err-text">Typical monthly error, raw MODIS → harmonized, on years the model never saw.</p>
+      <a class="btn" data-nav href="validation/">See the validation """ + icon("arrow") + """</a>
     </div>
   </section>""",
 
 "calendar": AREA_PICKER + """
   <section id="kpis" class="wrap">
     <div class="range-row">
-      <h1 class="h2" id="area-title">Burning Activity Calendar</h1>
+      <h2 class="h3" id="area-title">Selected area</h2>
       <div class="range">
         <label>From <select id="from-year"></select></label>
         <label>To <select id="to-year"></select></label>
@@ -173,8 +245,6 @@ BODY = {
 
 "alerts": """
   <section id="alerts" class="wrap">
-    <h1 class="h2">Alert Center</h1>
-    <p class="sub">Is this month unusual here, compared with the same days in past years? Updated every 3 hours from NASA FIRMS.</p>
     <div id="data-status" class="status-panel" aria-live="polite"></div>
     <p class="note" id="scale-note">Live counts come from VIIRS NOAA-20 (S-NPP stopped on 2 Nov 2026) and are converted to the S-NPP scale of our history: NOAA-20 × <span data-k-jn>0.97</span>, a factor measured on 2018–2025 data.</p>
     <div id="alert-list" class="alert-list"></div>
@@ -184,7 +254,6 @@ BODY = {
 
 "live": AREA_PICKER + """
   <section id="live" class="wrap">
-    <h1 class="h2">Live NASA data</h1>
     <p class="sub">Newest VIIRS NOAA-20 detections for the selected area, from the NASA FIRMS API (near real time). Raw detections, not converted.</p>
     <form id="live-form" class="row live-row">
       <label>Last <select name="days">
@@ -199,7 +268,6 @@ BODY = {
 
 "how-it-works": """
   <section id="how" class="wrap">
-    <h1 class="h2">How it works</h1>
     <ol class="steps">
       <li class="card"><span class="num">1</span><h2 class="h3">Overlap years</h2><p>From 2012 both sensors watched the same fires. MODIS on Aqua and VIIRS on S-NPP pass at the same time of day (about 1:30 pm and 1:30 am).</p></li>
       <li class="card"><span class="num">2</span><h2 class="h3">Conversion factor</h2><p>For each country and calendar month we measure VIIRS hotspots per MODIS hotspot. A small area gets its own factor, pulled toward the country value when it has few detections: k = (V + λ·k<sub>country</sub>) / (M + λ).</p></li>
@@ -215,7 +283,6 @@ BODY = {
 
 "validation": """
   <section id="validation" class="wrap">
-    <h1 class="h2">Validation</h1>
     <div class="card split" id="split-text"></div>
     <div class="kpi-grid" id="test-kpis"></div>
     <div class="grid-2">
@@ -236,7 +303,6 @@ BODY = {
 
 "limits": """
   <section id="limits" class="wrap">
-    <h1 class="h2">Limits and uncertainty</h1>
     <div class="kpi-grid" id="unc-kpis"></div>
     <ul class="limits">
       <li><strong>Hotspots are not fires</strong> and not burned area. One big fire makes many hotspots.</li>
@@ -253,7 +319,7 @@ BODY = {
 
 "credits": """
   <section id="credits" class="wrap">
-    <h1 class="h2">Data and credits</h1>
+    <h2>Data sources</h2>
     <p class="ack">We acknowledge the use of data and/or imagery from NASA's Fire Information for Resource Management System (FIRMS) (<a href="https://earthdata.nasa.gov/firms">https://earthdata.nasa.gov/firms</a>), part of NASA's Land, Atmosphere Near real-time Capability for Earth observations (LANCE) (<a href="https://earthdata.nasa.gov/lance">https://earthdata.nasa.gov/lance</a>) and NASA's Earth Science Data and Information System (ESDIS).</p>
     <h2 class="h4">Data used</h2>
     <ul>
@@ -302,6 +368,10 @@ def page(slug, label, title):
         f'      <a href="{R}{s + "/" if s else ""}" data-nav{" aria-current=\"page\"" if s == slug else ""}>{lab}</a>'
         for s, lab, _ in PAGES)
     body = BODY[slug].replace('href="calendar/', f'href="{R}calendar/').replace('href="alerts/', f'href="{R}alerts/')
+    band = ""
+    if slug in PURPOSE:
+        t, purpose = PURPOSE[slug]
+        band = f'<div class="page-band"><div class="wrap"><h1>{t}</h1><p>{purpose}</p></div></div>\n'
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -309,10 +379,16 @@ def page(slug, label, title):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 <meta name="description" content="Jamra harmonizes 20+ years of NASA MODIS and VIIRS active-fire hotspots into one fair burning activity calendar, with live early warning from NASA FIRMS.">
-<meta name="theme-color" content="#14213d">
+<meta name="theme-color" content="#0B1D51">
+<meta property="og:title" content="Jamra · one fair fire record from two satellites">
+<meta property="og:description" content="20+ years of NASA MODIS and VIIRS fire data in one fair calendar, with live early warning.">
+<meta property="og:image" content="https://ahmedetk.github.io/jamra/icons/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="{R}fonts/plus-jakarta-sans-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
 {REDIRECT if slug == "" else ""}
 <link rel="manifest" href="{R}manifest.webmanifest">
 <link rel="icon" href="{R}icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="{R}icons/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="{R}icons/icon-192.png">
 <link rel="stylesheet" href="{R}css/app.css">
 <!-- Generated by scripts/build_pages.py. Code written with the help of an SI coding assistant (Claude Code by Anthropic). -->
@@ -321,10 +397,7 @@ def page(slug, label, title):
 <a class="skip" href="#main">Skip to content</a>
 <header class="top">
   <div class="wrap top-in">
-    <a class="brand" href="{R}" data-nav aria-label="Jamra home">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3c2 5 8 8 8 15a8 8 0 0 1-16 0c0-4 2-6 3-8 1 3 2 4 4 4-1-4 0-8 1-11z" fill="currentColor"/></svg>
-      <span data-product-name>Jamra</span>
-    </a>
+    <a class="brand" href="{R}" data-nav aria-label="Jamra home">{logo()}<span data-product-name>Jamra</span></a>
     <button id="menu-btn" class="menu-btn" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
     <nav aria-label="Main" class="nav" id="site-nav">
 {nav}
@@ -335,11 +408,30 @@ def page(slug, label, title):
   </div>
 </header>
 <main id="main">
-{body}
+{band}{body}
 </main>
 <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
 <div id="term-pop" class="term-pop" role="dialog" aria-modal="false" hidden></div>
-<footer class="foot"><div class="wrap">Jamra · Team Astro Byte · Data: NASA FIRMS · <a href="{R}credits/" data-nav>Credits</a></div></footer>
+<footer class="foot">
+  <div class="wrap foot-grid">
+    <div>
+      <a class="brand" href="{R}" data-nav aria-label="Jamra home">{logo()}<span>Jamra</span></a>
+      <p>Team Astro Byte · Built for the NASA Space Apps Challenge 2026.</p>
+      <p class="fine">Not an official NASA product. NASA does not endorse this project.</p>
+    </div>
+    <div>
+      <ul>
+        <li><a href="{R}calendar/" data-nav>Calendar</a></li><li><a href="{R}alerts/" data-nav>Alerts</a></li><li><a href="{R}live/" data-nav>Live Data</a></li>
+        <li><a href="{R}validation/" data-nav>Validation</a></li><li><a href="{R}credits/" data-nav>Credits and team</a></li>
+        <li><a href="https://github.com/ahmedetk/jamra">GitHub (MIT licence)</a></li>
+      </ul>
+    </div>
+    <div>
+      <p><b>Data: NASA FIRMS.</b> We acknowledge the use of data and/or imagery from NASA's Fire Information for Resource Management System (FIRMS) (https://earthdata.nasa.gov/firms), part of NASA's Land, Atmosphere Near real-time Capability for Earth observations (LANCE) (https://earthdata.nasa.gov/lance) and NASA's Earth Science Data and Information System (ESDIS).</p>
+      <p class="fine">SI disclosure: code written with the help of an SI coding assistant (Claude Code by Anthropic), following our design; the team checked results against NASA FIRMS data.</p>
+    </div>
+  </div>
+</footer>
 <script type="module" src="{R}js/app.js"></script>
 </body>
 </html>

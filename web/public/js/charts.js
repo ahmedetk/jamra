@@ -3,7 +3,7 @@
 import { svg, fmt, fmtInt, MONTHS_LONG } from './util.js';
 import { quantile } from './stats.js';
 
-const INK = '#14213d', MUTED = '#5f6b80', LINE = '#d9dee7', EMBER = '#d9480f', BLUE = '#3b5bdb', GREY = '#adb5bd';
+const INK = '#0B1D51', MUTED = '#475569', LINE = '#E2E8F0', EMBER = '#FF6A2B', BLUE = '#1F4FD8', GREY = '#94A3B8', SKY = '#3FA9F5';
 
 export function niceTicks(max, count = 5) {
   if (!(max > 0)) return [0, 1];
@@ -54,7 +54,7 @@ export function heroChart(container, { years, raw, harm, modisAqua, viirs, modis
     const v = vals[i];
     if (v === null || v === undefined) return;
     const isModisEra = yr < 2012;
-    const fill = mode === 'raw' ? (isModisEra ? GREY : EMBER) : (isModisEra ? '#5c7cfa' : INK);
+    const fill = mode === 'raw' ? (isModisEra ? GREY : EMBER) : (isModisEra ? SKY : BLUE);
     const g = svg('g', {});
     g.append(svg('rect', { x: x(i) - bw / 2, y: y(v), width: bw, height: Math.max(0, y(0) - y(v)), fill, rx: 2 }));
     if (mode === 'harm' && isModisEra) g.append(svg('rect', { x: x(i) - bw / 2, y: y(v), width: bw, height: Math.max(0, y(0) - y(v)), fill: 'url(#hero-hatch)' }));
@@ -76,7 +76,7 @@ export function heroChart(container, { years, raw, harm, modisAqua, viirs, modis
     if (last) root.append(svg('text', { x: Math.min(x(last[1]) + 6, W - 4), y: y(last[0]) - 6, 'font-size': 12, fill: color, 'text-anchor': x(last[1]) > W - 120 ? 'end' : 'start' }, document.createTextNode(label)));
   };
   if (mode === 'raw') line(modisAqua, BLUE, '6 4', 'MODIS Aqua (same years)');
-  else line(modisConverted, '#5c7cfa', '6 4', 'MODIS converted');
+  else line(modisConverted, INK, '6 4', 'MODIS converted');
   container.append(root);
 }
 
@@ -98,7 +98,7 @@ export function monthBars(container, { years, values, selYear, month, src, lo, h
     root.append(svg('line', { x1: m.l, x2: W - m.r, y1: y(t), y2: y(t), stroke: LINE }));
     root.append(svg('text', { x: m.l - 6, y: y(t) + 4, 'text-anchor': 'end', 'font-size': 12, fill: MUTED }, document.createTextNode(fmt(t))));
   }
-  if (p25 !== null) root.append(svg('rect', { x: m.l, width: iw, y: y(p75), height: Math.max(1, y(p25) - y(p75)), fill: 'rgba(59,91,219,.12)' }));
+  if (p25 !== null) root.append(svg('rect', { x: m.l, width: iw, y: y(p75), height: Math.max(1, y(p25) - y(p75)), fill: 'rgba(31,79,216,.10)' }));
   years.forEach((yr, i) => {
     const v = values[i];
     if (v === null) {
@@ -107,7 +107,7 @@ export function monthBars(container, { years, values, selYear, month, src, lo, h
     }
     const sel = yr === selYear;
     const g = svg('g', { style: 'cursor:pointer' });
-    g.append(svg('rect', { x: x(i) - bw / 2, y: y(v), width: bw, height: Math.max(0, y(0) - y(v)), fill: sel ? EMBER : (src[i] === 'M' ? '#7b8db5' : '#3d4a63'), rx: 2 }));
+    g.append(svg('rect', { x: x(i) - bw / 2, y: y(v), width: bw, height: Math.max(0, y(0) - y(v)), fill: sel ? EMBER : (src[i] === 'M' ? SKY : BLUE), rx: 2 }));
     if (src[i] === 'M') g.append(svg('rect', { x: x(i) - bw / 2, y: y(v), width: bw, height: Math.max(0, y(0) - y(v)), fill: 'url(#bar-hatch)' }));
     if (lo[i] !== null && hi[i] !== null) g.append(svg('line', { x1: x(i), x2: x(i), y1: y(hi[i]), y2: y(lo[i]), stroke: INK, 'stroke-width': 1.5 }));
     attachTip(g, `${MONTHS_LONG[month - 1]} ${yr}: ${fmtInt(v)} hotspots${src[i] === 'M' ? ` (estimated from MODIS, ${fmtInt(lo[i])}–${fmtInt(hi[i])})` : src[i] === 'J' ? ' (from NOAA-20, converted)' : ''}`, tip);
@@ -160,7 +160,7 @@ export function errorBars(container, { rows, chosen, metricLabel }) {
     const yy = m.t + i * rowH;
     const w = ((r.value || 0) / max) * (W - m.l - m.r);
     root.append(svg('text', { x: m.l - 8, y: yy + rowH / 2 + 4, 'text-anchor': 'end', 'font-size': 12.5, fill: INK, 'font-weight': r.id === chosen ? 700 : 400 }, document.createTextNode(r.label)));
-    root.append(svg('rect', { x: m.l, y: yy + 7, width: Math.max(w, 1), height: rowH - 14, rx: 3, fill: r.id === chosen ? EMBER : r.id === 'M0' ? GREY : '#3d4a63' }));
+    root.append(svg('rect', { x: m.l, y: yy + 7, width: Math.max(w, 1), height: rowH - 14, rx: 3, fill: r.id === chosen ? EMBER : r.id === 'M0' ? GREY : BLUE }));
     root.append(svg('text', { x: m.l + w + 6, y: yy + rowH / 2 + 4, 'font-size': 12.5, fill: INK }, document.createTextNode(r.text)));
   });
   container.append(root);
@@ -177,7 +177,7 @@ export function driftChart(container, { drift, ref, tol, tip }) {
   const x = (yr) => m.l + ((yr - ys[0]) / Math.max(1, ys[ys.length - 1] - ys[0])) * iw;
   const y = (v) => m.t + ih - ((v - ymin) / (ymax - ymin)) * ih;
   const root = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'VIIRS to MODIS ratio by year' });
-  root.append(svg('rect', { x: m.l, width: iw, y: y(ref * (1 + tol)), height: y(ref * (1 - tol)) - y(ref * (1 + tol)), fill: 'rgba(43,138,62,.12)' }));
+  root.append(svg('rect', { x: m.l, width: iw, y: y(ref * (1 + tol)), height: y(ref * (1 - tol)) - y(ref * (1 + tol)), fill: 'rgba(63,169,245,.15)' }));
   for (const t of niceTicks(ymax, 4).filter((t) => t >= ymin)) {
     root.append(svg('line', { x1: m.l, x2: W - m.r, y1: y(t), y2: y(t), stroke: LINE }));
     root.append(svg('text', { x: m.l - 6, y: y(t) + 4, 'text-anchor': 'end', 'font-size': 11, fill: MUTED }, document.createTextNode(t.toFixed(1))));

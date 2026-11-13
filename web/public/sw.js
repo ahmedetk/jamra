@@ -2,10 +2,11 @@
 // Pages, code and live files: network first (always fresh), cached copy if offline or slow (> 4 s).
 // History data, map library and map tiles: cache first, refreshed in the background.
 // Written with the help of an SI coding assistant (Claude Code).
-const VERSION = 'jamra-v6';
+const VERSION = 'jamra-v7';
 const CORE = [
   './', 'index.html', 'calendar/', 'alerts/', 'live/', 'how-it-works/', 'validation/', 'limits/', 'credits/',
-  'css/app.css', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png',
+  'css/app.css', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/favicon-32.png',
+  'fonts/inter-latin-400-normal.woff2', 'fonts/inter-latin-600-normal.woff2', 'fonts/plus-jakarta-sans-latin-700-normal.woff2', 'fonts/plus-jakarta-sans-latin-800-normal.woff2',
   'js/app.js', 'js/util.js', 'js/data.js', 'js/stats.js', 'js/colors.js', 'js/charts.js', 'js/calendar.js', 'js/map.js', 'js/live.js',
   'js/pages.js', 'js/summary.js',
   'data/meta.json', 'data/model_report.json', 'data/site.json',
@@ -54,7 +55,7 @@ self.addEventListener('fetch', (e) => {
   const sameOrigin = url.origin === location.origin;
   if (url.hostname.endsWith('openfreemap.org')) { e.respondWith(cacheFirst(e.request)); return; }
   if (!sameOrigin) return;
-  const stable = url.pathname.includes('/data/areas/') || url.pathname.endsWith('/data/cells.json') || url.pathname.includes('/vendor/');
+  const stable = url.pathname.includes('/data/areas/') || url.pathname.endsWith('/data/cells.json') || url.pathname.includes('/vendor/') || url.pathname.includes('/fonts/');
   if (stable) { e.respondWith(cacheFirst(e.request)); return; }
   // pages (with their query strings) are cached by path, so any shared link works offline
   const key = e.request.mode === 'navigate' || url.pathname.includes('/data/live/') ? stripQuery(e.request) : e.request;
