@@ -1,8 +1,8 @@
 // Service worker: makes Jamra installable and usable offline (bad Wi-Fi demo).
-// App files and history data: cache first, refreshed in the background.
-// Live files: network first, cached copy if offline.
+// Pages, code and live files: network first (always fresh), cached copy if offline or slow (> 4 s).
+// History data, map library and map tiles: cache first, refreshed in the background.
 // Written with the help of an SI coding assistant (Claude Code).
-const VERSION = 'jamra-v5';
+const VERSION = 'jamra-v6';
 const CORE = [
   './', 'index.html', 'calendar/', 'alerts/', 'live/', 'how-it-works/', 'validation/', 'limits/', 'credits/',
   'css/app.css', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png',
@@ -20,26 +20,43 @@ self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== VERSION).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
 });
 
-self.addEventListener('fetch', (e) => {
-  const url = new URL(e.request.url);
-  if (e.request.method !== 'GET') return;
-  const isLive = url.pathname.includes('/data/live/') || url.pathname.includes('/api/');
-  const sameOrigin = url.origin === location.origin;
-  const isTiles = url.hostname.endsWith('openfreemap.org');
-  if (isLive) {
-    e.respondWith(fetch(e.request).then((r) => { const copy = r.clone(); caches.open(VERSION).then((c) => c.put(stripQuery(e.request), copy)); return r; })
-      .catch(() => caches.match(stripQuery(e.request))));
-    return;
-  }
-  if (sameOrigin || isTiles) {
-    e.respondWith(caches.match(e.request).then((hit) => {
-      const net = fetch(e.request).then((r) => {
-        if (r.ok && (sameOrigin || r.type === 'cors')) { const copy = r.clone(); caches.open(VERSION).then((c) => c.put(e.request, copy)); }
-        return r;
-      }).catch(() => hit);
-      return hit || net;
-    }));
-  }
-});
-
 function stripQuery(req) { const u = new URL(req.url); u.search = ''; return new Request(u.toString()); }
+
+function networkFirst(req, key) {
+  return new Promise((resolve) => {
+    let done = false;
+    const fallback = () => caches.match(key).then((hit) => { if (!done && hit) { done = true; resolve(hit); } });
+    const timer = setTimeout(fallback, 4000);
+    fetch(req).then((r) => {
+      clearTimeout(timer);
+      if (r.ok) { const copy = r.clone(); caches.open(VERSION).then((c) => c.put(key, copy)); }
+      if (!done) { done = true; resolve(r); }
+    }).catch(() => {
+      clearTimeout(timer);
+      caches.match(key).then((hit) => { if (!done) { done = true; resolve(hit || Response.error()); } });
+    });
+  });
+}
+
+function cacheFirst(req) {
+  return caches.match(req).then((hit) => {
+    const net = fetch(req).then((r) => {
+      if (r.ok || r.type === 'opaque') { const copy = r.clone(); caches.open(VERSION).then((c) => c.put(req, copy)); }
+      return r;
+    }).catch(() => hit);
+    return hit || net;
+  });
+}
+
+self.addEventListener('fetch', (e) => {
+  if (e.request.method !== 'GET') return;
+  const url = new URL(e.request.url);
+  const sameOrigin = url.origin === location.origin;
+  if (url.hostname.endsWith('openfreemap.org')) { e.respondWith(cacheFirst(e.request)); return; }
+  if (!sameOrigin) return;
+  const stable = url.pathname.includes('/data/areas/') || url.pathname.endsWith('/data/cells.json') || url.pathname.includes('/vendor/');
+  if (stable) { e.respondWith(cacheFirst(e.request)); return; }
+  // pages (with their query strings) are cached by path, so any shared link works offline
+  const key = e.request.mode === 'navigate' || url.pathname.includes('/data/live/') ? stripQuery(e.request) : e.request;
+  e.respondWith(networkFirst(e.request, key));
+});
