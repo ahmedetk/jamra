@@ -1,0 +1,5 @@
+# Cloudflare Worker for Jamra's live NASA FIRMS proxy (free plan).
+# Secret: FIRMS_MAP_KEY  (set with: npx wrangler secret put FIRMS_MAP_KEY, or in the Cloudflare dashboard)
+name = "jamra-proxy"
+main = "src/index.js"
+compatibility_date = "2026-10-01"

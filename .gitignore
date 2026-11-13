@@ -1,0 +1,30 @@
+# Secrets (never commit)
+.env
+.env.*
+secrets.txt
+.dev.vars
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# Node
+node_modules/
+web/dist/
+worker/.wrangler/
+
+# Large raw data lives outside the repo (../cache)
+cache/
+data/raw/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# local tools
+.claude/

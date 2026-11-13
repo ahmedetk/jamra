@@ -1,0 +1,143 @@
+{
+ "k_global": 6.2,
+ "chosen_model": "M3",
+ "chosen_label": "Ratio per country and month (shrinkage)",
+ "lambda": 250,
+ "cal_years": [
+  2012,
+  2013,
+  2014,
+  2015,
+  2016,
+  2017,
+  2018,
+  2019,
+  2020,
+  2022,
+  2023,
+  2024,
+  2025
+ ],
+ "n_cal_years": 13,
+ "excluded_years": [
+  2021
+ ],
+ "err_raw_month_pct": 87,
+ "err_harm_month_pct": 31,
+ "err_raw_year_pct": 86,
+ "err_harm_year_pct": 12,
+ "bias_raw_pct": -84,
+ "colour_agree_pct": 54,
+ "colour_agree_raw_pct": 17,
+ "colour_agree_busy_pct": 69,
+ "colour_by_country": {
+  "Portugal": 81,
+  "Spain": 77,
+  "Greece": 77,
+  "Turkey": 66,
+  "Cyprus": 36,
+  "Lebanon": 36,
+  "Jordan": 28,
+  "Palestine": 32
+ },
+ "frp_validated": false,
+ "frp_cv": 0.568,
+ "count_cv": 0.397,
+ "k_jn": 0.972,
+ "uncertainty_month_pct": 31,
+ "uncertainty_year_pct": 12,
+ "terra_aqua_mdape_pct": 26,
+ "greece_jump": {
+  "raw_ratio": 4.0,
+  "harm_ratio": 0.7,
+  "top_years": [
+   2007,
+   2023,
+   2021
+  ]
+ },
+ "portugal_jump": {
+  "raw_ratio": 3.5,
+  "harm_ratio": 0.7,
+  "top_years": [
+   2005,
+   2003,
+   2017
+  ]
+ },
+ "stories": {
+  "greece_2007_08": {
+   "area": "Greece",
+   "area_id": "greece",
+   "year": 2007,
+   "month": "August",
+   "value": 8896,
+   "typical": 763,
+   "times_typical": 11.7,
+   "percentile": 100,
+   "src": "M",
+   "raw": 1455
+  },
+  "greece_2021_08": {
+   "area": "Greece",
+   "area_id": "greece",
+   "year": 2021,
+   "month": "August",
+   "value": 6699,
+   "typical": 763,
+   "times_typical": 8.8,
+   "percentile": 95,
+   "src": "N",
+   "raw": 6699
+  },
+  "greece_2023_08": {
+   "area": "Greece",
+   "area_id": "greece",
+   "year": 2023,
+   "month": "August",
+   "value": 5400,
+   "typical": 763,
+   "times_typical": 7.1,
+   "percentile": 91,
+   "src": "N",
+   "raw": 5400
+  },
+  "evia_2021_08": {
+   "area": "Evia (Greece)",
+   "area_id": "evia",
+   "year": 2021,
+   "month": "August",
+   "value": 4998,
+   "typical": 63,
+   "times_typical": 80.0,
+   "percentile": 100,
+   "src": "N",
+   "raw": 4998
+  },
+  "portugal_2017_10": {
+   "area": "Portugal",
+   "area_id": "portugal",
+   "year": 2017,
+   "month": "October",
+   "value": 6277,
+   "typical": 286,
+   "times_typical": 22.0,
+   "percentile": 100,
+   "src": "N",
+   "raw": 6277
+  },
+  "portugal_2017_06": {
+   "area": "Portugal",
+   "area_id": "portugal",
+   "year": 2017,
+   "month": "June",
+   "value": 2156,
+   "typical": 95,
+   "times_typical": 22.7,
+   "percentile": 100,
+   "src": "N",
+   "raw": 2156
+  }
+ },
+ "data_through": "2025-12-31"
+}

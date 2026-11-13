@@ -1,0 +1,45 @@
+# Monthly automatic archive refresh: download the newest NASA FIRMS yearly files,
+# rebuild the grid, harmonization, baselines and model report, then redeploy.
+# Written with the help of an SI coding assistant (Claude Code).
+name: archive-refresh
+
+on:
+  schedule:
+    - cron: "40 3 2 * *"   # 2nd day of every month
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: site
+  cancel-in-progress: false
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml pytest
+      - name: Download FIRMS yearly archives (our countries only, via HTTP range requests)
+        env:
+          PYTHONPATH: pipeline
+        run: python -m jamra.download --workers 6
+      - name: Rebuild harmonization and website data
+        env:
+          PYTHONPATH: pipeline
+        run: |
+          python -m jamra.build
+          python scripts/story_numbers.py > /dev/null
+          python -m pytest -q
+      - name: Commit and trigger deploy
+        run: |
+          git config user.name "jamra-bot"
+          git config user.email "jamra-bot@users.noreply.github.com"
+          git add web/public/data data/processed
+          git commit -m "Monthly archive refresh $(date -u +%Y-%m-%d)" || echo "No changes"
+          git push

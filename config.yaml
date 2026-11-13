@@ -1,0 +1,80 @@
+# Jamra configuration. Code written with the help of an SI coding assistant (Claude Code).
+product:
+  name: Jamra            # Arabic "ember". Change here to rename the product everywhere.
+  tagline: One fair fire record from two satellites, with live early warning
+  team: Astro Byte
+
+paths:
+  cache: ../cache                 # raw NASA downloads (outside the repo, large)
+  secrets: ../secrets.txt         # FIRMS_MAP_KEY, TELEGRAM_BOT_TOKEN (never committed)
+  processed: data/processed       # small outputs committed to git
+  web_data: web/public/data       # files the website reads
+
+firms:
+  archive_base: https://firms.modaps.eosdis.nasa.gov/data/country/zips
+  api_base: https://firms.modaps.eosdis.nasa.gov/api
+  # Yearly "all countries" archives (standard processing).
+  sensors:
+    modis:       {prefix: modis,       first_year: 2003, last_year: 2025}
+    viirs_snpp:  {prefix: viirs-snpp,  first_year: 2012, last_year: 2025}
+    viirs_noaa20: {prefix: viirs-jpss1, first_year: 2018, last_year: 2025}
+  live_source: VIIRS_NOAA20_NRT     # S-NPP stopped on 2026-11-02 (NASA FIRMS notice)
+  live_backup_source: VIIRS_NOAA21_NRT
+  # Bounding boxes (west, south, east, north) used for live API calls.
+  live_boxes:
+    iberia: [-9.6, 35.9, 4.4, 43.9]
+    canaries: [-18.3, 27.5, -13.3, 29.5]
+    azores_madeira: [-31.5, 32.3, -16.0, 40.0]
+    east_med: [19.3, 29.0, 45.0, 42.2]
+
+# Coverage region v1. Keys are FIRMS country file names.
+countries:
+  Portugal: {id: portugal, label: Portugal}
+  Spain: {id: spain, label: Spain}
+  Greece: {id: greece, label: Greece}
+  Turkey: {id: turkiye, label: Türkiye}
+  Cyprus: {id: cyprus, label: Cyprus}
+  Lebanon: {id: lebanon, label: Lebanon}
+  Jordan: {id: jordan, label: Jordan}
+  Palestine: {id: palestine, label: Palestine}
+
+# Famous fire areas. Approximate boxes (west, south, east, north).
+presets:
+  evia:        {label: "Evia (Greece)", country: Greece, box: [22.80, 37.90, 24.62, 39.05]}
+  attica:      {label: "Attica (Greece)", country: Greece, box: [22.85, 37.65, 24.10, 38.40]}
+  peloponnese: {label: "Peloponnese (Greece)", country: Greece, box: [21.05, 36.40, 23.30, 38.30]}
+  evros:       {label: "Evros / Dadia (Greece)", country: Greece, box: [25.60, 40.75, 26.65, 41.75]}
+  rhodes:      {label: "Rhodes (Greece)", country: Greece, box: [27.68, 35.85, 28.25, 36.48]}
+  central_portugal: {label: "Central Portugal (Pedrógão Grande)", country: Portugal, box: [-8.60, 39.60, -7.60, 40.40]}
+  culebra:     {label: "Sierra de la Culebra (Spain)", country: Spain, box: [-6.60, 41.75, -5.90, 42.20]}
+  tenerife:    {label: "Tenerife (Spain)", country: Spain, box: [-16.95, 28.00, -16.10, 28.60]}
+  antalya_mugla: {label: "Antalya–Muğla coast (Türkiye)", country: Turkey, box: [27.90, 36.20, 32.10, 37.40]}
+
+filters:
+  keep_types: [0]                 # FIRMS type 0 = presumed vegetation fire
+  modis_min_confidence: 30        # MODIS confidence 0-100
+  viirs_confidence: [n, h]        # VIIRS l/n/h
+  keep_day_and_night: true
+  persistence:                    # optional static-source filter
+    enabled: true
+    min_month_share: 0.5          # cell active in >= 50% of months ...
+    min_year_share: 0.6           # ... in >= 60% of years
+
+grid:
+  cell_deg: 0.1
+
+harmonization:
+  calibration_years: auto         # chosen from the year-by-year ratio check
+  pair: aqua_to_snpp              # Aqua MODIS (1:30 pm) vs S-NPP VIIRS (1:30 pm)
+  lambdas: [0, 5, 10, 25, 50, 100, 250, 500, 1000]
+  choose_within: 0.05             # simplest model within 5% of the best
+
+anomaly:
+  categories:                     # percentile rank thresholds
+    much_lower: 10
+    lower: 25
+    higher: 75
+    much_higher: 90
+  small_count_min_abs: 3
+  small_count_min_rel: 0.2
+  warning_levels: {elevated: 75, high: 90, extreme: 97.5}

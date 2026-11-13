@@ -1,0 +1,18 @@
+{
+ "g_raw": "4.0×",
+ "g_harm": "0.7×",
+ "k_global": "6.2×",
+ "p_raw": "3.5",
+ "p_harm": "0.7",
+ "ncal": "13",
+ "chosen": "M3",
+ "g07": "August 2007, Greece: 8,896 hotspots",
+ "g07x": "11.7× a typical August",
+ "unc": "31%",
+ "g07raw": "1,455",
+ "g21raw": "6,699",
+ "err": "87% → 31%",
+ "col": "54%",
+ "yr": "±12%",
+ "ta": "26% error"
+}

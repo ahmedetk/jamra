@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jamra · Burning Activity Calendar</title>
+<meta name="description" content="Jamra harmonizes 20+ years of NASA MODIS and VIIRS active-fire hotspots into one fair burning activity calendar, with live early warning from NASA FIRMS.">
+<meta name="theme-color" content="#14213d">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/app.css">
+<!-- Code written with the help of an SI coding assistant (Claude Code by Anthropic), following Team Astro Byte's design. -->
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="wrap top-in">
+    <a class="brand" href="#hero" aria-label="Jamra home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3c2 5 8 8 8 15a8 8 0 0 1-16 0c0-4 2-6 3-8 1 3 2 4 4 4-1-4 0-8 1-11z" fill="currentColor"/></svg>
+      <span data-product-name>Jamra</span>
+    </a>
+    <nav aria-label="Sections" class="nav">
+      <a href="#calendar">Calendar</a>
+      <a href="#alerts">Alerts</a>
+      <a href="#live">Live data</a>
+      <a href="#how">How it works</a>
+      <a href="#validation">Does it work?</a>
+      <a href="#limits">Limits</a>
+    </nav>
+    <button id="status-badge" class="badge" type="button" aria-live="polite" title="Live connection to NASA FIRMS">
+      <span class="dot"></span><span class="txt">Checking live data…</span>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+  <!-- 1. HERO -->
+  <section id="hero" class="hero">
+    <div class="wrap">
+      <p class="eyebrow">NASA FIRMS · MODIS + VIIRS · 2003 to today</p>
+      <h1>Did fires really increase, or did our satellites get sharper eyes?</h1>
+      <p class="lead">In 2012 a sharper satellite sensor (VIIRS) joined the older one (MODIS). It sees about <strong data-k-global>2–3×</strong> more <span class="term" data-term="hotspot">hotspots</span> for the same fires. Joining the two records raw creates a fake rise. <span data-product-name>Jamra</span> puts both on one fair scale.</p>
+      <div class="hero-card card">
+        <div class="hero-head">
+          <h2 id="hero-title" class="h3">Yearly hotspots</h2>
+          <div class="seg" role="group" aria-label="Record type">
+            <button type="button" class="seg-btn" data-hero="raw" aria-pressed="true">Raw (stitched)</button>
+            <button type="button" class="seg-btn" data-hero="harm" aria-pressed="false">Harmonized</button>
+          </div>
+        </div>
+        <div id="hero-chart" class="chart" role="img" aria-label="Yearly hotspot chart"></div>
+        <p id="hero-caption" class="caption"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. AREA PICKER -->
+  <section id="area" class="band">
+    <div class="wrap grid-2">
+      <div>
+        <h2>Choose an area</h2>
+        <div class="tabs" role="tablist" aria-label="Ways to choose an area">
+          <button role="tab" id="tab-preset" aria-controls="pane-preset" aria-selected="true" class="tab">Fire areas</button>
+          <button role="tab" id="tab-country" aria-controls="pane-country" aria-selected="false" class="tab" tabindex="-1">Countries</button>
+          <button role="tab" id="tab-draw" aria-controls="pane-draw" aria-selected="false" class="tab" tabindex="-1">Draw</button>
+          <button role="tab" id="tab-coords" aria-controls="pane-coords" aria-selected="false" class="tab" tabindex="-1">Lat / Lon</button>
+        </div>
+        <div id="pane-preset" role="tabpanel" aria-labelledby="tab-preset" class="pane">
+          <div id="preset-list" class="chips"></div>
+        </div>
+        <div id="pane-country" role="tabpanel" aria-labelledby="tab-country" class="pane" hidden>
+          <div id="country-list" class="chips"></div>
+        </div>
+        <div id="pane-draw" role="tabpanel" aria-labelledby="tab-draw" class="pane" hidden>
+          <p>Draw on the map. <strong>Polygon:</strong> click points, double-click (or tap the first point) to finish. <strong>Circle:</strong> click the centre, then click the edge.</p>
+          <div class="row">
+            <button type="button" class="btn" id="draw-polygon">Draw polygon</button>
+            <button type="button" class="btn" id="draw-circle">Draw circle</button>
+            <button type="button" class="btn ghost" id="draw-clear">Clear</button>
+          </div>
+        </div>
+        <div id="pane-coords" role="tabpanel" aria-labelledby="tab-coords" class="pane" hidden>
+          <form id="coords-form" class="form">
+            <fieldset>
+              <legend>Point and radius</legend>
+              <label>Latitude <input name="lat" type="number" step="any" min="-90" max="90" placeholder="38.60" inputmode="decimal"></label>
+              <label>Longitude <input name="lon" type="number" step="any" min="-180" max="180" placeholder="23.60" inputmode="decimal"></label>
+              <label>Radius (km) <input name="r" type="number" step="1" min="1" max="300" value="25" inputmode="numeric"></label>
+            </fieldset>
+            <p class="or">or a bounding box</p>
+            <fieldset>
+              <legend>Bounding box</legend>
+              <label>West <input name="w" type="number" step="any" placeholder="22.8"></label>
+              <label>South <input name="s" type="number" step="any" placeholder="37.9"></label>
+              <label>East <input name="e" type="number" step="any" placeholder="24.6"></label>
+              <label>North <input name="n" type="number" step="any" placeholder="39.0"></label>
+            </fieldset>
+            <button class="btn primary" type="submit">Use this area</button>
+            <p id="coords-msg" class="msg" role="status"></p>
+          </form>
+        </div>
+        <div id="area-info" class="area-info" aria-live="polite"></div>
+      </div>
+      <div>
+        <div class="map-wrap card">
+          <div id="map" class="map" aria-label="Map of the selected area and live hotspots"></div>
+          <div class="map-tools">
+            <span>Live hotspots:</span>
+            <div class="seg small" role="group" aria-label="Live hotspot period">
+              <button type="button" class="seg-btn" data-livewin="1" aria-pressed="true">24 h</button>
+              <button type="button" class="seg-btn" data-livewin="7" aria-pressed="false">7 days</button>
+              <button type="button" class="seg-btn" data-livewin="0" aria-pressed="false">Off</button>
+            </div>
+          </div>
+          <p class="map-note" id="map-note">Map data © OpenStreetMap contributors · Tiles: OpenFreeMap</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. KPIs -->
+  <section id="kpis" class="wrap">
+    <div class="range-row">
+      <h2 class="h3" id="area-title">Selected area</h2>
+      <div class="range">
+        <label>From <select id="from-year"></select></label>
+        <label>To <select id="to-year"></select></label>
+        <label class="check"><input type="checkbox" id="static-filter" checked> Hide likely gas flares / industry</label>
+      </div>
+    </div>
+    <div class="kpi-grid" id="kpi-grid"></div>
+  </section>
+
+  <!-- 4. CALENDAR -->
+  <section id="calendar" class="band">
+    <div class="wrap">
+      <div class="cal-head">
+        <div>
+          <h2>Burning Activity Calendar</h2>
+          <p class="sub">Rows are years, columns are months. Click any cell for details. Use arrow keys to move.</p>
+        </div>
+        <div class="cal-controls">
+          <div class="seg" role="group" aria-label="Calendar mode">
+            <button type="button" class="seg-btn" data-mode="abs" aria-pressed="true">Hotspots</button>
+            <button type="button" class="seg-btn" data-mode="anomaly" aria-pressed="false">Anomaly vs usual</button>
+          </div>
+          <div class="seg" role="group" aria-label="Time resolution">
+            <button type="button" class="seg-btn" data-res="month" aria-pressed="true">Months</button>
+            <button type="button" class="seg-btn" data-res="week" aria-pressed="false">Weeks</button>
+          </div>
+          <label class="pal">Colours <select id="palette">
+            <option value="viridis">Viridis</option>
+            <option value="cividis">Cividis</option>
+            <option value="ylorrd">YlOrRd</option>
+          </select></label>
+        </div>
+      </div>
+      <div class="card cal-card">
+        <div id="cal-legend" class="legend"></div>
+        <div id="cal" class="cal" role="grid" aria-label="Burning activity calendar"></div>
+        <div class="cal-foot">
+          <span class="key hatch-key"></span> estimated from MODIS (before 2012)
+          <span class="key gap-key"></span> data gap
+          <span class="key j-key"></span> from NOAA-20 (converted)
+          <span class="dl">
+            <button type="button" class="btn ghost small" id="dl-cal-csv">Download CSV</button>
+            <button type="button" class="btn ghost small" id="dl-cal-png">Download PNG</button>
+          </span>
+        </div>
+      </div>
+      <div id="detail" class="card detail" hidden tabindex="-1" aria-live="polite"></div>
+      <div class="card season" id="season"></div>
+    </div>
+  </section>
+
+  <!-- 5. ALERTS -->
+  <section id="alerts" class="wrap">
+    <h2>Alert Center</h2>
+    <p class="sub">Every 3 hours <span data-product-name>Jamra</span> pulls the newest NOAA-20 VIIRS hotspots from NASA FIRMS and asks: <em>is this month unusual here, compared with the same days in past years?</em></p>
+    <div id="alert-list" class="alert-list"></div>
+    <p class="feeds">Public feeds: <a href="data/live/alerts.json">alerts.json</a> · <a href="data/live/alerts.xml">RSS</a> · <a href="data/live/status.json">status.json</a></p>
+    <p class="note">Not an emergency service. Satellite data arrive with hours of delay. In an emergency, call your local emergency number (for example 112 in the EU and Türkiye).</p>
+  </section>
+
+  <!-- 6. LIVE DATA ON DEMAND -->
+  <section id="live" class="band">
+    <div class="wrap">
+      <h2>Live NASA data for your area</h2>
+      <p class="sub">Get the latest hotspots for the selected area straight from the NASA FIRMS API (VIIRS NOAA-20, near real time).</p>
+      <form id="live-form" class="row live-row">
+        <label>Last <select name="days">
+          <option value="1">24 hours</option><option value="2">2 days</option><option value="3">3 days</option>
+          <option value="5">5 days</option><option value="7" selected>7 days</option></select></label>
+        <button class="btn primary" type="submit">Fetch from NASA FIRMS</button>
+        <button class="btn ghost" type="button" id="dl-live-csv" disabled>Download CSV</button>
+      </form>
+      <p id="live-stamp" class="msg" role="status"></p>
+      <div class="table-wrap card"><table id="live-table" class="table"><caption class="sr">Live hotspots</caption><thead></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- 7. HOW IT WORKS -->
+  <section id="how" class="wrap">
+    <h2>How it works</h2>
+    <ol class="steps">
+      <li class="card"><span class="num">1</span><h3>Overlap years</h3><p>From 2012 both sensors watched the same fires. MODIS on Aqua and VIIRS on S-NPP even pass at the same time of day (about 1:30 pm and 1:30 am).</p></li>
+      <li class="card"><span class="num">2</span><h3>Conversion factor</h3><p>For each country (and for your own drawn area) we measure how many VIIRS hotspots appear per MODIS hotspot. With few fires, we lean on the broader country value.</p></li>
+      <li class="card"><span class="num">3</span><h3>Old record on the new scale</h3><p>MODIS months before 2012 are converted to <em>VIIRS-equivalent hotspots</em>, with an error range. Then each month is compared with its own usual.</p></li>
+    </ol>
+    <div class="card why">
+      <h3>Why not just…?</h3>
+      <div id="why-table"></div>
+    </div>
+    <div class="card arch">
+      <h3>Always on, always from NASA</h3>
+      <p>History (2003 → last year) comes from NASA FIRMS yearly archive files, rebuilt automatically every month. The newest days come from the FIRMS API every 3 hours. <span class="term" data-term="api">Why not fetch 20 years from the API on every click?</span></p>
+    </div>
+  </section>
+
+  <!-- 8. DOES IT WORK -->
+  <section id="validation" class="band">
+    <div class="wrap">
+      <h2>Does it work?</h2>
+      <p class="sub">We hid one year at a time, predicted its VIIRS hotspots from MODIS, and compared with what VIIRS really saw (leave-one-year-out cross-validation).</p>
+      <div class="grid-2">
+        <div class="card"><h3 class="h4">Predicted vs actual (hidden years)</h3><div id="scatter" class="chart"></div><p class="caption" id="scatter-cap"></p></div>
+        <div class="card"><h3 class="h4">Error before vs after</h3><div id="err-bars" class="chart"></div><p class="caption" id="err-cap"></p></div>
+      </div>
+      <div class="kpi-grid" id="val-kpis"></div>
+      <div class="grid-2">
+        <div class="card"><h3 class="h4">Is the VIIRS / MODIS ratio stable over time?</h3><div id="drift" class="chart"></div><p class="caption" id="drift-cap"></p></div>
+        <div class="card"><h3 class="h4">Where it struggles</h3><div id="struggle"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. LIMITS -->
+  <section id="limits" class="wrap">
+    <h2>Honest limits</h2>
+    <ul class="limits">
+      <li><strong>Hotspots are not fires</strong> and not burned area. One big fire makes many hotspots.</li>
+      <li><strong>Clouds and smoke hide fires.</strong> Small or short fires are missed, MODIS more than VIIRS.</li>
+      <li><strong>Low counts mean wider uncertainty.</strong> Small areas lean on their country's factor.</li>
+      <li><strong>Outages and orbit drift.</strong> Months when a satellite was down are shown as data gaps or filled from NOAA-20 (labelled). Old satellites drift in orbit; we check the ratio year by year.</li>
+      <li><strong>S-NPP stopped on 2 Nov 2026.</strong> Live data now come from NOAA-20 (same VIIRS instrument), converted with a measured factor.</li>
+      <li><strong>Near-real-time and standard data differ slightly.</strong></li>
+      <li><strong>Not every hotspot is a wildfire.</strong> Farm burning, gas flares, industry, and in conflict areas explosions and burning buildings can create hotspots. Our static-source filter can make mistakes; you can switch it off.</li>
+      <li><strong>Latency is hours. This is not an emergency service.</strong> Call your local emergency number.</li>
+    </ul>
+  </section>
+
+  <!-- 10. CREDITS -->
+  <section id="credits" class="band">
+    <div class="wrap">
+      <h2>Data and credits</h2>
+      <p class="ack">We acknowledge the use of data and/or imagery from NASA's Fire Information for Resource Management System (FIRMS) (<a href="https://earthdata.nasa.gov/firms">https://earthdata.nasa.gov/firms</a>), part of NASA's Land, Atmosphere Near real-time Capability for Earth observations (LANCE) (<a href="https://earthdata.nasa.gov/lance">https://earthdata.nasa.gov/lance</a>) and NASA's Earth Science Data and Information System (ESDIS).</p>
+      <h3 class="h4">Data used</h3>
+      <ul>
+        <li>MODIS Collection 6.1 active fire (Terra and Aqua), standard processing, FIRMS yearly country files.</li>
+        <li>VIIRS 375 m active fire (S-NPP and NOAA-20), standard processing, FIRMS yearly country files.</li>
+        <li>VIIRS NOAA-20 near-real-time active fire, FIRMS API and FIRMS active fire files.</li>
+      </ul>
+      <h3 class="h4">References</h3>
+      <ul class="refs">
+        <li>Giglio, L., Schroeder, W., &amp; Justice, C. O. (2016). The collection 6 MODIS active fire detection algorithm and fire products. <em>Remote Sensing of Environment</em>, 178, 31–41.</li>
+        <li>Schroeder, W., Oliva, P., Giglio, L., &amp; Csiszar, I. A. (2014). The New VIIRS 375 m active fire detection data product: Algorithm description and initial assessment. <em>Remote Sensing of Environment</em>, 143, 85–96.</li>
+        <li>Davies, D. K., Ilavajhala, S., Wong, M. M., &amp; Justice, C. O. (2009). Fire Information for Resource Management System: Archiving and distributing MODIS active fire data. <em>IEEE Transactions on Geoscience and Remote Sensing</em>, 47(1), 72–79.</li>
+        <li>NASA Earthdata (2026). Transitioning from Suomi NPP VIIRS &amp; OMPS: What FIRMS Users Need to Know.</li>
+      </ul>
+      <h3 class="h4">Software and maps</h3>
+      <p>MapLibre GL JS (BSD-3-Clause) · OpenFreeMap tiles · © OpenStreetMap contributors (ODbL) · OpenMapTiles · Colour ramps: Viridis and Cividis (matplotlib, CC0), YlOrRd and RdBu (ColorBrewer, Apache-2.0). No NASA logos are used; NASA does not endorse this project.</p>
+      <h3 class="h4">Use of Super Intelligence (SI)</h3>
+      <p class="si">We used an SI coding assistant (Claude Code by Anthropic) to write the code for the data pipeline, website, live system and slides, following our design and decisions. The team chose the method, checked results against NASA FIRMS data, verified every reference, and wrote and rehearsed the pitch.</p>
+      <p>Open source (MIT licence): <a id="repo-link" href="#">GitHub repository</a></p>
+    </div>
+  </section>
+
+  <!-- 11. TEAM -->
+  <section id="team" class="wrap">
+    <h2>Team Astro Byte</h2>
+    <div class="team" id="team-grid"></div>
+    <p class="sub">We took the big decisions together: the region, the harmonization method, honest limits and the story.</p>
+    <p class="fine">Built for the NASA Space Apps Challenge 2026 (local event by NOVA), challenge "Harmonization of MODIS and VIIRS Hot Spots".</p>
+  </section>
+</main>
+
+<div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+<div id="term-pop" class="term-pop" role="dialog" aria-modal="false" hidden></div>
+<footer class="foot"><div class="wrap">Jamra · Team Astro Byte · Data: NASA FIRMS · <a href="#credits">Credits</a></div></footer>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
