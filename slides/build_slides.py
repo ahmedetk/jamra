@@ -90,7 +90,7 @@ def base(prs, n, headline, notes, speaker, source=True):
     logo = ROOT / 'web' / 'public' / 'icons' / 'logo-navy-256.png'
     if logo.exists() and n != 1:
         s.shapes.add_picture(str(logo), Inches(12.45), Inches(0.28), width=Inches(0.42))
-    tb(s, 0.55, 0.32, 12.2, 1.25, headline, size=28 if len(headline) < 105 else 23, bold=True)
+    tb(s, 0.55, 0.32, 12.2 if n == 1 else 11.6, 1.25, headline, size=28 if len(headline) < 105 else 23, bold=True)
     tb(s, 0.55, 7.05, 8.5, 0.3, "Team Astro Byte · NASA Space Apps Challenge 2026 · Harmonization of MODIS and VIIRS Hot Spots", size=9, color=MUTED)
     tb(s, 12.3, 7.05, 0.5, 0.3, str(n), size=10, color=MUTED, align=PP_ALIGN.RIGHT)
     if source:
