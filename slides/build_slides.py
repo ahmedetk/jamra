@@ -23,14 +23,14 @@ ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web" / "public" / "data"
 N = json.loads((ROOT / "data" / "processed" / "slide_numbers.json").read_text(encoding="utf-8"))
 
-NAVY = RGBColor(0x14, 0x21, 0x3D)
+NAVY = RGBColor(0x11, 0x18, 0x27)   # charcoal
 INK2 = RGBColor(0x3D, 0x4A, 0x63)
 MUTED = RGBColor(0x5F, 0x6B, 0x80)
-EMBER = RGBColor(0xD9, 0x48, 0x0F)
-BG = RGBColor(0xF7, 0xF6, 0xF2)
+EMBER = RGBColor(0xFF, 0x7A, 0x33)  # soft orange
+BG = RGBColor(0xFF, 0xFF, 0xFF)
 WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 GREY = RGBColor(0xAD, 0xB5, 0xBD)
-BLUE = RGBColor(0x5C, 0x7C, 0xFA)
+BLUE = RGBColor(0x1F, 0x4F, 0xD8)
 LINE = RGBColor(0xD9, 0xDE, 0xE7)
 FONT = "Arial"
 SOURCE = "Data: NASA FIRMS (MODIS C6.1 Aqua, VIIRS 375 m S-NPP / NOAA-20), standard processing 2003–2025. Analysis: Jamra."
@@ -86,7 +86,10 @@ def base(prs, n, headline, notes, speaker, source=True):
     s = prs.slides.add_slide(prs.slide_layouts[6])
     s.background.fill.solid()
     s.background.fill.fore_color.rgb = BG
-    rect(s, 0, 0, 13.333, 0.12, EMBER)
+    rect(s, 0, 0, 13.333, 0.1, NAVY)
+    logo = ROOT / 'web' / 'public' / 'icons' / 'logo-navy-256.png'
+    if logo.exists() and n != 1:
+        s.shapes.add_picture(str(logo), Inches(12.45), Inches(0.28), width=Inches(0.42))
     tb(s, 0.55, 0.32, 12.2, 1.25, headline, size=28 if len(headline) < 105 else 23, bold=True)
     tb(s, 0.55, 7.05, 8.5, 0.3, "Team Astro Byte · NASA Space Apps Challenge 2026 · Harmonization of MODIS and VIIRS Hot Spots", size=9, color=MUTED)
     tb(s, 12.3, 7.05, 0.5, 0.3, str(n), size=10, color=MUTED, align=PP_ALIGN.RIGHT)
@@ -166,23 +169,39 @@ def build(url, out_path, screenshot=None):
              speaker="Shahd Farraj", source=False, notes=(
                  "Hello, we are Team Astro Byte and this is Jamra, which means ember in Arabic. "
                  "Satellites have watched fires for more than twenty years, but the record is split between an older sensor, MODIS, "
-                 "and a sharper one, VIIRS. On this chart the orange line is what you get if you simply join them: in Greece the "
-                 f"number of hotspots jumps about {gj['raw_ratio']} times after 2012. The dark line is our harmonized record: the fake jump is gone, "
+                 "and a sharper one, VIIRS. If you simply join them, in Greece the "
+                 f"number of hotspots jumps about {gj['raw_ratio']} times after 2012. In our harmonized record the fake jump is gone, "
                  "and the real disasters, like 2007, 2021 and 2023, stand out. In the next minutes we show how we built it, "
                  "how well it works, and how it warns people live."))
-    tb(s, 0.55, 1.45, 6.2, 0.5, "Challenge: Harmonization of MODIS and VIIRS Hot Spots", size=16, color=INK2)
-    tb(s, 0.55, 1.95, 6.2, 1.6, [
-        [("Team Astro Byte", {"bold": True, "size": 16})],
-        [("Shahd Farraj · Ahmed Etkaidek · Aya Salman", {"size": 14})],
-        [("Ahmad Akhras · Tala Yousef", {"size": 14})],
-        [("Local event by NOVA · NASA Space Apps Challenge 2026", {"size": 12, "color": MUTED})],
+    # dark title slide with the real Earth (NASA Blue Marble via GIBS)
+    s.background.fill.solid(); s.background.fill.fore_color.rgb = RGBColor(0x07, 0x0A, 0x12)
+    for shp in list(s.shapes):
+        if shp.has_text_frame and shp.text_frame.text.startswith("Jamra: one fair"):
+            for para in shp.text_frame.paragraphs:
+                for r in para.runs: r.font.color.rgb = WHITE
+        elif shp.has_text_frame and ("Team Astro Byte ·" in shp.text_frame.text or shp.text_frame.text.strip() == "1"):
+            for para in shp.text_frame.paragraphs:
+                for r in para.runs: r.font.color.rgb = RGBColor(0x94, 0xA3, 0xB8)
+    earth = ROOT / "web" / "public" / "img" / "earth-blue-marble.png"
+    if earth.exists():
+        s.shapes.add_picture(str(earth), Inches(7.6), Inches(1.0), width=Inches(6.3))
+        tb(s, 10.2, 7.05, 2.0, 0.3, "Imagery: NASA GIBS / Blue Marble", size=8, color=RGBColor(0x94, 0xA3, 0xB8))
+    logo = ROOT / "web" / "public" / "icons" / "logo-white-256.png"
+    if logo.exists():
+        s.shapes.add_picture(str(logo), Inches(0.55), Inches(1.55), width=Inches(0.62))
+    tb(s, 1.25, 1.6, 4, 0.6, "Jamra", size=28, bold=True, color=WHITE)
+    LIGHT = RGBColor(0xCB, 0xD5, 0xE1)
+    tb(s, 0.55, 2.4, 6.6, 0.5, "Challenge: Harmonization of MODIS and VIIRS Hot Spots", size=16, color=LIGHT)
+    tb(s, 0.55, 2.95, 6.6, 1.6, [
+        [("Team Astro Byte", {"bold": True, "size": 16, "color": WHITE})],
+        [("Shahd Farraj · Ahmed Etkaidek · Aya Salman", {"size": 14, "color": LIGHT})],
+        [("Ahmad Akhras · Tala Yousef", {"size": 14, "color": LIGHT})],
     ])
-    tb(s, 0.55, 3.75, 5.6, 1.5, [
-        [("Raw record (orange): ", {"bold": True, "color": EMBER, "size": 15}), (u("g_raw", f"{gj['raw_ratio']}×") + " more hotspots after 2012 in Greece.", {"size": 15})],
-        [("Harmonized (navy): ", {"bold": True, "size": 15}), (u("g_harm", f"{gj['harm_ratio']}×") + ". The fake rise disappears.", {"size": 15})],
+    tb(s, 0.55, 4.45, 6.6, 1.2, [
+        [("Raw record: ", {"bold": True, "color": EMBER, "size": 15}), (u("g_raw", f"{gj['raw_ratio']}×") + " more hotspots after 2012 in Greece.", {"size": 15, "color": WHITE})],
+        [("Harmonized: ", {"bold": True, "size": 15, "color": RGBColor(0x93, 0xC5, 0xFD)}), (u("g_harm", f"{gj['harm_ratio']}×") + ". The fake rise disappears.", {"size": 15, "color": WHITE})],
     ])
-    jump_chart(s, 6.5, 1.4, 6.4, 5.2)
-    tb(s, 6.6, 6.55, 6.2, 0.3, "Yearly hotspots in Greece, 2003–2025. Data: NASA FIRMS. Analysis: Jamra.", size=9, color=MUTED)
+    tb(s, 0.55, 6.25, 7.0, 0.6, [[("Built for the NASA Space Apps Challenge 2026 · Local event by NOVA · Data: NASA FIRMS · Not an official NASA product", {"size": 10, "color": RGBColor(0x94, 0xA3, 0xB8)})]])
 
     # ------------------------------------------------------------------ 2 problem
     s = base(prs, 2, "Joining MODIS and VIIRS raw creates a fake rise in fires after 2012, and the old satellites are retiring",

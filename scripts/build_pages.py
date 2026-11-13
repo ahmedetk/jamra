@@ -116,7 +116,7 @@ AREA_PICKER = """
               <button type="button" class="seg-btn" data-livewin="0" aria-pressed="false">Off</button>
             </div>
           </div>
-          <p class="map-note">Map data © OpenStreetMap contributors · Tiles: OpenFreeMap · Hotspots: NASA FIRMS</p>
+          <p class="map-note">Imagery: NASA GIBS / Blue Marble · Map data © OpenStreetMap contributors (OpenFreeMap) · Hotspots: NASA FIRMS</p>
         </div>
       </div>
     </div>
@@ -125,9 +125,6 @@ AREA_PICKER = """
 BODY = {
 "": """
   <section class="hero" id="hero">
-    <span class="orbit" style="width:760px;height:760px;right:-220px;top:-120px"></span>
-    <span class="orbit" style="width:1040px;height:1040px;right:-360px;top:-260px"></span>
-    <span class="orbit" style="width:1320px;height:1320px;right:-500px;top:-400px"></span>
     <div class="wrap hero-grid">
       <div class="hero-text">
         <p class="eyebrow">NASA FIRMS · MODIS + VIIRS · 2003 to today</p>
@@ -141,9 +138,10 @@ BODY = {
       </div>
       <div class="hero-globe">
         <div class="globe-box">
-          <div class="globe-fallback" id="globe-fallback">""" + GLOBE_FALLBACK + """</div>
+          <div class="globe-fallback" id="globe-fallback"><img src="img/earth-blue-marble.webp" width="720" height="720" alt="Earth from space, centred on the Mediterranean (NASA Blue Marble imagery)" fetchpriority="low"></div>
           <div id="globe" class="map" role="img" aria-label="Globe with recent fire hotspots from NASA FIRMS"></div>
         </div>
+        <p class="img-credit">Imagery: NASA GIBS / Blue Marble</p>
       </div>
     </div>
   </section>
@@ -202,7 +200,7 @@ BODY = {
         <label class="check"><input type="checkbox" id="static-filter" checked> Hide likely gas flares / industry</label>
       </div>
     </div>
-    <div class="kpi-grid" id="kpi-grid"></div>
+    <div class="kpi-grid" id="kpi-grid"><div class="kpi"></div><div class="kpi"></div><div class="kpi"></div><div class="kpi"></div><div class="kpi"></div></div>
   </section>
   <section id="calendar" class="band">
     <div class="wrap">
@@ -379,7 +377,7 @@ def page(slug, label, title):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 <meta name="description" content="Jamra harmonizes 20+ years of NASA MODIS and VIIRS active-fire hotspots into one fair burning activity calendar, with live early warning from NASA FIRMS.">
-<meta name="theme-color" content="#0B1D51">
+<meta name="theme-color" content="#111827">
 <meta property="og:title" content="Jamra · one fair fire record from two satellites">
 <meta property="og:description" content="20+ years of NASA MODIS and VIIRS fire data in one fair calendar, with live early warning.">
 <meta property="og:image" content="https://ahmedetk.github.io/jamra/icons/og-image.png">

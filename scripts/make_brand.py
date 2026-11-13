@@ -37,7 +37,7 @@ def render(name, html, w, h):
 def icon_page(size, inset, radius):
     m = int(size * (1 - 2 * inset))
     return f"""<html><body style="margin:0;width:{size}px;height:{size}px;overflow:hidden">
-<div style="width:{size}px;height:{size}px;border-radius:{radius}px;background:linear-gradient(135deg,#0B1D51,#1F4FD8);display:grid;place-items:center">
+<div style="width:{size}px;height:{size}px;border-radius:{radius}px;background:#111827;display:grid;place-items:center">
 {mark_svg('#FFFFFF', m)}</div></body></html>"""
 
 
@@ -58,14 +58,15 @@ def main():
     og = f"""<html><head><style>
 @font-face {{ font-family: J; src: url('{FONT}/plus-jakarta-sans-latin-800-normal.woff2'); font-weight: 800; }}
 @font-face {{ font-family: I; src: url('{FONT}/inter-latin-400-normal.woff2'); }}
-</style></head><body style="margin:0;width:1200px;height:630px;overflow:hidden;background:linear-gradient(120deg,#0B1D51,#12307F 55%,#1F4FD8);color:#fff;font-family:I,sans-serif;position:relative">
-<div style="position:absolute;width:900px;height:900px;border:1px solid rgba(255,255,255,.1);border-radius:50%;right:-300px;top:-150px"></div>
-<div style="position:absolute;width:1200px;height:1200px;border:1px solid rgba(255,255,255,.08);border-radius:50%;right:-450px;top:-300px"></div>
+</style></head><body style="margin:0;width:1200px;height:630px;overflow:hidden;background:#0B0F1A;color:#fff;font-family:I,sans-serif;position:relative">
 <div style="position:absolute;left:80px;top:80px;display:flex;align-items:center;gap:18px;font:800 54px J">{mark_svg('#FFFFFF', 80)}Jamra</div>
-<div style="position:absolute;left:80px;top:220px;width:820px;font:800 58px/1.12 J">Did fires really increase — or did our satellites get sharper eyes?</div>
-<div style="position:absolute;left:80px;top:480px;font-size:26px;color:#DBEAFE">20+ years of NASA MODIS + VIIRS fire data in one fair calendar · Data: NASA FIRMS</div>
+<div style="position:absolute;left:80px;top:220px;width:700px;font:800 54px/1.12 J">Did fires really increase — or did our satellites get sharper eyes?</div>
+<img src="EARTH" style="position:absolute;right:-120px;top:40px;width:560px;height:560px"><div style="position:absolute;left:80px;top:480px;font-size:26px;color:#CBD5E1">20+ years of NASA MODIS + VIIRS fire data in one fair calendar · Data: NASA FIRMS</div>
 </body></html>"""
+    og = og.replace("EARTH", (PUB / "img" / "earth-blue-marble.png").as_uri())
     render("og-image.png", og, 1200, 630)
+    for nm, ring in (("logo-white-256.png", "#FFFFFF"), ("logo-navy-256.png", "#0B1D51")):
+        render(nm, f'<html><body style="margin:0;background:transparent;width:256px;height:256px">{mark_svg(ring, 256)}</body></html>', 256, 256)
 
 
 if __name__ == "__main__":

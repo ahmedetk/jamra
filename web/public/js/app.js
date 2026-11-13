@@ -122,7 +122,11 @@ async function boot() {
   buildPickers();
   buildControls();
   renderStatic();
-  if (has('#map')) initMap($('#map'));
+  if (has('#map')) {
+    const idle = window.requestIdleCallback || ((f) => setTimeout(f, 600));
+    const start = () => idle(() => initMap($('#map')).then(() => { if (area) { if (area.ring) showArea(area.ring); else showArea(countryRing(area)); applyLiveLayer(); } }), { timeout: 2500 });
+    if (document.readyState === 'complete') start(); else addEventListener('load', start, { once: true });
+  }
   if (['home', 'calendar', 'live'].includes(PAGE)) await selectArea(state.custom ? null : state.areaId, state.custom);
   await refreshLive();
   setInterval(refreshLive, 10 * 60 * 1000);
@@ -157,11 +161,11 @@ function homeExtras() {
     initGlobe($('#globe'), {
       points: live?.points || [], areas,
       onPick: (id) => { location.href = `${BASE}calendar/?area=${id}&from=${state.from}&to=${state.to}`; },
-      onReady: () => { $('#globe-fallback').style.display = 'none'; },
+      onReady: () => { $('#globe').classList.add('ready'); setTimeout(() => { $('#globe-fallback').style.display = 'none'; const c = document.querySelector('.img-credit'); if (c) c.hidden = true; }, 800); },
     }).catch((e) => console.warn('globe unavailable', e?.message));
   };
-  const later = window.requestIdleCallback || ((f) => setTimeout(f, 1200));
-  if (document.readyState === 'complete') later(go); else addEventListener('load', () => later(go));
+  const later = (f) => setTimeout(() => (window.requestIdleCallback || setTimeout)(f), 2500);
+  if (document.readyState === 'complete') later(go); else addEventListener('load', () => later(go), { once: true });
 }
 
 function setupMenu() {
