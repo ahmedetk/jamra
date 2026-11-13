@@ -2,16 +2,19 @@
 // App files and history data: cache first, refreshed in the background.
 // Live files: network first, cached copy if offline.
 // Written with the help of an SI coding assistant (Claude Code).
-const VERSION = 'jamra-v3';
+const VERSION = 'jamra-v4';
 const CORE = [
-  './', 'index.html', 'css/app.css', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png',
+  './', 'index.html', 'calendar/', 'alerts/', 'live/', 'how-it-works/', 'validation/', 'limits/', 'credits/',
+  'css/app.css', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png',
   'js/app.js', 'js/util.js', 'js/data.js', 'js/stats.js', 'js/colors.js', 'js/charts.js', 'js/calendar.js', 'js/map.js', 'js/live.js',
+  'js/pages.js', 'js/summary.js',
   'data/meta.json', 'data/model_report.json', 'data/site.json',
   'vendor/maplibre-gl.js', 'vendor/maplibre-gl.css',
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));
+  const base = new URL('./', self.location).href;
+  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(CORE.map((u) => base + u))).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== VERSION).map((k) => caches.delete(k)))).then(() => self.clients.claim()));

@@ -68,6 +68,7 @@ harmonization:
   pair: aqua_to_snpp              # Aqua MODIS (1:30 pm) vs S-NPP VIIRS (1:30 pm)
   lambdas: [0, 5, 10, 25, 50, 100, 250, 500, 1000]
   choose_within: 0.05             # simplest model within 5% of the best
+  test_years: [2022, 2023, 2024, 2025]   # held out: never used for model or lambda choice
 
 anomaly:
   categories:                     # percentile rank thresholds

@@ -4,8 +4,9 @@ import { $, el, fmt, fmtInt, parseCSV, pointInRing, ringBBox, toCSV, downloadBlo
 import { getJSON } from './data.js';
 import { warningLevel } from './stats.js';
 
-export const LEVEL_LABEL = { normal: 'Normal', elevated: 'Elevated', high: 'High', extreme: 'Extreme', unknown: 'No data' };
-const LEVEL_RANK = { extreme: 4, high: 3, elevated: 2, normal: 1, unknown: 0 };
+export const LEVEL_LABEL = { normal: 'Normal', elevated: 'Elevated', high: 'High', extreme: 'Extreme', unknown: 'No data', stale: 'Outdated' };
+const LEVEL_RANK = { extreme: 4, high: 3, elevated: 2, normal: 1, unknown: 0, stale: 0 };
+const MONTHS3 = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export async function loadLive() {
   try { return await getJSON('data/live/live.json', { fresh: true }); } catch { return null; }
@@ -20,53 +21,95 @@ function ago(iso) {
   if (h < 48) return `${Math.round(h)} h ago`;
   return `${Math.round(h / 24)} days ago`;
 }
+const utc = (iso) => `${iso.slice(0, 10)} ${iso.slice(11, 16)} UTC`;
 
-export function renderBadge(status) {
+/** Freshness of the live data: 'live' (≤ 6 h), 'delayed' (≤ 30 h), 'stale' (older), 'none'. */
+export function liveState(status, live) {
+  if (!live || !status || !status.last_success_utc) return { state: 'none', hours: null };
+  const hours = (Date.now() - Date.parse(status.last_success_utc)) / 36e5;
+  return { state: hours <= 6 ? 'live' : hours <= 30 ? 'delayed' : 'stale', hours, failed: status.ok === false };
+}
+
+export function periodText(live, a) {
+  const [y, m] = live.month.split('-').map(Number);
+  const from = a?.from_day ?? live.from_day ?? 1;
+  const day = a?.day ?? live.day;
+  return `${from}–${day} ${MONTHS3[m - 1]} ${y}, ${from === 1 ? 'month-to-date' : `partial month (data from day ${from})`}`;
+}
+
+export function renderBadge(status, live) {
   const b = $('#status-badge');
+  if (!b) return;
   const t = b.querySelector('.txt');
   b.classList.remove('live', 'delayed', 'down');
-  if (!status || !status.last_success_utc) {
+  const s = liveState(status, live);
+  if (s.state === 'none') {
     b.classList.add('down'); t.textContent = 'Live data unavailable';
     b.title = 'Could not read the live status. The history still works.';
     return;
   }
-  const h = (Date.now() - Date.parse(status.last_success_utc)) / 36e5;
-  if (h <= 6) { b.classList.add('live'); t.textContent = `Live · updated ${ago(status.last_success_utc)}`; }
-  else if (h <= 30) { b.classList.add('delayed'); t.textContent = `Delayed · last update ${ago(status.last_success_utc)}`; }
-  else { b.classList.add('down'); t.textContent = `Offline · last update ${ago(status.last_success_utc)}`; }
+  if (s.state === 'live') { b.classList.add('live'); t.textContent = `Live · updated ${ago(status.last_success_utc)}`; }
+  else if (s.state === 'delayed') { b.classList.add('delayed'); t.textContent = `Delayed · updated ${ago(status.last_success_utc)}`; }
+  else { b.classList.add('down'); t.textContent = `Outdated · updated ${ago(status.last_success_utc)}`; }
   b.title = `Source: ${status.source || 'NASA FIRMS'}. Last check: ${status.last_attempt_utc || '?'}${status.message ? ' · ' + status.message : ''}`;
-  b.onclick = () => document.getElementById('alerts').scrollIntoView();
 }
 
-export function renderAlerts(live, meta, onPick) {
-  const box = $('#alert-list');
+export function renderStatusPanel(status, live) {
+  const box = $('#data-status');
+  if (!box) return;
   box.innerHTML = '';
-  if (!live || !live.areas) {
-    box.append(el('p', { class: 'note', text: 'Live alerts are not available right now. The historical calendar still works.' }));
+  const s = liveState(status, live);
+  const rows = [];
+  if (s.state === 'none') rows.push(['down', 'Live data unavailable', 'The status file could not be read. Alerts are hidden until data arrive.']);
+  else {
+    rows.push([s.state === 'live' ? 'ok' : 'warn', s.state === 'live' ? 'Up to date' : s.state === 'delayed' ? 'Delayed' : 'Outdated',
+      `Last successful update ${utc(status.last_success_utc)} (${ago(status.last_success_utc)}). Source: ${status.source}.`]);
+    if (s.failed) rows.push(['down', 'Last update failed', `The newest attempt (${utc(status.last_attempt_utc)}) failed; showing the last good data. ${status.message || ''}`]);
+    if ((live.from_day ?? 1) > 1) rows.push(['warn', 'Partial data', `This month's data start on day ${live.from_day}, so only days ${live.from_day}–${live.day} are compared.`]);
+  }
+  rows.forEach(([cls, h, t]) => box.append(el('div', { class: `st st-${cls}` }, el('b', { text: h }), el('span', { text: ' ' + t }))));
+}
+
+export function renderAlerts(live, meta, status, onPick) {
+  const box = $('#alert-list');
+  if (!box) return;
+  box.innerHTML = '';
+  const s = liveState(status, live);
+  if (s.state === 'none' || !live.areas) {
+    box.append(el('p', { class: 'note', text: 'No live alerts can be shown: the live data are missing. The historical calendar still works.' }));
     return;
   }
   const label = Object.fromEntries(meta.areas.map((a) => [a.id, a.label]));
   const rows = Object.entries(live.areas).sort((a, b) => (LEVEL_RANK[b[1].level] - LEVEL_RANK[a[1].level]) || (b[1].percentile ?? 0) - (a[1].percentile ?? 0));
-  const [y, m] = live.month.split('-');
-  const monthName = new Date(Date.UTC(+y, +m - 1, 1)).toLocaleString('en-US', { month: 'long', timeZone: 'UTC' });
   for (const [id, a] of rows) {
-    const card = el('button', { class: `alert ${a.level}`, type: 'button', style: 'text-align:left;cursor:pointer;font:inherit', onclick: () => onPick(id) },
-      el('h3', {}, `${label[id] || id} `, el('span', { class: `lvl lvl-${a.level}`, text: LEVEL_LABEL[a.level] })),
+    // never show a reassuring "Normal" on outdated data
+    const lvl = s.state === 'stale' ? 'stale' : a.level;
+    const partial = (a.from_day ?? 1) > 1;
+    const diff = a.median > 0 ? Math.round(((a.mtd - a.median) / a.median) * 100) : null;
+    const card = el('button', { class: `alert ${lvl}`, type: 'button', onclick: () => onPick(id) },
+      el('h3', {}, `${label[id] || id} `, el('span', { class: `lvl lvl-${lvl === 'stale' ? 'unknown' : lvl}`, text: LEVEL_LABEL[lvl] }),
+        s.state === 'delayed' ? el('span', { class: 'lvl lvl-elevated tag', text: 'Delayed' }) : null,
+        partial ? el('span', { class: 'lvl lvl-unknown tag', text: 'Partial data' }) : null),
+      el('p', { class: 'period', text: periodText(live, a) }),
       el('p', { text: a.level === 'unknown' ? 'Not enough history to compare.' :
-        `${monthName} ${a.from_day ?? 1}–${a.day}: ${fmt(a.mtd, 0)} hotspots on the S-NPP scale (${fmtInt(a.mtd_raw)} NOAA-20 × ${fmt(a.k_jn, 2)}). Usual for these days: ${fmt(a.median, 0)} (middle half ${fmt(a.p25, 0)}–${fmt(a.p75, 0)}). Higher than ${Math.round(a.percentile)}% of past years.` }));
+        `${fmt(a.mtd, 0)} hotspots vs usual ${fmt(a.median, 0)}${diff === null ? '' : ` (${diff >= 0 ? '+' : ''}${diff}%)`} · higher than ${Math.round(a.percentile)}% of past years.` }),
+      el('p', { class: 'fine', text: `Source: VIIRS NOAA-20 (${fmtInt(a.mtd_raw)} detections × ${fmt(a.k_jn, 2)} → S-NPP scale) · updated ${utc(status.last_success_utc)}` }));
     if (id === 'palestine' || id === 'lebanon') card.append(el('p', { class: 'fine', text: 'Conflict-related heat sources possible.' }));
     box.append(card);
   }
 }
 
 /** Early-warning level for any area: live values for countries/presets, approximate for custom areas. */
-export function areaWarning(area, live, meta, monthlyVals) {
-  if (!live) return { level: 'unknown', note: 'live data unavailable' };
+export function areaWarning(area, live, meta, monthlyVals, status) {
+  const s = liveState(status, live);
+  if (s.state === 'none') return { level: 'unknown', note: 'live data unavailable' };
+  if (s.state === 'stale') return { level: 'stale', note: 'live data outdated' };
   if (area.kind !== 'custom' && live.areas && live.areas[area.id]) return { ...live.areas[area.id], approximate: false };
   if (!area.ring) return { level: 'unknown' };
   const [y, m] = live.month.split('-').map(Number);
   const day = live.day;
-  const from = live.from_day ?? 1;
+  // the points file holds the last 7 days, so a custom area compares only those days
+  const from = Math.max(live.from_day ?? 1, day - 6, 1);
   const inside = live.points.filter((p) => p[2].startsWith(live.month) && +p[2].slice(8, 10) >= from && +p[2].slice(8, 10) <= day && pointInRing(p[1], p[0], area.ring));
   const mtd = inside.length * (area.factor?.kJN ?? 1);
   const dim = new Date(Date.UTC(y, m, 0)).getUTCDate();
@@ -78,7 +121,6 @@ export function areaWarning(area, live, meta, monthlyVals) {
   }
   return { ...warningLevel(mtd, others, meta.anomaly), mtd, day, from_day: from, approximate: true };
 }
-
 // ---------------------------------------------------------------- explorer
 let lastRows = [];
 let sortKey = 'datetime', sortDir = -1;

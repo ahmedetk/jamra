@@ -2,10 +2,13 @@
 // Written with the help of an SI coding assistant (Claude Code).
 import { pointInRing, ringBBox } from './util.js';
 
+// Site root (works under /jamra/ on GitHub Pages and on localhost): js/ sits one level below it.
+export const BASE = new URL('../', import.meta.url).href;
 const cache = new Map();
 export async function getJSON(url, { fresh = false } = {}) {
   if (!fresh && cache.has(url)) return cache.get(url);
-  const p = fetch(url + (fresh ? `?t=${Date.now()}` : ''), { cache: fresh ? 'no-store' : 'default' })
+  const full = /^https?:/.test(url) ? url : BASE + url;
+  const p = fetch(full + (fresh ? `?t=${Date.now()}` : ''), { cache: fresh ? 'no-store' : 'default' })
     .then((r) => { if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`); return r.json(); });
   if (!fresh) cache.set(url, p);
   p.catch(() => cache.delete(url));
@@ -77,8 +80,10 @@ export async function customArea(ring, label, meta, report) {
     }
   }
   const lam = meta.lambda;
-  const k = (Vc + lam * kParent) / (Mc + lam);
-  const own = Mc / (Mc + lam);
+  const local = meta.area_method !== 'baseline';
+  const lamA = meta.lambda_area ?? lam;
+  const k = local ? (Vc + lamA * kParent) / (Mc + lamA) : kParent;
+  const own = local ? Mc / (Mc + lamA) : 0;
   // year-to-year relative standard error of the ratio
   const byYear = {};
   for (const i of calIdx) {
@@ -94,8 +99,8 @@ export async function customArea(ring, label, meta, report) {
     seRel = mu > 0 ? sd / Math.sqrt(rs.length) / mu : null;
   }
   // shrinkage also shrinks the uncertainty contribution of the area's own ratio
-  const relArea = seRel === null ? 0.25 : seRel * 1.96 * own + (1 - own) * 0.1;
-  const rel = Math.sqrt((meta.uncertainty_monthly || 0) ** 2 + relArea ** 2);
+  // uncertainty = typical small-region error on the held-out test years
+  const rel = meta.uncertainty_small ?? meta.uncertainty_monthly;
   const harm = [], src = [], lo = [], hi = [], harmStatic = [];
   for (let i = 0; i < n; i++) {
     const lab = monthLabel(meta, i);

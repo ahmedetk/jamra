@@ -4,6 +4,9 @@ import { svg, el, fmt, fmtInt, MONTHS, MONTHS_LONG } from './util.js';
 import { ramp, rampCSS, CAT_COLOR, textOn, logScale } from './colors.js';
 import { category, percentileRank, baseline, CAT_LABEL, CAT_ORDER } from './stats.js';
 
+export const CAT_TEXT = { much_lower: 'Much lower than usual', lower: 'Lower than usual', typical: 'Typical', higher: 'Higher than usual', much_higher: 'Much higher than usual' };
+export const CAT_SYM = { much_lower: '▼▼', lower: '▼', typical: '', higher: '▲', much_higher: '▲▲' };
+
 /**
  * grid: { years:[...], cols: 12|52, value(y,c) -> number|null, src(y,c) -> 'M'|'N'|'J'|'G', label(c) }
  * opts: { mode:'abs'|'anomaly', palette, anomalyCfg, baselineYears:[from,to], tip, onSelect, selected }
@@ -62,8 +65,10 @@ export function renderCalendar(container, legend, grid, opts) {
         const dark = opts.mode === 'anomaly' ? (d.cat === 'typical' || d.cat === 'lower' || d.cat === 'higher') : scale(d.v) > 0.6 && opts.palette !== 'ylorrd';
         g.append(svg('rect', { x: x + 1, y: yy + 1, width: cw - 2, height: ch - 2, rx: 2, fill: dark ? 'url(#cal-hatch-dark)' : 'url(#cal-hatch)', 'pointer-events': 'none' }));
       }
-      if (cols === 12 && cw >= 44 && d.v !== null) {
-        const fillHex = d.fill.startsWith('#') ? d.fill : '#ffffff';
+      const fillHex = d.fill.startsWith('#') ? d.fill : '#ffffff';
+      if (opts.mode === 'anomaly' && d.cat && CAT_SYM[d.cat] && cw >= 14) {
+        g.append(svg('text', { x: x + cw / 2, y: yy + ch / 2 + 4, 'text-anchor': 'middle', 'font-size': cols === 12 ? 10.5 : 8, fill: textOn(fillHex), 'pointer-events': 'none' }, document.createTextNode(CAT_SYM[d.cat])));
+      } else if (opts.mode !== 'anomaly' && cols === 12 && cw >= 44 && d.v !== null) {
         g.append(svg('text', { x: x + cw / 2, y: yy + ch / 2 + 4, 'text-anchor': 'middle', 'font-size': 10.5, fill: textOn(fillHex), 'pointer-events': 'none' }, document.createTextNode(short(d.v))));
       }
       const text = describe(y, c, d, grid, opts);
@@ -114,7 +119,7 @@ export function renderCalendar(container, legend, grid, opts) {
     legend.append(el('span', { text: '0' }), el('span', { class: 'ramp', style: `background:${rampCSS(opts.palette)}` }),
       el('span', { text: `${fmtInt(maxV)} ${cols === 12 ? 'hotspots / month' : 'hotspots / week'} (log scale, VIIRS-equivalent)` }));
   } else {
-    CAT_ORDER.forEach((k) => legend.append(el('span', { class: 'sw' }, el('i', { style: `background:${CAT_COLOR[k]}` }), CAT_LABEL[k])));
+    CAT_ORDER.forEach((k) => legend.append(el('span', { class: 'sw' }, el('i', { style: `background:${CAT_COLOR[k]}` }), `${CAT_SYM[k] ? CAT_SYM[k] + ' ' : ''}${CAT_TEXT[k]}`)));
     legend.append(el('span', { text: `vs the same ${cols === 12 ? 'month' : 'week'} in ${b0}–${b1} (other years)` }));
   }
 }
@@ -130,12 +135,14 @@ function describe(y, c, d, grid, opts) {
   if (d.v === null) return `<b>${when}</b><br>Data gap (satellite outage)`;
   const b = baseline(d.others);
   const pr = percentileRank(d.v, d.others);
-  let s = `<b>${when}</b><br>${fmtInt(d.v)} hotspots`;
-  if (d.src === 'M') s += ' (estimated from MODIS)';
-  if (d.src === 'J') s += ' (from NOAA-20, converted)';
+  const unc = opts.unc ? Math.round(opts.unc * 100) : null;
+  let s = `<b>${when}</b><br>`;
+  if (d.src === 'M') s += `≈ ${fmtInt(d.v)} hotspots${unc ? ` (±${unc}%)` : ''} · estimated from MODIS on the VIIRS scale`;
+  else if (d.src === 'J') s += `${fmtInt(d.v)} hotspots · NOAA-20 converted to the S-NPP scale`;
+  else s += `${fmtInt(d.v)} hotspots · observed (VIIRS)`;
   if (b) s += `<br>Usual: ${fmtInt(b.median)} (middle half ${fmtInt(b.p25)}–${fmtInt(b.p75)})`;
   if (pr !== null) s += `<br>Higher than ${Math.round(pr)}% of other years`;
-  if (d.cat) s += `<br>${CAT_LABEL[d.cat]}`;
+  if (d.cat) s += `<br>${CAT_TEXT[d.cat]}`;
   return s;
 }
 

@@ -138,3 +138,24 @@ def test_ratio_uncertainty():
     assert harmonize.ratio_uncertainty([(10, 5), (20, 10)]) is None
     se = harmonize.ratio_uncertainty([(300, 100), (310, 100), (290, 100), (305, 100)])
     assert 0 < se < 0.05
+
+
+def test_confusion_counts():
+    from jamra import validate
+    pool = {("R", 8): {y: 10 + y % 7 for y in range(2010, 2020)}}
+    preds = [{"region": "R", "month": 8, "year": 2015, "V": 100, "P": 90},   # hit
+             {"region": "R", "month": 8, "year": 2016, "V": 100, "P": 10},   # miss
+             {"region": "R", "month": 8, "year": 2017, "V": 12, "P": 100}]   # false alarm
+    c = validate.confusion(preds, pool, ACFG)
+    assert (c["hits"], c["misses"], c["false_alarms"]) == (1, 1, 1)
+    assert c["hit_rate"] == 0.5
+
+
+def test_region_prediction_methods():
+    from jamra import validate
+    f = harmonize.fit("M3", rows_const(3.0), 10)
+    r = {"region": "a", "country": "X", "month": 5, "year": 2020, "M": 10, "V": 0}
+    assert validate.predict_region("baseline", r, {}, f, 50, True) == pytest.approx(30)
+    # an area with much higher own ratio and lots of data moves toward its own ratio
+    loc = validate.predict_region("local", r, {"a": (6000.0, 1000.0)}, f, 50, True)
+    assert 30 < loc < 60

@@ -16,7 +16,7 @@ import time
 from datetime import date, datetime, timedelta, timezone
 from statistics import median
 
-from . import aggregate, anomaly, config, harmonize
+from . import aggregate, anomaly, config, harmonize, validate
 from .firms import SENSOR_NAMES, month_index, month_label
 
 START_MI = month_index(2003, 1)
@@ -124,12 +124,55 @@ def build() -> dict:
     cvm = cv["metrics"]
     chosen, why = harmonize.choose_model({m: cvm[m] for m in models if m != "M0"}, hcfg["choose_within"])
     lam = harmonize.choose_lambda(rows, hcfg["lambdas"])
+
+    # ---------------- independent test on held-out years (validate.py)
+    test_years = [y for y in hcfg.get("test_years", []) if y in cal_years]
+    dev_years = [y for y in cal_years if y not in test_years]
+    ok_idx = {i for i, mi in enumerate(months) if mi >= SNPP_FIRST_FULL_MI
+              and (month_label(mi), "N") not in out_set and (month_label(mi), "A") not in out_set}
+    region_sets = {"presets": [], "grid_1deg": []}
+    for p, spec in presets.items():
+        region_sets["presets"] += validate.region_rows(mser(p, "A"), mser(p, "N"), months, set(cal_years), ok_idx,
+                                                       spec["country"], p)
+    owner_tmp = aggregate.cell_owner(agg)
+    boxes: dict = {}
+    pos = {mi: i for i, mi in enumerate(months)}
+    for cid, by_s in agg.cells.items():
+        if cid in agg.flagged_cells:
+            continue
+        ix, iy = (int(v) for v in cid.split("_"))
+        b = boxes.setdefault(f"{ix // 10}_{iy // 10}", {"A": [0] * len(months), "N": [0] * len(months), "own": {}})
+        for s in ("A", "N"):
+            for mi, n in by_s.get(s, {}).items():
+                if mi in pos:
+                    b[s][pos[mi]] += n
+        o = owner_tmp[cid]
+        b["own"][o] = b["own"].get(o, 0) + sum(by_s.get("N", {}).values())
+    for bid, b in boxes.items():
+        total_v = sum(b["N"][i] for i in ok_idx if months[i] // 12 + 2000 in cal_years)
+        if total_v >= 100 and b["own"]:
+            ctry = max(b["own"].items(), key=lambda kv: kv[1])[0]
+            region_sets["grid_1deg"] += validate.region_rows(b["A"], b["N"], months, set(cal_years), ok_idx, ctry, bid)
+    validation = validate.run([dict(r) for r in rows], region_sets, dev_years, test_years, models, hcfg["lambdas"],
+                              acfg, hcfg["choose_within"]) if test_years else None
+    if validation:
+        chosen = validation["chosen_model_dev"]
+        why = validation["choice_reason_dev"] + " (chosen on development years only)"
+        area_method = "local" if validation["decision"]["adopt_local_factor"] else "baseline"
+        lam_area = validation["lambda_area"]
+        print("validation:", validation["decision"]["text"])
+    else:
+        area_method, lam_area = "local", lam
+    unc_small = (validation["small_regions"]["presets"][area_method]["mdape"] if validation else None)
     final = harmonize.fit(chosen, rows, lam)
     m2 = harmonize.fit("M2", rows)
     m3 = harmonize.fit("M3", rows, lam)
     k_global = m2["k"]
     unc_month = cvm[chosen]["monthly"]["mdape"]
     unc_year = cvm[chosen]["annual"]["mdape"]
+    if validation:  # use the stricter held-out test-year errors for the ± shown to users
+        unc_month = validation["test_countries"][chosen]["mdape"]
+        unc_year = validation["test_countries"][chosen]["annual"]["mdape"]
     print(f"calibration years {cal_years}; chosen {chosen}; lam={lam}; k_global={k_global:.2f}")
 
     # alternative pairing: Terra + Aqua (could extend the record to 2001)
@@ -261,8 +304,11 @@ def build() -> dict:
             idx = [i for i in cal_idx if months[i] // 12 + 2000 == y]
             yearly.append((sum(N[i] for i in idx), sum(A[i] for i in idx)))
         if a["kind"] == "preset":
-            k_area = harmonize.area_factor(V_cal, M_cal, k_parent, lam)
-            w_own = M_cal / (M_cal + lam) if (M_cal + lam) else 0
+            if area_method == "local":
+                k_area = harmonize.area_factor(V_cal, M_cal, k_parent, lam_area)
+                w_own = M_cal / (M_cal + lam_area) if (M_cal + lam_area) else 0
+            else:
+                k_area, w_own = k_parent, 0.0
             se_rel = harmonize.ratio_uncertainty(yearly)
         else:
             k_area = k_parent
@@ -279,7 +325,7 @@ def build() -> dict:
                     seasonal = factor_for(ctry, month) / k_parent if k_parent else 1.0
                     h = A[i] * k_area * seasonal
                     hs = As[i] * k_area * seasonal
-                rel = math.sqrt((unc_month or 0) ** 2 + ((se_rel or 0) * 1.96 if a["kind"] == "preset" else 0) ** 2)
+                rel = (unc_small if (a["kind"] == "preset" and unc_small) else unc_month) or 0
                 harm.append(rnd(h)); src.append("M"); lo.append(rnd(h * (1 - rel))); hi.append(rnd(h * (1 + rel)))
                 harm_static.append(rnd(hs))
             elif (month_label(mi), "N") in out_set or not sensor_valid("N", mi):
@@ -378,12 +424,15 @@ def build() -> dict:
         "cv": {m: cvm[m] for m in models},
         "model_labels": harmonize.MODEL_LABELS,
         "chosen_model": chosen, "choice_reason": why, "lambda": lam,
+        "validation": validation, "area_method": area_method, "lambda_area": lam_area,
+        "uncertainty_small_regions": rnd(unc_small, 3),
         "lambda_per_fold": cv["lambda_per_fold"],
         "factors": {"global": rnd(k_global, 3), "by_country": {c: rnd(v, 3) for c, v in m2["k_c"].items()},
                     "by_country_month": {f"{c}|{m}": rnd(v, 3) for (c, m), v in m3["k_cm"].items()}},
         "uncertainty": {"monthly_rel": rnd(unc_month, 3), "annual_rel": rnd(unc_year, 3),
-                        "how": "Median absolute % error of out-of-fold (leave-one-year-out) predictions; "
-                               "monthly for months with at least 10 actual VIIRS hotspots."},
+                        "small_regions_rel": rnd(unc_small, 3),
+                        "how": "Median absolute % error on the held-out test years (countries; small regions "
+                               "separately), for months with at least 10 actual VIIRS hotspots."},
         "terra_aqua_alternative": {"model": chosen, "cv": cv_ta.get(chosen),
                                    "note": "Same model using Terra+Aqua MODIS instead of Aqua only."},
         "noaa20_to_snpp": {"choice": jn_choice, "why": jn_why, "global": rnd(jn["k"], 3),
@@ -411,6 +460,7 @@ def build() -> dict:
         "k_jn_by_country": {cfg["countries"][c]["id"]: rnd(v, 3) for c, v in k_jn_c.items()},
         "anomaly": acfg, "cell_deg": cfg["grid"]["cell_deg"],
         "frp_validated": frp_validated,
+        "area_method": area_method, "lambda_area": lam_area, "uncertainty_small": rnd(unc_small, 3),
     }
     return {"report": report, "meta": meta, "areas": areas_out, "cells": cells_out,
             "flagged": sorted(agg.flagged_cells)}

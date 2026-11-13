@@ -1,6 +1,7 @@
 // Map: MapLibre GL (loaded lazily), area outline, live hotspots, polygon/circle drawing.
 // Written with the help of an SI coding assistant (Claude Code).
 import { circleRing, haversineKm, ringBBox } from './util.js';
+import { BASE } from './data.js';
 
 const STYLE = 'https://tiles.openfreemap.org/styles/positron';
 let map = null, ready = null, drawMode = null, drawPts = [], onDrawDone = null;
@@ -20,8 +21,8 @@ function loadCSS(href) {
 export function initMap(container, { onFallback } = {}) {
   if (ready) return ready;
   ready = (async () => {
-    loadCSS('vendor/maplibre-gl.css');
-    await loadScript('vendor/maplibre-gl.js');
+    loadCSS(BASE + 'vendor/maplibre-gl.css');
+    await loadScript(BASE + 'vendor/maplibre-gl.js');
     const ml = window.maplibregl;
     map = new ml.Map({
       container, style: STYLE, center: [14, 38.5], zoom: 3.3, attributionControl: { compact: true },
