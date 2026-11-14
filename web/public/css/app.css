@@ -3,6 +3,7 @@
 @font-face { font-family: "Inter"; src: url("../fonts/inter-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-display: swap; }
 @font-face { font-family: "Inter"; src: url("../fonts/inter-latin-600-normal.woff2") format("woff2"); font-weight: 600; font-display: swap; }
 @font-face { font-family: "Inter"; src: url("../fonts/inter-latin-700-normal.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Inter Fallback"; src: local("Arial"); size-adjust: 107.1%; ascent-override: 90.4%; descent-override: 22.5%; line-gap-override: 0%; }
 
 :root {
   --bg: #FFFFFF;
@@ -16,7 +17,7 @@
   --slate: #5B7DB1;     /* lower than usual */
   --space: #03050A;     /* the only dark area: real space behind the globe */
   --radius: 14px;
-  --font: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --font: "Inter", "Inter Fallback", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
   --s1: 8px; --s2: 16px; --s3: 24px; --s4: 40px; --s5: 64px;
 }
 * { box-sizing: border-box; }
@@ -244,7 +245,7 @@ label { color: var(--ink2); font-size: 16px; }
 .alert.high { border-top-color: var(--accent); }
 .alert.extreme { border-top-color: #9A4A16; }
 .alert.stale { border-top-style: dashed; border-top-color: #9CA3AF; background: var(--bg2); }
-.alert h3 { font-size: 22px; margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.alert h2 { font-size: 22px; margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .alert .value { font-size: 20px; font-weight: 600; margin: 4px 0 0; color: var(--ink); }
 .alert p { margin: 0; font-size: 16px; color: var(--ink2); }
 .alert .period { font-weight: 600; color: var(--ink); font-size: 17px; }
@@ -295,6 +296,9 @@ label { color: var(--ink2); font-size: 16px; }
 
 /* reserved space while data load (no layout shift) */
 #cal { min-height: 720px; }
+#alert-list { min-height: 1400px; }
+#data-status { min-height: 56px; }
+#kpi-grid { min-height: 150px; }
 #area-info { min-height: 120px; }
 #hero-chart { min-height: 300px; }
 @media (max-width: 600px) { #cal { min-height: 600px; } #hero-chart { min-height: 220px; } }

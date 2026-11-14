@@ -20,7 +20,7 @@ export function renderCalendar(container, legend, grid, opts) {
   const cw = Math.max(cols === 12 ? 24 : 9, Math.floor((width - labelW - 4) / cols));
   const ch = cols === 12 ? Math.max(24, Math.min(36, cw * 0.5)) : 18;
   const W = labelW + cw * cols + 4, H = top + ch * years.length + 4;
-  const root = svg('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, 'aria-hidden': 'false' });
+  const root = svg('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: 'none' });
   root.append(svg('defs', {},
     svg('pattern', { id: 'cal-hatch', width: 5, height: 5, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' },
       svg('line', { x1: 0, y1: 0, x2: 0, y2: 5, stroke: 'rgba(255,255,255,.6)', 'stroke-width': 1.6 })),
@@ -55,7 +55,9 @@ export function renderCalendar(container, legend, grid, opts) {
   }
   const cells = [];
   years.forEach((y, r) => {
-    root.append(svg('text', { x: labelW - 8, y: top + r * ch + ch / 2 + 5, 'text-anchor': 'end' }, document.createTextNode(String(y))));
+    root.append(svg('text', { x: labelW - 8, y: top + r * ch + ch / 2 + 5, 'text-anchor': 'end', 'aria-hidden': 'true' }, document.createTextNode(String(y))));
+    const row = svg('g', { role: 'row', 'aria-label': String(y) });
+    root.append(row);
     for (let c = 0; c < cols; c++) {
       if (grid.value(y, c) === undefined) continue; // future: nothing to show
       const d = cellData(y, c);
@@ -77,7 +79,7 @@ export function renderCalendar(container, legend, grid, opts) {
       g.addEventListener('mousemove', (e) => opts.tip.show(e.clientX, e.clientY, text));
       g.addEventListener('mouseleave', () => opts.tip.hide());
       g.addEventListener('click', () => { focusCell(y, c); opts.onSelect(y, c); });
-      root.append(g);
+      row.append(g);
       cells.push(g);
     }
   });

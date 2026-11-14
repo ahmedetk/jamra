@@ -91,6 +91,14 @@ PAGES = [  # slug, nav label, <title>
 # removed information pages: their content is in the Arabic user guide; old links land on About
 OLD_PAGES = {"how-it-works": "about/", "validation": "about/", "limits": "about/", "credits": "about/"}
 
+import json as _json
+_META = _json.loads((PUB / "data" / "meta.json").read_text(encoding="utf-8"))
+CHIPS = {k: "".join(f'<button type="button" class="chip" data-area="{a['id']}" aria-pressed="false">{a['label']}</button>' for a in _META["areas"] if a["kind"] == k) for k in ("preset", "country")}
+TEAM = [("Shahd Farraj", "Problem and users", "Slides 1–2"), ("Ahmed Etkaidek", "NASA data and live system", "Slide 3"),
+        ("Aya Salman", "Science: method and validation", "Slides 4 and 6"), ("Ahmad Akhras", "Calendar and live demo", "Slide 5"),
+        ("Tala Yousef", "UX, design and communication", "Slide 7")]
+TEAM_HTML = "".join(f'<div class="member"><b>{n}</b><span>{r}</span><p class="fine">{d}</p></div>' for n, r, d in TEAM)
+
 AREA_PICKER = """
   <section id="area">
     <div class="wrap grid-2">
@@ -101,8 +109,8 @@ AREA_PICKER = """
           <button role="tab" id="tab-draw" aria-controls="pane-draw" aria-selected="false" class="tab" tabindex="-1">Draw</button>
           <button role="tab" id="tab-coords" aria-controls="pane-coords" aria-selected="false" class="tab" tabindex="-1">Lat / Lon</button>
         </div>
-        <div id="pane-preset" role="tabpanel" aria-labelledby="tab-preset" class="pane"><div id="preset-list" class="chips"></div></div>
-        <div id="pane-country" role="tabpanel" aria-labelledby="tab-country" class="pane" hidden><div id="country-list" class="chips"></div></div>
+        <div id="pane-preset" role="tabpanel" aria-labelledby="tab-preset" class="pane"><div id="preset-list" class="chips">""" + CHIPS["preset"] + """</div></div>
+        <div id="pane-country" role="tabpanel" aria-labelledby="tab-country" class="pane" hidden><div id="country-list" class="chips">""" + CHIPS["country"] + """</div></div>
         <div id="pane-draw" role="tabpanel" aria-labelledby="tab-draw" class="pane" hidden>
           <div class="row">
             <button type="button" class="btn" id="draw-polygon">Draw polygon</button>
@@ -128,11 +136,11 @@ AREA_PICKER = """
             <p id="coords-msg" class="msg" role="status"></p>
           </form>
         </div>
-        <div id="area-info" class="area-info" aria-live="polite"></div>
+        <div id="area-info" class="area-info" aria-live="polite"><b>Loading the area…</b><br><span>Fire area, country or your own shape</span><br><span>1 MODIS hotspot ≈ … VIIRS hotspots · ±…% on a month</span></div>
       </div>
       <div>
         <div class="map-wrap card">
-          <div id="map" class="map" aria-label="Map of the selected area and recent hotspots"><div class="map-loader" id="map-loader"></div></div>
+          <div id="map" class="map" role="region" aria-label="Map of the selected area and recent hotspots"><div class="map-loader" id="map-loader"></div></div>
           <div class="map-tools">
             <span>Recent hotspots</span>
             <div class="seg small" role="group" aria-label="Recent hotspot period">
@@ -246,7 +254,7 @@ BODY = {
 "alerts": """
   <section id="alerts">
     <div class="wrap">
-      <div id="data-status" class="status-panel" aria-live="polite"></div>
+      <div id="data-status" class="status-panel" aria-live="polite"><div class="st"><b>Checking live data</b> · reading the newest NASA FIRMS update and its time (UTC) · one moment</div></div>
       <div id="alert-list" class="alert-list"></div>
       <p class="fine" id="scale-note">Live: VIIRS NOAA-20 × <span data-k-jn>0.97</span> (S-NPP scale) · vs the same days in past years · Data: NASA FIRMS</p>
       <p class="feeds">Feeds: <a href="../data/live/alerts.json">alerts.json</a> · <a href="../data/live/alerts.xml">RSS</a> · <a href="../data/live/status.json">status.json</a></p>
@@ -273,7 +281,7 @@ BODY = {
   <section id="about">
     <div class="wrap about">
       <h2>Team Astro Byte</h2>
-      <div class="team" id="team-grid"></div>
+      <div class="team" id="team-grid">""" + TEAM_HTML + """</div>
       <p class="fine">NASA Space Apps Challenge 2026 · local event by NOVA · Challenge: Harmonization of MODIS and VIIRS Hot Spots.</p>
 
       <h2>Data acknowledgment</h2>
@@ -325,6 +333,9 @@ REDIRECT = """<script>
 })();
 </script>"""
 
+HOME_PRELOAD = ('<link rel="preload" as="image" href="img/space-stars-1280.webp" media="(max-width: 1299px)">'
+                '<link rel="preload" as="image" href="img/space-stars.webp" media="(min-width: 1300px)">')
+
 MENU_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>'
 
 
@@ -350,6 +361,7 @@ def page(slug, label, title):
 <meta property="og:image" content="https://ahmedetk.github.io/jamra/icons/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preload" href="{R}fonts/inter-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+{HOME_PRELOAD if slug == "" else ""}
 {REDIRECT if slug == "" else ""}
 <link rel="manifest" href="{R}manifest.webmanifest">
 <link rel="icon" href="{R}icons/favicon-32.png" sizes="32x32" type="image/png">

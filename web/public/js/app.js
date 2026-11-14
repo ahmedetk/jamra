@@ -3,7 +3,7 @@ import { $, $$, el, svg, fmt, fmtInt, pct, MONTHS, MONTHS_LONG, store, downloadB
 import { BASE, getJSON, loadArea, customArea, monthlyValues, monthLabel, monthIndex } from './data.js';
 import { heroChart, monthBars } from './charts.js';
 import { renderCalendar, CAT_TEXT } from './calendar.js';
-import { initMap, showArea, showLive, startDraw, clearDraw, webglOK } from './map.js';
+import { initMap, showArea, showLive, startDraw, clearDraw, webglOK, softwareGL } from './map.js';
 import { loadLive, loadStatus, renderBadge, renderAlerts, renderStatusPanel, areaWarning, fetchLive, renderTable, downloadLiveCSV, LEVEL_LABEL, liveState, periodText } from './live.js';
 import { downloadSummary } from './summary.js';
 import { baseline, percentileRank, category, CAT_LABEL, seasonStart, theilSen, mannKendall } from './stats.js';
@@ -102,7 +102,10 @@ function updateNavLinks(p) {
 }
 
 // ---------------------------------------------------------------- boot
+let firstLive = null;
 async function boot() {
+  firstLive = Promise.all([loadLive(), loadStatus()]);
+  firstLive.then(([l, st]) => { renderBadge(st, l); renderStatusPanel(st, l); }).catch(() => {});
   readURL();
   setupMenu();
   [meta, report] = await Promise.all([getJSON('data/meta.json'), getJSON('data/model_report.json')]);
@@ -124,7 +127,11 @@ async function boot() {
   if (has('#map')) {
     const idle = window.requestIdleCallback || ((f) => setTimeout(f, 600));
     const start = () => idle(() => initMap($('#map'), { loader: $('#map-loader') }).then(() => { if (area) { if (area.ring) showArea(area.ring); else showArea(countryRing(area)); applyLiveLayer(); } }), { timeout: 2500 });
-    if (document.readyState === 'complete') start(); else addEventListener('load', start, { once: true });
+    const narrow = matchMedia('(max-width: 900px)').matches;
+    if (narrow && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); start(); } }, { rootMargin: '0px' });
+      io.observe($('#map'));
+    } else if (document.readyState === 'complete') start(); else addEventListener('load', start, { once: true });
   }
   if (['calendar', 'live'].includes(PAGE)) await selectArea(state.custom ? null : state.areaId, state.custom);
   await refreshLive();
@@ -145,7 +152,7 @@ function renderLiveChip() {
 
 function homeExtras() {
   // the 3D Earth: real Blue Marble texture, real FIRMS hotspots; drag to turn it
-  if (!has('#globe') || !webglOK() || (navigator.connection && navigator.connection.saveData)) return;
+  if (!has('#globe') || !webglOK() || softwareGL() || (navigator.connection && navigator.connection.saveData)) return;
   const go = () => import('./globe3d.js').then(({ initEarth }) => initEarth($('#globe'), {
     points: live?.points || [],
     hiRes: innerWidth >= 900 && devicePixelRatio * innerWidth >= 1200,
@@ -168,7 +175,8 @@ function setupMenu() {
 }
 
 async function refreshLive() {
-  [live, status] = await Promise.all([loadLive(), loadStatus()]);
+  [live, status] = await (firstLive || Promise.all([loadLive(), loadStatus()]));
+  firstLive = null;
   renderBadge(status, live);
   renderStatusPanel(status, live);
   renderAlerts(live, meta, status, (id) => { location.href = `${BASE}calendar/?area=${id}&from=${state.from}&to=${state.to}`; });
@@ -187,10 +195,9 @@ function applyLiveLayer() {
 function buildPickers() {
   if (!has('#preset-list')) return;
   const mk = (box, kind) => {
-    box.innerHTML = '';
-    meta.areas.filter((a) => a.kind === kind).forEach((a) => {
-      box.append(el('button', { type: 'button', class: 'chip', 'data-area': a.id, 'aria-pressed': 'false', text: a.label, onclick: () => selectArea(a.id) }));
-    });
+    // the chips are in the HTML already (no layout shift); create them only if missing
+    if (!box.children.length) meta.areas.filter((a) => a.kind === kind).forEach((a) => box.append(el('button', { type: 'button', class: 'chip', 'data-area': a.id, 'aria-pressed': 'false', text: a.label })));
+    box.querySelectorAll('.chip').forEach((b) => b.addEventListener('click', () => selectArea(b.dataset.area)));
   };
   mk($('#preset-list'), 'preset');
   mk($('#country-list'), 'country');
@@ -663,7 +670,7 @@ async function downloadCalendarPNG() {
 
 // ---------------------------------------------------------------- static report sections
 function renderStatic() {
-  if (has('#team-grid')) renderTeam();
+  if (has('#team-grid') && !$('#team-grid').children.length) renderTeam();
 }
 
 function renderTeam() {
@@ -687,13 +694,14 @@ boot().catch((err) => {
 
 // ---------------------------------------------------------------- user-guide callouts (?guide=1)
 // Used only to make the numbered screenshots in the user guide; normal visitors never see it.
-if (new URLSearchParams(location.search).get('guide') === '1') {
+const GUIDE = new URLSearchParams(location.search);
+if (GUIDE.get('guide') === '1' || GUIDE.get('rects') === '1') {
   setTimeout(async () => {
     try {
-      if (PAGE === 'live' && has('#live-form')) $('#live-form').requestSubmit();
+      if (PAGE === 'live' && has('#live-form') && GUIDE.get('guide') === '1') $('#live-form').requestSubmit();
       await new Promise((r) => setTimeout(r, 2500));
       const g = await getJSON('data/guide.json');
-      (g[PAGE] || []).forEach((sel, i) => {
+      (GUIDE.get('guide') === '1' ? g[PAGE] || [] : []).forEach((sel, i) => {
         const n = document.querySelector(sel);
         if (!n) return;
         const r = n.getBoundingClientRect();
@@ -704,6 +712,13 @@ if (new URLSearchParams(location.search).get('guide') === '1') {
         b.style.top = `${Math.max(2, r.top + scrollY - 14)}px`;
         document.body.append(b);
       });
+      // section positions, read by scripts/guide_shots.py to crop the screenshots
+      const rects = {};
+      ['.page-head', '#hero', '#tools', '#area', '#yearly', '#kpis', '.cal-card', '#detail', '#season', '#alerts', '#live', '#about', '.foot'].forEach((sel) => {
+        const n = document.querySelector(sel);
+        if (n && !n.hidden) { const r = n.getBoundingClientRect(); rects[sel] = [Math.round(r.top + scrollY), Math.round(r.bottom + scrollY)]; }
+      });
+      document.body.dataset.rects = JSON.stringify(rects);
     } catch (e) { console.warn(e); }
   }, 2500);
 }

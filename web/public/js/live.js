@@ -63,11 +63,11 @@ export function renderStatusPanel(status, live) {
   if (s.state === 'none') rows.push(['down', 'Live data unavailable', 'The status file could not be read. Alerts are hidden until data arrive.']);
   else {
     rows.push([s.state === 'live' ? 'ok' : 'warn', s.state === 'live' ? 'Data up to date' : s.state === 'delayed' ? 'Data delayed' : 'Data outdated',
-      `· updated ${ago(status.last_success_utc)} (${utc(status.last_success_utc)}) · NASA FIRMS API`]);
+      `· updated ${ago(status.last_success_utc)} · NASA FIRMS`, utc(status.last_success_utc)]);
     if (s.failed) rows.push(['down', 'Last update failed', `· showing the last good data (${utc(status.last_attempt_utc)})`]);
     if ((live.from_day ?? 1) > 1) rows.push(['warn', 'Partial month', `· days ${live.from_day}–${live.day} compared`]);
   }
-  rows.forEach(([cls, h, t]) => box.append(el('div', { class: `st st-${cls}` }, el('b', { text: h }), el('span', { text: ' ' + t }))));
+  rows.forEach(([cls, h, t, title]) => box.append(el('div', { class: `st st-${cls}`, title: title || null }, el('b', { text: h }), el('span', { text: ' ' + t }))));
 }
 
 export function renderAlerts(live, meta, status, onPick) {
@@ -87,7 +87,7 @@ export function renderAlerts(live, meta, status, onPick) {
     const partial = (a.from_day ?? 1) > 1;
     const diff = a.median > 0 ? Math.round(((a.mtd - a.median) / a.median) * 100) : null;
     const card = el('button', { class: `alert ${lvl}`, type: 'button', onclick: () => onPick(id) },
-      el('h3', {}, `${label[id] || id} `, el('span', { class: `lvl lvl-${lvl === 'stale' ? 'unknown' : lvl}`, text: LEVEL_LABEL[lvl] }),
+      el('h2', {}, `${label[id] || id} `, el('span', { class: `lvl lvl-${lvl === 'stale' ? 'unknown' : lvl}`, text: LEVEL_LABEL[lvl] }),
         s.state === 'delayed' ? el('span', { class: 'lvl lvl-elevated tag', text: 'Delayed' }) : null,
         partial ? el('span', { class: 'lvl lvl-unknown tag', text: 'Partial data' }) : null),
       el('p', { class: 'period', text: periodText(live, a) }),

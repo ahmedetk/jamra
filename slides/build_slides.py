@@ -23,17 +23,19 @@ ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web" / "public" / "data"
 N = json.loads((ROOT / "data" / "processed" / "slide_numbers.json").read_text(encoding="utf-8"))
 
-NAVY = RGBColor(0x2B, 0x2F, 0x36)   # charcoal #2B2F36
-INK2 = RGBColor(0x3A, 0x3F, 0x47)
-MUTED = RGBColor(0x5C, 0x62, 0x6B)
-EMBER = RGBColor(0xD9, 0x73, 0x3A)  # darker soft orange (passes 3:1 for large text on white)
-ORANGE = RGBColor(0xF2, 0x8C, 0x4B)  # soft orange #F28C4B for fills
+NAVY = RGBColor(0x11, 0x18, 0x27)   # near-black text #111827 (Design v3, light theme)
+INK2 = RGBColor(0x37, 0x41, 0x51)
+MUTED = RGBColor(0x4B, 0x55, 0x63)
+EMBER = RGBColor(0xC9, 0x6A, 0x28)  # the calm orange, darker shade for text/lines on white (used sparingly)
+ORANGE = RGBColor(0xE8, 0x83, 0x3A)  # the calm orange #E8833A for fills
 BG = RGBColor(0xFF, 0xFF, 0xFF)
+OFF = RGBColor(0xF7, 0xF7, 0xF5)
 WHITE = RGBColor(0xFF, 0xFF, 0xFF)
-GREY = RGBColor(0x8A, 0x90, 0x99)
-BLUE = RGBColor(0x4A, 0x67, 0x85)   # slate blue
-LINE = RGBColor(0xE1, 0xE3, 0xE7)
-FONT = "Arial"
+GREY = RGBColor(0x9C, 0xA3, 0xAF)
+BLUE = RGBColor(0x5B, 0x7D, 0xB1)   # slate blue
+LIGHTBLUE = RGBColor(0xB9, 0xC7, 0xDE)
+LINE = RGBColor(0xE5, 0xE7, 0xEB)
+FONT = "Segoe UI"   # Inter is not installed on most Windows PCs; Segoe UI is the closest system font (the logo is an image in Inter)
 SOURCE = "Data: NASA FIRMS (MODIS C6.1 Aqua, VIIRS 375 m S-NPP / NOAA-20), standard processing 2003–2025. Analysis: Jamra."
 used = {}  # numbers that appear on slides -> checked by scripts/check_numbers.py
 
@@ -87,11 +89,12 @@ def base(prs, n, headline, notes, speaker, source=True):
     s = prs.slides.add_slide(prs.slide_layouts[6])
     s.background.fill.solid()
     s.background.fill.fore_color.rgb = BG
-    rect(s, 0, 0, 13.333, 0.1, NAVY)
-    logo = ROOT / 'web' / 'public' / 'icons' / 'logo-navy-256.png'
+    logo = ROOT / 'web' / 'public' / 'icons' / 'wordmark-dark.png'
     if logo.exists() and n != 1:
-        s.shapes.add_picture(str(logo), Inches(12.45), Inches(0.28), width=Inches(0.42))
-    tb(s, 0.55, 0.32, 12.2 if n == 1 else 11.6, 1.25, headline, size=28 if len(headline) < 105 else 23, bold=True)
+        s.shapes.add_picture(str(logo), Inches(11.75), Inches(0.36), height=Inches(0.36))
+    if n != 1:
+        rect(s, 0.55, 1.5, 12.23, 0.012, LINE)
+    tb(s, 0.55, 0.3, 12.2 if n == 1 else 11.0, 1.2, headline, size=27 if len(headline) < 105 else 22, bold=True)
     tb(s, 0.55, 7.05, 8.5, 0.3, "Team Astro Byte · NASA Space Apps Challenge 2026 · Harmonization of MODIS and VIIRS Hot Spots", size=9, color=MUTED)
     tb(s, 12.3, 7.05, 0.5, 0.3, str(n), size=10, color=MUTED, align=PP_ALIGN.RIGHT)
     if source:
@@ -166,7 +169,7 @@ def build(url, out_path, screenshot=None):
     g07, g21, g23 = st["greece_2007_08"], st["greece_2021_08"], st["greece_2023_08"]
 
     # ------------------------------------------------------------------ 1 title
-    s = base(prs, 1, "Jamra: one fair fire record from two satellites, with live early warning",
+    s = base(prs, 1, "One fair fire record from two satellites, with live early warning",
              speaker="Shahd Farraj", source=False, notes=(
                  "Hello, we are Team Astro Byte and this is Jamra, which means ember in Arabic. "
                  "Satellites have watched fires for more than twenty years, but the record is split between an older sensor, MODIS, "
@@ -174,35 +177,31 @@ def build(url, out_path, screenshot=None):
                  f"number of hotspots jumps about {gj['raw_ratio']} times after 2012. In our harmonized record the fake jump is gone, "
                  "and the real disasters, like 2007, 2021 and 2023, stand out. In the next minutes we show how we built it, "
                  "how well it works, and how it warns people live."))
-    # dark title slide with the real Earth (NASA Blue Marble via GIBS)
-    s.background.fill.solid(); s.background.fill.fore_color.rgb = RGBColor(0x1F, 0x23, 0x28)
+    # title slide: light text side, and the only dark area is real space with the Earth (NASA Blue Marble)
+    panel = ROOT / "slides" / "assets" / "space_earth.png"
+    if panel.exists():
+        s.shapes.add_picture(str(panel), Inches(7.35), Inches(0), height=Inches(7.5))
+        tb(s, 7.5, 7.08, 5.7, 0.3, "Earth: NASA GIBS / Blue Marble · Stars: Yale Bright Star Catalogue (NASA HEASARC)", size=8, color=RGBColor(0x9C, 0xA3, 0xAF))
     for shp in list(s.shapes):
-        if shp.has_text_frame and shp.text_frame.text.startswith("Jamra: one fair"):
-            for para in shp.text_frame.paragraphs:
-                for r in para.runs: r.font.color.rgb = WHITE
-        elif shp.has_text_frame and ("Team Astro Byte ·" in shp.text_frame.text or shp.text_frame.text.strip() == "1"):
-            for para in shp.text_frame.paragraphs:
-                for r in para.runs: r.font.color.rgb = RGBColor(0xA3, 0xA9, 0xB2)
-    earth = ROOT / "web" / "public" / "img" / "earth-blue-marble.png"
-    if earth.exists():
-        s.shapes.add_picture(str(earth), Inches(7.6), Inches(1.0), width=Inches(6.3))
-        tb(s, 10.2, 7.05, 2.0, 0.3, "Imagery: NASA GIBS / Blue Marble", size=8, color=RGBColor(0xA3, 0xA9, 0xB2))
-    logo = ROOT / "web" / "public" / "icons" / "logo-white-256.png"
-    if logo.exists():
-        s.shapes.add_picture(str(logo), Inches(0.55), Inches(1.55), width=Inches(0.62))
-    tb(s, 1.25, 1.6, 4, 0.6, "Jamra", size=28, bold=True, color=WHITE)
-    LIGHT = RGBColor(0xD1, 0xD5, 0xDB)
-    tb(s, 0.55, 2.4, 6.6, 0.5, "Challenge: Harmonization of MODIS and VIIRS Hot Spots", size=16, color=LIGHT)
-    tb(s, 0.55, 2.95, 6.6, 1.6, [
-        [("Team Astro Byte", {"bold": True, "size": 16, "color": WHITE})],
-        [("Shahd Farraj · Ahmed Etkaidek · Aya Salman", {"size": 14, "color": LIGHT})],
-        [("Ahmad Akhras · Tala Yousef", {"size": 14, "color": LIGHT})],
+        if shp.has_text_frame and shp.text_frame.text.startswith("One fair fire record"):
+            shp.left, shp.top, shp.width = Inches(0.6), Inches(1.75), Inches(6.4)
+    wm = ROOT / "web" / "public" / "icons" / "wordmark-dark.png"
+    if wm.exists():
+        s.shapes.add_picture(str(wm), Inches(0.6), Inches(0.6), height=Inches(0.85))
+    tb(s, 0.6, 3.3, 6.4, 0.5, "Challenge: Harmonization of MODIS and VIIRS Hot Spots", size=15, color=MUTED)
+    tb(s, 0.6, 3.85, 6.4, 1.2, [
+        [("Team Astro Byte", {"bold": True, "size": 16})],
+        [("Shahd Farraj · Ahmed Etkaidek · Aya Salman", {"size": 14, "color": INK2})],
+        [("Ahmad Akhras · Tala Yousef", {"size": 14, "color": INK2})],
     ])
-    tb(s, 0.55, 4.45, 6.6, 1.2, [
-        [("Raw record: ", {"bold": True, "color": EMBER, "size": 15}), (u("g_raw", f"{gj['raw_ratio']}×") + " more hotspots after 2012 in Greece.", {"size": 15, "color": WHITE})],
-        [("Harmonized: ", {"bold": True, "size": 15, "color": RGBColor(0xA9, 0xBC, 0xCD)}), (u("g_harm", f"{gj['harm_ratio']}×") + ". The fake rise disappears.", {"size": 15, "color": WHITE})],
+    tb(s, 0.6, 5.15, 6.4, 1.0, [
+        [("Raw record: ", {"bold": True, "size": 15}), (u("g_raw", f"{gj['raw_ratio']}×") + " more hotspots after 2012 in Greece.", {"size": 15})],
+        [("Harmonized: ", {"bold": True, "size": 15, "color": BLUE}), (u("g_harm", f"{gj['harm_ratio']}×") + ". The fake rise disappears.", {"size": 15})],
     ])
-    tb(s, 0.55, 6.25, 7.0, 0.6, [[("Built for the NASA Space Apps Challenge 2026 · Local event by NOVA · Data: NASA FIRMS · Not an official NASA product", {"size": 10, "color": RGBColor(0xA3, 0xA9, 0xB2)})]])
+    tb(s, 0.6, 6.45, 6.5, 0.5, [[("Built for the NASA Space Apps Challenge 2026 · Local event by NOVA · Data: NASA FIRMS · Not an official NASA product", {"size": 9.5, "color": MUTED})]])
+    for shp in list(s.shapes):  # footer and slide number of the base layout: keep them on the white side
+        if shp.has_text_frame and (shp.text_frame.text.startswith("Team Astro Byte ·") or shp.text_frame.text.strip() == "1"):
+            shp._element.getparent().remove(shp._element)
 
     # ------------------------------------------------------------------ 2 problem
     s = base(prs, 2, "Joining MODIS and VIIRS raw creates a fake rise in fires after 2012, and the old satellites are retiring",
@@ -215,7 +214,7 @@ def build(url, out_path, screenshot=None):
                  "And it is urgent: MODIS is near the end of its life, and NASA stopped the S-NPP VIIRS data stream on 2 November 2026, "
                  "so a fair, continuous record is needed now."))
     rect(s, 0.55, 1.65, 4.6, 4.3, WHITE, line=LINE, shape=MSO_SHAPE.ROUNDED_RECTANGLE, radius=0.06)
-    tb(s, 0.75, 1.85, 4.2, 1.6, u("k_global", f"{N['k_global']}×"), size=88, bold=True, color=EMBER, align=PP_ALIGN.CENTER)
+    tb(s, 0.75, 1.85, 4.2, 1.6, u("k_global", f"{N['k_global']}×"), size=88, bold=True, color=NAVY, align=PP_ALIGN.CENTER)
     tb(s, 0.75, 3.55, 4.2, 2.2, [
         [("more hotspots seen by VIIRS than MODIS for the same fires", {"size": 17, "bold": True})],
         [("VIIRS S-NPP ÷ MODIS Aqua, all hotspots, 8 countries, calibration years 2012–2025", {"size": 12, "color": MUTED})],
@@ -228,8 +227,8 @@ def build(url, out_path, screenshot=None):
     gf = s.shapes.add_chart(XL_CHART_TYPE.COLUMN_CLUSTERED, Inches(5.5), Inches(1.6), Inches(4.2), Inches(4.4), cd)
     ch = gf.chart
     style_chart(ch, size=11)
-    ch.series[0].format.fill.solid(); ch.series[0].format.fill.fore_color.rgb = EMBER
-    ch.series[1].format.fill.solid(); ch.series[1].format.fill.fore_color.rgb = NAVY
+    ch.series[0].format.fill.solid(); ch.series[0].format.fill.fore_color.rgb = INK2
+    ch.series[1].format.fill.solid(); ch.series[1].format.fill.fore_color.rgb = BLUE
     pl = ch.plots[0]
     pl.has_data_labels = True
     pl.data_labels.number_format = '0.0"×"'
@@ -244,10 +243,10 @@ def build(url, out_path, screenshot=None):
     tb(s, 10.0, 5.95, 3.0, 0.7, "Also benefit: village councils, municipalities, farmers (via local authorities)", size=10, color=MUTED)
     for i, who in enumerate(["Emergency managers & early warning", "Firefighting teams", "Land & forest managers", "Scientists & researchers"]):
         yy = 2.1 + i * 0.95
-        c = rect(s, 10.0, yy, 0.62, 0.62, NAVY, shape=MSO_SHAPE.OVAL)
+        c = rect(s, 10.0, yy, 0.62, 0.62, OFF, line=LINE, shape=MSO_SHAPE.OVAL)
         c.text_frame.text = who[0]
         c.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
-        r = c.text_frame.paragraphs[0].runs[0]; r.font.size = Pt(16); r.font.bold = True; r.font.color.rgb = WHITE; r.font.name = FONT
+        r = c.text_frame.paragraphs[0].runs[0]; r.font.size = Pt(16); r.font.bold = True; r.font.color.rgb = NAVY; r.font.name = FONT
         tb(s, 10.75, yy + 0.02, 2.4, 0.8, who, size=12.5)
     tb(s, 0.55, 6.15, 12.2, 0.5, "MODIS (2000–) is near end of life; NASA stopped S-NPP VIIRS data on 2 Nov 2026.", size=14, color=INK2)
 
@@ -263,7 +262,7 @@ def build(url, out_path, screenshot=None):
                  f"{N['k_jn']:.2f}."), source=True)
     # pixel illustration
     tb(s, 0.55, 1.75, 4.6, 0.4, "Same 1 km × 1 km patch of ground", size=14, bold=True)
-    rect(s, 0.8, 2.25, 2.0, 2.0, RGBColor(0xA9, 0xBC, 0xCD))
+    rect(s, 0.8, 2.25, 2.0, 2.0, LIGHTBLUE)
     tb(s, 0.8, 4.3, 2.0, 0.6, "MODIS: 1 pixel (1 km)", size=12, align=PP_ALIGN.CENTER)
     side = 2.0 / 2.667
     for i in range(3):
@@ -271,18 +270,18 @@ def build(url, out_path, screenshot=None):
             w = min(side, 2.0 - i * side)
             h = min(side, 2.0 - j * side)
             if w > 0.02 and h > 0.02:
-                rect(s, 3.1 + i * side, 2.25 + j * side, w - 0.03, h - 0.03, NAVY)
+                rect(s, 3.1 + i * side, 2.25 + j * side, w - 0.03, h - 0.03, BLUE)
     tb(s, 3.0, 4.3, 2.3, 0.6, ["VIIRS: ~7 pixels (375 m)", [("pixel geometry, not a count", {"size": 9, "color": MUTED})]], size=12, align=PP_ALIGN.CENTER)
     tb(s, 0.55, 5.0, 4.8, 1.0, "Smaller pixels catch smaller fires, so VIIRS counts more hotspots.", size=13, color=INK2)
     # timeline
     tb(s, 5.8, 1.75, 7.0, 0.4, "Who watched when", size=14, bold=True)
     x0, x1, yr0, yr1 = 7.3, 12.8, 2000, 2027
     X = lambda yv: x0 + (yv - yr0) / (yr1 - yr0) * (x1 - x0)
-    bars = [("MODIS Terra (~10:30)", 2000.0, 2026.9, GREY), ("MODIS Aqua (~13:30)", 2002.5, 2026.9, RGBColor(0xA9, 0xBC, 0xCD)),
-            ("VIIRS S-NPP (~13:30)", 2012.05, 2026.84, NAVY), ("VIIRS NOAA-20", 2018.25, 2026.9, RGBColor(0x4A, 0x67, 0x85)),
-            ("VIIRS NOAA-21", 2024.05, 2026.9, RGBColor(0x7F, 0x98, 0xB0))]
-    rect(s, X(2012), 2.25, X(2026) - X(2012), 2.95, RGBColor(0xFD, 0xE6, 0xD6))
-    tb(s, X(2012), 5.2, X(2026) - X(2012), 0.35, "overlap: our calibration lab", size=11, color=EMBER, align=PP_ALIGN.CENTER)
+    bars = [("MODIS Terra (~10:30)", 2000.0, 2026.9, GREY), ("MODIS Aqua (~13:30)", 2002.5, 2026.9, LIGHTBLUE),
+            ("VIIRS S-NPP (~13:30)", 2012.05, 2026.84, NAVY), ("VIIRS NOAA-20", 2018.25, 2026.9, BLUE),
+            ("VIIRS NOAA-21", 2024.05, 2026.9, RGBColor(0x8F, 0xA7, 0xCC))]
+    rect(s, X(2012), 2.25, X(2026) - X(2012), 2.95, OFF, line=LINE)
+    tb(s, X(2012), 5.2, X(2026) - X(2012), 0.35, "overlap: our calibration lab", size=11, color=INK2, align=PP_ALIGN.CENTER)
     for i, (name, a, b, col) in enumerate(bars):
         yy = 2.35 + i * 0.55
         tb(s, 5.8, yy - 0.04, 1.5, 0.45, name, size=10)
@@ -308,11 +307,11 @@ def build(url, out_path, screenshot=None):
     for i, (h, t) in enumerate(steps):
         xx = 0.55 + i * 4.2
         rect(s, xx, 1.75, 3.85, 2.55, WHITE, line=LINE, shape=MSO_SHAPE.ROUNDED_RECTANGLE, radius=0.06)
-        tb(s, xx + 0.2, 1.9, 3.5, 0.5, h, size=17, bold=True, color=EMBER if i == 1 else NAVY)
+        tb(s, xx + 0.2, 1.9, 3.5, 0.5, h, size=17, bold=True, color=NAVY)
         tb(s, xx + 0.2, 2.5, 3.5, 1.7, t, size=14, color=INK2)
         if i < 2:
             a = s.shapes.add_shape(MSO_SHAPE.RIGHT_ARROW, Inches(xx + 3.88), Inches(2.85), Inches(0.28), Inches(0.35))
-            a.fill.solid(); a.fill.fore_color.rgb = NAVY; a.line.fill.background()
+            a.fill.solid(); a.fill.fore_color.rgb = GREY; a.line.fill.background()
     tb(s, 0.55, 4.45, 12.2, 0.4, [[("Chosen by cross-validation: ", {"bold": True, "size": 13}),
                                    (u("chosen", f"{N['chosen_model']}") + f" ({N['chosen_label'].lower()}), out of six models.", {"size": 13})]])
     # architecture
@@ -325,7 +324,7 @@ def build(url, out_path, screenshot=None):
         tb(s, xx + 0.08, 5.52, 2.05, 0.45, t, size=10.5, color=WHITE if i in (0, 2) else INK2, align=PP_ALIGN.CENTER)
         if i < 4:
             a = s.shapes.add_shape(MSO_SHAPE.RIGHT_ARROW, Inches(xx + 2.22), Inches(5.45), Inches(0.26), Inches(0.26))
-            a.fill.solid(); a.fill.fore_color.rgb = EMBER; a.line.fill.background()
+            a.fill.solid(); a.fill.fore_color.rgb = GREY; a.line.fill.background()
 
     # ------------------------------------------------------------------ 5 demo
     ev = st["evia_2007_08"]
@@ -333,12 +332,12 @@ def build(url, out_path, screenshot=None):
     s = base(prs, 5, "Pick any area, see its burning calendar, and know which values are observed and which are estimated",
              speaker="Ahmad Akhras", notes=(
                  "Live demo, six steps. "
-                 f"1) Home ({url}?area=greece&hero=raw): the raw yearly chart for Greece jumps after 2012. "
+                 f"1) Open the Calendar page ({url}calendar/?area=greece&hero=raw): the yearly chart in Raw jumps after 2012. "
                  "2) Press Harmonized: the fake jump disappears. "
-                 f"3) Press 'Try the Evia 2007 example' ({url}calendar/?area=evia&from=2003&to=2025&month=2007-08&mode=abs&detail=1): the Calendar opens on Evia, August 2007, with the details open. "
+                 f"3) Under Fire areas choose Evia and click August 2007 (direct link, also the Home button 'Try Evia 2007': {url}calendar/?area=evia&from=2003&to=2025&month=2007-08&mode=abs&detail=1). "
                  f"4) The bars compare August in every year: about {fmt(ev['value'])} hotspots, {ev['times_typical']} times a typical August of {ev['typical']}. "
-                 f"5) Point at the label: this value is estimated from MODIS on the VIIRS scale, plus or minus {N['unc_small_pct']} percent (range {fmt(ev['lo'])} to {fmt(ev['hi'])}); raw MODIS saw only {fmt(ev['raw'])}. "
-                 f"6) End on the Validation page ({url}validation/): on held-out years the monthly error drops from {T['err_raw_pct']} to {T['err_harm_pct']} percent. "
+                 f"5) Point at the tag 'estimated from MODIS', plus or minus {N['unc_small_pct']} percent (range {fmt(ev['lo'])} to {fmt(ev['hi'])}); raw MODIS saw only {fmt(ev['raw'])}. "
+                 f"6) Back to slide 6 for the independent test: on held-out years the monthly error drops from {T['err_raw_pct']} to {T['err_harm_pct']} percent. "
                  f"Extra if time: Alerts ({url}alerts/) and Live Data ({url}live/?area=greece). "
                  "If Wi-Fi fails, the app works offline from cache; backup screenshots are in AstroByte_Backup.pptx."))
     a = json.loads((WEB / "areas" / "evia.json").read_text(encoding="utf-8"))
@@ -366,20 +365,20 @@ def build(url, out_path, screenshot=None):
             if yv < 2012:  # estimated from MODIS: thin light border, like the hatch on the site
                 cell.line.color.rgb = RGBColor(0xFF, 0xFF, 0xFF); cell.line.width = Pt(0.75)
             if yv == 2007 and m == 7:
-                cell.line.color.rgb = EMBER; cell.line.width = Pt(2.5)
+                cell.line.color.rgb = NAVY; cell.line.width = Pt(2.75)
     tb(s, gx - 0.5, gy + 23 * chh + 0.05, 4.9, 0.5, "Evia (Greece), hotspots per month 2003–2025, VIIRS-equivalent, log colour scale. Rows before 2012 are estimated from MODIS.", size=8, color=MUTED)
     tb(s, 5.5, 1.75, 4.8, 1.5, [
         [(u("ev07", f"August 2007, Evia: ≈ {fmt(ev['value'])} hotspots"), {"bold": True, "size": 16})],
         [(u("ev07x", f"{ev['times_typical']}× a typical August"), {"size": 15}), (f" (usual {ev['typical']})", {"size": 13, "color": INK2})],
-        [("Estimated from MODIS on the VIIRS scale, ±" + u("unc", f"{N['unc_small_pct']}%"), {"size": 13, "color": EMBER, "bold": True})],
+        [("Tag in the app: estimated from MODIS · ±" + u("unc", f"{N['unc_small_pct']}%"), {"size": 13, "color": NAVY, "bold": True})],
     ])
     if screenshot and Path(screenshot).exists():
         s.shapes.add_picture(str(screenshot), Inches(5.5), Inches(3.3), width=Inches(4.7))
-        tb(s, 5.5, 6.3, 4.7, 0.3, "The Jamra web app (installable on phones).", size=9, color=MUTED)
+        tb(s, 5.5, 6.3, 4.7, 0.3, "The jamra Calendar page (installable on phones).", size=9, color=MUTED)
     # QR
     s.shapes.add_picture(qr_png(url), Inches(10.75), Inches(1.75), width=Inches(2.0))
     tb(s, 10.5, 3.8, 2.5, 0.9, ["Try it live", url.replace("https://", "")], size=11, align=PP_ALIGN.CENTER)
-    feats = ["8 pages: Calendar, Alerts, Live Data, Validation…", "Presets, countries, polygon, circle, lat/lon", "Observed vs estimated, with ±",
+    feats = ["5 pages: Home, Calendar, Alerts, Live Data, About", "Presets, countries, polygon, circle, lat/lon", "Observed vs estimated, with ±",
              "Alerts every 3 h from NASA FIRMS", "CSV, PNG and one-page summary"]
     tb(s, 10.45, 4.75, 2.7, 2.0, [[("• " + f, {"size": 10.5})] for f in feats])
 
@@ -405,7 +404,7 @@ def build(url, out_path, screenshot=None):
     for i, m in enumerate(order):
         pt = ser.points[i]
         pt.format.fill.solid()
-        pt.format.fill.fore_color.rgb = EMBER if m == N["chosen_model"] else (GREY if m == "M0" else INK2)
+        pt.format.fill.fore_color.rgb = ORANGE if m == N["chosen_model"] else (GREY if m == "M0" else BLUE)
     pl = ch.plots[0]
     pl.has_data_labels = True
     pl.data_labels.number_format = '0"%"'
@@ -421,7 +420,7 @@ def build(url, out_path, screenshot=None):
     for i, (big, small) in enumerate(kpis):
         yy = 1.75 + i * 1.05
         rect(s, 7.1, yy, 5.7, 0.92, WHITE, line=LINE, shape=MSO_SHAPE.ROUNDED_RECTANGLE, radius=0.1)
-        tb(s, 7.25, yy + 0.12, 2.3, 0.7, big, size=21, bold=True, color=EMBER if i == 0 else NAVY)
+        tb(s, 7.25, yy + 0.12, 2.3, 0.7, big, size=21, bold=True, color=NAVY)
         tb(s, 9.6, yy + 0.12, 3.15, 0.8, small, size=11, color=INK2)
     tb(s, 7.1, 4.95, 5.7, 0.4, "Honest limits", size=15, bold=True)
     tb(s, 7.1, 5.35, 5.7, 1.4, [[("• Hotspots are not fires or burned area; clouds hide fires.", {"size": 12})],
@@ -452,11 +451,11 @@ def build(url, out_path, screenshot=None):
     road = [("More regions", "global coarse grid"), ("Arabic interface", "right-to-left"), ("Telegram + SMS", "alerts"), ("Terra + Aqua", u("ta", f"{N['terra_aqua_mdape_pct']}% vs {N['cv_aqua_mdape_pct']}% error") + ", to 2001")]
     for i, (h, t) in enumerate(road):
         xx = 0.55 + i * 2.06
-        rect(s, xx, 4.65, 1.9, 0.95, NAVY, shape=MSO_SHAPE.ROUNDED_RECTANGLE, radius=0.12)
-        tb(s, xx + 0.06, 4.7, 1.78, 0.4, h, size=12, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
-        tb(s, xx + 0.06, 5.08, 1.78, 0.45, t, size=10, color=WHITE, align=PP_ALIGN.CENTER)
+        rect(s, xx, 4.65, 1.9, 0.95, OFF, line=LINE, shape=MSO_SHAPE.ROUNDED_RECTANGLE, radius=0.12)
+        tb(s, xx + 0.06, 4.7, 1.78, 0.4, h, size=12, bold=True, color=NAVY, align=PP_ALIGN.CENTER)
+        tb(s, xx + 0.06, 5.08, 1.78, 0.45, t, size=10, color=INK2, align=PP_ALIGN.CENTER)
     s.shapes.add_picture(qr_png(url), Inches(9.9), Inches(1.75), width=Inches(2.3))
-    tb(s, 9.4, 4.1, 3.3, 0.7, ["Scan to try Jamra", url.replace("https://", "")], size=11, align=PP_ALIGN.CENTER)
+    tb(s, 9.4, 4.1, 3.3, 0.7, ["Scan to try jamra", url.replace("https://", "")], size=11, align=PP_ALIGN.CENTER)
     tb(s, 0.55, 5.85, 12.2, 0.9, [
         [("Data: NASA FIRMS (LANCE / ESDIS). We acknowledge the use of data from NASA's Fire Information for Resource Management System (FIRMS). NASA does not endorse this project.", {"size": 9, "color": MUTED})],
         [("SI disclosure: we used an SI coding assistant (Claude Code by Anthropic) to write the code for the pipeline, website, live system and slides, following our design and decisions. The team chose the method, checked results against NASA FIRMS data and verified every reference.", {"size": 9, "color": MUTED})],
@@ -480,7 +479,7 @@ def build_backup(url, out_path, shots):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--url", default="https://astrobyte-jamra.github.io/jamra/")
+    ap.add_argument("--url", default="https://ahmedetk.github.io/jamra/")
     ap.add_argument("--screenshot", default=str(ROOT / "slides" / "shots" / "app.png"))
     a = ap.parse_args()
     out = build(a.url, ROOT / "slides" / "AstroByte_Slides.pptx", a.screenshot)

@@ -30,7 +30,7 @@ const TILES = 'https://tiles.openfreemap.org/planet';
 const GLYPHS = 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
 const EN = ['coalesce', ['get', 'name:en'], ['get', 'name_en']]; // English-only labels
 const FADE = (from, to) => ['interpolate', ['linear'], ['zoom'], 6.2, from, 7.4, to];
-export function earthStyle({ labels = true } = {}) {
+export function earthStyle({ labels = true, flat = false } = {}) {
   const layers = [
     // the globe surface under the imagery: polar ice white, so the caps beyond 85° look natural (no dark wedge)
     { id: 'space', type: 'background', paint: { 'background-color': '#E9EEF2' } },
@@ -63,7 +63,7 @@ export function earthStyle({ labels = true } = {}) {
         layout: { 'text-field': EN, 'text-font': ['Noto Sans Bold'], 'text-size': 12, 'text-letter-spacing': 0.04 }, paint: text() });
   }
   return {
-    version: 8, glyphs: GLYPHS, projection: { type: 'globe' },
+    version: 8, glyphs: GLYPHS, projection: { type: flat ? 'mercator' : 'globe' },
     sky: {
       'sky-color': '#03050A', 'horizon-color': '#9CC3F2', 'fog-color': '#DCE9F7',
       'sky-horizon-blend': 0.5, 'horizon-fog-blend': 0.6, 'fog-ground-blend': 0.9,
@@ -98,7 +98,9 @@ function loadCSS(href) {
   const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.append(l);
 }
 
+let SOFT = false;
 export function initMap(container, { onFallback, loader } = {}) {
+  SOFT = softwareGL();
   if (ready) return ready;
   ready = (async () => {
     loadCSS(BASE + 'vendor/maplibre-gl.css');
@@ -106,7 +108,7 @@ export function initMap(container, { onFallback, loader } = {}) {
     const ml = window.maplibregl;
     addRetryProtocol(ml);
     map = new ml.Map({
-      container, style: earthStyle(), center: [18, 30], zoom: 1.7, attributionControl: { compact: true }, maxZoom: 14,
+      container, style: earthStyle({ flat: SOFT }), center: [18, 30], zoom: 1.7, attributionControl: { compact: true }, maxZoom: 14, pixelRatio: SOFT ? 1 : undefined,
       cooperativeGestures: matchMedia('(pointer: coarse)').matches,
     });
     map.addControl(new ml.NavigationControl({ showCompass: false }), 'top-right');
@@ -159,7 +161,7 @@ export async function showArea(ring) {
   if (ring) {
     const [w, s, e, n] = ringBBox(ring);
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    m.fitBounds([[w, s], [e, n]], { padding: 40, maxZoom: 9, duration: reduce ? 0 : 3000, easing: (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2), essential: true });
+    m.fitBounds([[w, s], [e, n]], { padding: 40, maxZoom: 9, duration: reduce || SOFT ? 0 : 3000, easing: (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2), essential: true });
   }
 }
 
@@ -245,6 +247,14 @@ function finish(ring, label) {
   cb && cb(ring, label);
 }
 
+
+export function softwareGL() {
+  try {
+    const gl = document.createElement('canvas').getContext('webgl');
+    const ext = gl && gl.getExtension('WEBGL_debug_renderer_info');
+    return !!ext && /swiftshader|llvmpipe|software|basic render/i.test(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL));
+  } catch { return false; }
+}
 
 export function webglOK() {
   try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch { return false; }
