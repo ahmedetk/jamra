@@ -390,8 +390,8 @@ ol li, ul li {{ margin-bottom: 1.5mm; }}
 <section>
   <h2>9. الفريق وتوزيع العمل</h2>
   <table><thead><tr><th>العضو</th><th>الدور</th></tr></thead><tbody>
+  <tr><td><span class="en">Ahmed Etkaidek</span> (أحمد اتكيدك)</td><td>المطوّر الرئيسي والمصمّم: بنى موقع جمرة وأطلقه (الواجهة، والربط بواجهة ناسا FIRMS، والتحديث كل 3 ساعات، والنشر على GitHub Pages)، وصمّم الموقع والهوية (<span class="en">Lead developer & designer: built and launched the Jamra web app (front end, NASA FIRMS API connection, live 3-hourly updates, GitHub Pages deployment) and designed the site and brand.</span>)</td></tr>
   <tr><td>شهد فرّاج</td><td>المشكلة والمستخدمون (<span class="en">Problem and users</span>)</td></tr>
-  <tr><td><span class="en">Ahmed Etkaidek</span> (أحمد اتكيدك)</td><td>المصمّم: تصميم الموقع والهوية، وبيانات ناسا والنظام المباشر (<span class="en">Designer · NASA data and live system</span>)</td></tr>
   <tr><td>آية سلمان</td><td>العلم: الطريقة والتحقق (<span class="en">Science: method and validation</span>)</td></tr>
   <tr><td>أحمد الأخرس</td><td>التقويم والعرض المباشر (<span class="en">Calendar and live demo</span>)</td></tr>
   <tr><td>تالا يوسف</td><td>تجربة المستخدم والتواصل (<span class="en">User experience and communication</span>)</td></tr>
@@ -426,7 +426,7 @@ ol li, ul li {{ margin-bottom: 1.5mm; }}
   <h3>الصور والبرمجيات والخرائط</h3>
   <p>كرة الصفحة الرئيسية: <span class="en">Natural Earth</span> (ملكية عامة) · خريطة التقويم: <span class="en">© OpenStreetMap contributors · OpenMapTiles · OpenFreeMap</span> · <span class="en">three.js (MIT)</span> · <span class="en">MapLibre GL JS (BSD-3)</span> · الخطوط <span class="en">Playfair Display</span> و<span class="en">Inter</span> (<span class="en">SIL OFL</span>) · لوحات Viridis و Cividis و ColorBrewer. لا نستخدم شعارات ناسا، وناسا لا تتبنّى هذا المشروع.</p>
   <h3>الإفصاح عن استخدام الذكاء الاصطناعي (<span class="en">AI</span>)</h3>
-  <div class="box">استخدمنا مساعد برمجة بالذكاء الاصطناعي (<span class="en">Claude Code</span> من <span class="en">Anthropic</span>) لكتابة كود معالجة البيانات والموقع والنظام المباشر وهذا الدليل، وفق تصميمنا وقراراتنا. الفريق اختار الطريقة، وتحقق من النتائج مقابل بيانات ناسا FIRMS، وتأكد من كل مرجع. فيديو العرض صُنع بأدوات ذكاء اصطناعي، والتعليق الصوتي فيه مولَّد بالذكاء الاصطناعي (<span class="en">ElevenLabs</span>).</div>
+  <div class="box">الكود كُتب بمساعد برمجة بالذكاء الاصطناعي (<span class="en">Claude Code</span> من <span class="en">Anthropic</span>)، بتوجيه من أحمد اتكيدك، الذي صمّم الموقع، وجهّز واجهة ناسا FIRMS وGitHub Actions والنشر، واختبر كل إصدار. الفريق اختار الطريقة العلمية وتحقق من كل النتائج. فيديو العرض صُنع بأدوات ذكاء اصطناعي، والتعليق الصوتي فيه مولَّد بالذكاء الاصطناعي (<span class="en">ElevenLabs</span>).</div>
   <p class="small">الكود مفتوح المصدر (MIT): <span class="en">https://github.com/ahmedetk/jamra</span></p>
 </section>
 </body></html>"""

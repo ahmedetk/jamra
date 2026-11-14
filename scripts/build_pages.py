@@ -126,7 +126,7 @@ CHIPS = {k: "".join(f'<button type="button" class="chip" data-area="{a["id"]}" a
                     for a in _META["areas"] if a["kind"] == k) for k in ("preset", "country")}
 INFO_PLACEHOLDER = ('<table class="info-table"><tbody><tr><th scope="row">Area</th><td>Loading…</td></tr><tr><th scope="row">Type</th><td>Fire area or country</td></tr>'
                     '<tr><th scope="row">Conversion</th><td>1 MODIS ≈ … VIIRS</td></tr><tr><th scope="row">Uncertainty</th><td>±…% per month</td></tr></tbody></table>')
-TEAM = [("Shahd Farraj", "Problem and users"), ("Ahmed Etkaidek", "Designer (website design and brand) · NASA data and live system"),
+TEAM = [("Ahmed Etkaidek", "Lead developer & designer: built and launched the Jamra web app (front end, NASA FIRMS API connection, live 3-hourly updates, GitHub Pages deployment) and designed the site and brand."), ("Shahd Farraj", "Problem and users"),
         ("Aya Salman", "Science: method and validation"), ("Ahmad Akhras", "Calendar and live demo"),
         ("Tala Yousef", "User experience and communication")]
 TEAM_HTML = "".join(f'<div class="member"><b>{n}</b><span>{r}</span></div>' for n, r in TEAM)
@@ -412,8 +412,8 @@ BODY = {
         <li>NASA Earthdata (2026). Transitioning from Suomi NPP VIIRS &amp; OMPS: What FIRMS Users Need to Know.</li>
       </ul>
 
-      <h2>Use of artificial intelligence (AI)</h2>
-      <p>We used an AI coding assistant (Claude Code by Anthropic) to write the code for the data pipeline, the website and the live system, following our design and decisions. The team chose the method, checked results against NASA FIRMS data and verified every reference.</p>
+      <h2>Use of Super Intelligence (SI/AI)</h2>
+      <p>The code was written with an SI/AI coding assistant (Claude Code by Anthropic), directed by Ahmed Etkaidek, who designed the site, set up the NASA FIRMS API, GitHub Actions and deployment, and tested every release. The team chose the scientific method and verified all results.</p>
       <p>Our demo video was made with AI tools, and its voice-over is AI-generated (ElevenLabs).</p>
 
       <h2>Notices</h2>

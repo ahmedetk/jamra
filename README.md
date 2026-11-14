@@ -51,10 +51,14 @@ Capability for Earth observations (LANCE) (https://earthdata.nasa.gov/lance) and
 Data and Information System (ESDIS). Map: MapLibre GL JS (BSD-3), OpenFreeMap, © OpenStreetMap
 contributors. NASA does not endorse this project.
 
-## Use of artificial intelligence (AI)
-We used an AI coding assistant (Claude Code by Anthropic) to write the code for the data pipeline,
-the website and the live system, following our design and decisions. The team chose the method,
-checked results against NASA FIRMS data and verified every reference. Our demo video was made with
-AI tools, and its voice-over is AI-generated (ElevenLabs).
+## Team
+- **Ahmed Etkaidek**: Lead developer & designer: built and launched the Jamra web app (front end, NASA FIRMS API connection, live 3-hourly updates, GitHub Pages deployment) and designed the site and brand.
+- **Shahd Farraj**: Problem and users
+- **Aya Salman**: Science: method and validation
+- **Ahmad Akhras**: Calendar and live demo
+- **Tala Yousef**: User experience and communication
 
-MIT licence.
+## Use of Super Intelligence (SI/AI)
+The code was written with an SI/AI coding assistant (Claude Code by Anthropic), directed by Ahmed Etkaidek, who designed the site, set up the NASA FIRMS API, GitHub Actions and deployment, and tested every release. The team chose the scientific method and verified all results. Our demo video was made with AI tools, and its voice-over is AI-generated (ElevenLabs).
+
+MIT license.

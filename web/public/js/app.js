@@ -10,8 +10,8 @@ import { renderKeyNumbers, renderLimits, renderValidationDetails } from './pages
 import { baseline, percentileRank, category, CAT_LABEL, seasonStart, theilSen, mannKendall } from './stats.js';
 
 const TEAM = [
+  ['Ahmed Etkaidek', 'Lead developer & designer: built and launched the Jamra web app (front end, NASA FIRMS API connection, live 3-hourly updates, GitHub Pages deployment) and designed the site and brand.'],
   ['Shahd Farraj', 'Problem and users'],
-  ['Ahmed Etkaidek', 'Designer (website design and brand) · NASA data and live system'],
   ['Aya Salman', 'Science: method and validation'],
   ['Ahmad Akhras', 'Calendar and live demo'],
   ['Tala Yousef', 'User experience and communication'],

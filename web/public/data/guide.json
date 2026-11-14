@@ -1,8 +1,58 @@
 {
-  "note": "Numbered callouts for the user guide screenshots (?guide=1). Each entry: CSS selector of a control on that page. Keep in the same order as the tables in report/build_guide.py.",
-  "home": ["#site-nav", "#status-badge", "#globe-wrap", ".cta-row a[href$='calendar/']", ".cta-row a[href$='alerts/']", "#live-chip"],
-  "calendar": ["#evia-btn", "#tab-preset", "#tab-country", "#tab-draw", "#tab-coords", "#area-info", "#map", "#globe-btn", "[data-livewin='1']", "[data-hero=harm]", "#from-year", "#static-filter", "#kpi-grid", "[data-mode=anomaly]", "[data-res=week]", "#palette", "#cal", "#dl-cal-csv", "#dl-summary-pdf", "#detail"],
-  "alerts": ["#data-status", "#alert-list", "#scale-note", ".feeds"],
-  "live": ["#tab-preset", "#map", "#live-form select", "#live-form button[type=submit]", "#dl-live-csv", "#live-table"],
-  "about": ["#team-grid", ".ack", "#repo-link"]
+ "note": "Numbered callouts for the user guide screenshots (?guide=1). Each entry: CSS selector of a control on that page. Keep in the same order as the tables in report/build_guide.py.",
+ "home": [
+  "#site-nav",
+  "#status-badge",
+  "#globe-wrap",
+  ".cta-row a[href$='calendar/']",
+  ".cta-row a[href$='alerts/']",
+  "#live-chip"
+ ],
+ "calendar": [
+  "#evia-btn",
+  "#tab-preset",
+  "#tab-country",
+  "#tab-draw",
+  "#tab-coords",
+  "#area-info",
+  "#map",
+  "#globe-btn",
+  "[data-livewin='1']",
+  "[data-hero=harm]",
+  "#from-year",
+  "#static-filter",
+  "#kpi-grid",
+  "[data-mode=anomaly]",
+  "[data-res=week]",
+  "#palette",
+  "#cal",
+  "#dl-cal-csv",
+  "#dl-summary-pdf",
+  "#detail"
+ ],
+ "alerts": [
+  "#data-status",
+  "#alert-list",
+  "#scale-note",
+  ".feeds"
+ ],
+ "live": [
+  "#tab-preset",
+  "#map",
+  "#live-form select",
+  "#live-form button[type=submit]",
+  "#dl-live-csv",
+  "#live-table"
+ ],
+ "about": [
+  "#team-grid",
+  ".ack",
+  "#repo-link"
+ ],
+ "validation": [
+  "#test-kpis",
+  "#conf-country",
+  "#small-table",
+  "#preset-table"
+ ]
 }

@@ -49,6 +49,8 @@ p = await open('alerts/?guide=1');
 await crop(p, 'g_alerts', '.page-head', '#alerts'); await p.close();
 p = await open('live/?area=greece&guide=1', { settle: 11000 });
 await crop(p, 'g_live', '.page-head', '#live'); await p.close();
+p = await open('validation/?guide=1');
+await crop(p, 'g_validation', '.page-head', '#preset-table', 8); await p.close();
 p = await open('about/?guide=1');
 await crop(p, 'g_about', '.page-head', '#about'); await p.close();
 // phone views (390 px)
