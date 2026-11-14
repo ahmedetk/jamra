@@ -1,4 +1,4 @@
-"""WCAG 2.x contrast check for the Jamra charcoal + soft-orange palette.
+"""WCAG 2.x contrast check for the jamra Design v3 palette (light theme, one calm orange).
 
 Text needs 4.5:1 (normal) or 3:1 (large / bold >= 18.66 px); UI parts and graphics need 3:1.
 Usage: python scripts/check_contrast.py   (exit code 1 if any pair fails)
@@ -21,37 +21,30 @@ def ratio(a, b):
 
 # (what, foreground, background, minimum)
 PAIRS = [
-    ("body text on page", "#1F2328", "#F3F4F6", 4.5),
-    ("muted text on page", "#5C626B", "#F3F4F6", 4.5),
-    ("muted text on card", "#5C626B", "#FFFFFF", 4.5),
-    ("link / accent text on card", "#A8501C", "#FFFFFF", 4.5),
-    ("link / accent text on page", "#A8501C", "#F3F4F6", 4.5),
-    ("main button text (dark on orange)", "#1F2328", "#F28C4B", 4.5),
-    ("main button hover text", "#1F2328", "#D9733A", 4.5),
-    ("nav text on charcoal", "#E5E7EB", "#2B2F36", 4.5),
-    ("band / footer text on charcoal", "#D1D5DB", "#2B2F36", 4.5),
-    ("footer small print on charcoal", "#A3A9B2", "#2B2F36", 4.5),
-    ("eyebrow orange on dark hero", "#F28C4B", "#1F2328", 4.5),
-    ("eyebrow orange on hero end", "#F28C4B", "#2B2F36", 4.5),
-    ("hero lead on dark hero", "#D1D5DB", "#1F2328", 4.5),
-    ("pressed chip / segment (white on charcoal)", "#FFFFFF", "#2B2F36", 4.5),
-    ("level: normal", "#2B2F36", "#E5E7EB", 4.5),
-    ("level: elevated", "#7A3510", "#FDE6D6", 4.5),
-    ("level: high", "#1F2328", "#F28C4B", 4.5),
-    ("level: extreme", "#FFFFFF", "#8A3A10", 4.5),
-    ("step number (white on orange ink)", "#FFFFFF", "#A8501C", 4.5),
-    ("text on light highlight", "#1F2328", "#FDE6D6", 4.5),
-    ("control border on card", "#8A9099", "#FFFFFF", 3.0),
-    ("focus ring on card", "#D9733A", "#FFFFFF", 3.0),
-    ("focus ring on charcoal", "#D9733A", "#2B2F36", 3.0),
-    ("chart line orange on card", "#D9733A", "#FFFFFF", 3.0),
-    ("chart bars slate-blue on card", "#4A6785", "#FFFFFF", 3.0),
-    ("map labels on charcoal land", "#E5E7EB", "#2B2F36", 4.5),
-    ("map area outline on charcoal", "#F28C4B", "#2B2F36", 3.0),
-    ("hotspot on charcoal", "#F28C4B", "#2B2F36", 3.0),
-    ("newest hotspot on charcoal", "#FBC6A0", "#2B2F36", 3.0),
-    ("map boundaries on charcoal", "#8A9099", "#2B2F36", 3.0),
+    ("body text on white", "#111827", "#FFFFFF", 4.5),
+    ("body text on off-white band", "#111827", "#F7F7F5", 4.5),
+    ("secondary text on white", "#4B5563", "#FFFFFF", 4.5),
+    ("secondary text on off-white", "#4B5563", "#F7F7F5", 4.5),
+    ("primary button text (dark on orange)", "#111827", "#E8833A", 4.5),
+    ("primary button hover text", "#111827", "#C96A28", 4.5),
+    ("secondary button text (white button)", "#111827", "#FFFFFF", 4.5),
+    ("pressed chip / segment (white on ink)", "#FFFFFF", "#111827", 4.5),
+    ("nav text", "#4B5563", "#FFFFFF", 4.5),
+    ("hero headline on space", "#FFFFFF", "#03050A", 4.5),
+    ("live chip text on space", "#E5E7EB", "#03050A", 4.5),
+    ("image credit on space", "#9CA3AF", "#03050A", 4.5),
+    ("level: normal", "#111827", "#F3F4F6", 4.5),
+    ("level: elevated", "#7A3510", "#FCE7D6", 4.5),
+    ("level: high", "#111827", "#E8833A", 4.5),
+    ("level: extreme", "#FFFFFF", "#9A4A16", 4.5),
+    ("value tag: observed", "#1F2F4A", "#EEF2F8", 4.5),
+    ("control border on white", "#8B929C", "#FFFFFF", 3.0),
+    ("focus ring on white", "#111827", "#FFFFFF", 3.0),
+    ("focus ring on space", "#FFFFFF", "#03050A", 3.0),
+    ("chart bars slate on white", "#5B7DB1", "#FFFFFF", 3.0),
+    ("hotspot dot on Blue Marble ocean", "#E8833A", "#0B1F3A", 3.0),
 ]
+CAL = {"much_lower": "#5B7DB1", "lower": "#B7C6DE", "typical": "#E5E7EB", "higher": "#F5BE93", "much_higher": "#E8833A"}
 
 
 def main():
@@ -61,11 +54,11 @@ def main():
         ok = r >= need
         bad += not ok
         print(f"{'OK ' if ok else 'BAD'} {r:5.2f}:1 (need {need}) {what}: {fg} on {bg}")
-    # calendar anomaly cells: text colour chosen by textOn() in colors.js
-    for name, hx in {"much_lower": "#3E5C76", "lower": "#A9BCCD", "typical": "#E5E7EB", "higher": "#F7B990", "much_higher": "#D9733A"}.items():
-        r = max(ratio("#1F2328", hx), ratio("#FFFFFF", hx))
-        print(f"{'OK ' if r >= 4.5 else 'BAD'} {r:5.2f}:1 best text on calendar '{name}' {hx}")
-        bad += r < 4.5
+    # calendar anomaly cells: symbols (graphics, 3:1) drawn in the better of dark or white (textOn in colors.js)
+    for name, hx in CAL.items():
+        r = max(ratio("#111827", hx), ratio("#FFFFFF", hx))
+        print(f"{'OK ' if r >= 3 else 'BAD'} {r:5.2f}:1 best symbol colour on calendar '{name}' {hx}")
+        bad += r < 3
     print("All pairs pass WCAG AA." if not bad else f"{bad} pair(s) fail.")
     return 1 if bad else 0
 

@@ -319,9 +319,9 @@ def build(url, out_path, screenshot=None):
             ("Early-warning check", "month-to-date vs past"), ("Jamra web app", "calendar · alerts · CSV")]
     for i, (h, t) in enumerate(arch):
         xx = 0.55 + i * 2.5
-        rect(s, xx, 5.05, 2.2, 1.05, NAVY if i in (0, 2) else WHITE, line=None if i in (0, 2) else NAVY, shape=MSO_SHAPE.ROUNDED_RECTANGLE, radius=0.12)
-        tb(s, xx + 0.08, 5.12, 2.05, 0.45, h, size=12, bold=True, color=WHITE if i in (0, 2) else NAVY, align=PP_ALIGN.CENTER)
-        tb(s, xx + 0.08, 5.52, 2.05, 0.45, t, size=10.5, color=WHITE if i in (0, 2) else INK2, align=PP_ALIGN.CENTER)
+        rect(s, xx, 5.05, 2.2, 1.05, OFF if i in (0, 2) else WHITE, line=NAVY if i in (0, 2) else LINE, shape=MSO_SHAPE.ROUNDED_RECTANGLE, radius=0.12)
+        tb(s, xx + 0.08, 5.12, 2.05, 0.45, h, size=12, bold=True, color=NAVY, align=PP_ALIGN.CENTER)
+        tb(s, xx + 0.08, 5.52, 2.05, 0.45, t, size=10.5, color=INK2, align=PP_ALIGN.CENTER)
         if i < 4:
             a = s.shapes.add_shape(MSO_SHAPE.RIGHT_ARROW, Inches(xx + 2.22), Inches(5.45), Inches(0.26), Inches(0.26))
             a.fill.solid(); a.fill.fore_color.rgb = GREY; a.line.fill.background()

@@ -113,16 +113,18 @@ export function initMap(container, { onFallback, loader } = {}) {
     });
     map.addControl(new ml.NavigationControl({ showCompass: false }), 'top-right');
     window.__jamraMap = map; // for our automated checks
+    // 1) the style (our own, inline) must load: only then layers can be added; a real failure here means no map
     await new Promise((res, rej) => {
-      const t = /guide=1/.test(location.search) ? 0 : setTimeout(() => rej(new Error('map timeout')), 20000);
-      map.on('load', () => {
-        clearTimeout(t);
-        // show the globe only when the imagery is in (or after 6 s), then fly in once
-        const t0 = performance.now();
-        const wait = () => ((map.isSourceLoaded('gibs') && map.areTilesLoaded()) || performance.now() - t0 > 6000 ? (loader && loader.classList.add('done'), res()) : setTimeout(wait, 150));
-        wait();
-      });
-      map.on('error', (e) => { if (!map.loaded()) console.warn('map error', e?.error?.message); });
+      const t = setTimeout(() => rej(new Error('map style timeout')), 20000);
+      const ok = () => { clearTimeout(t); res(); };
+      if (map.isStyleLoaded()) ok(); else map.once('style.load', ok);
+      map.on('error', (e) => { if (!map.isStyleLoaded()) console.warn('map error', e?.error?.message); });
+    });
+    // 2) show the globe when the Earth imagery is in (subtle loader until then), at most 8 s; tiles keep loading after
+    await new Promise((res) => {
+      const t0 = performance.now();
+      const wait = () => ((map.isSourceLoaded('gibs') && map.areTilesLoaded()) || performance.now() - t0 > 8000 ? (loader && loader.classList.add('done'), res()) : setTimeout(wait, 150));
+      wait();
     });
     map.addSource('area', { type: 'geojson', data: empty });
     map.addLayer({ id: 'area-line', type: 'line', source: 'area', paint: { 'line-color': SOFT_ORANGE, 'line-width': 2 } });

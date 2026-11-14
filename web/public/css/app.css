@@ -231,6 +231,7 @@ label { color: var(--ink2); font-size: 16px; }
 .facts div { background: var(--bg2); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; font-size: 15px; color: var(--ink2); }
 .facts b { display: block; font: 700 24px/1.25 var(--font); color: var(--ink); font-variant-numeric: tabular-nums; margin-bottom: 2px; }
 .season { margin-top: var(--s3); }
+@media (max-width: 600px) { .detail { padding: 18px; } .detail h3 { font-size: 22px; } .sentence { font-size: 18px; } .facts { grid-template-columns: 1fr 1fr; gap: 10px; } .facts div { padding: 12px; } .facts b { font-size: 20px; } .card { padding: 18px; } }
 .season p { font-size: 17px; }
 
 /* ---------- alerts ---------- */
