@@ -585,7 +585,7 @@ function sentence(y, m) {
   if (v === null) return `${MONTHS_LONG[m]} ${y}, ${area.label}: data gap (satellite outage), no value shown.`;
   let s = `${MONTHS_LONG[m]} ${y}, ${area.label}: ${src === 'M' ? '≈ ' : ''}${fmtInt(v)} hotspots.`;
   if (b) {
-    s += ` A typical ${MONTHS_LONG[m]} (${state.from}–${state.to}) has ${fmtInt(b.median)}.`;
+    s += ` A typical ${MONTHS_LONG[m]} (other years in ${state.from}–${state.to}, ${y} excluded) has ${fmtInt(b.median)}.`;
     if (b.median > 0) {
       const ratio = v / b.median;
       s += ratio >= 1.15 ? ` That's ${ratio.toFixed(1)}× typical,` : ratio <= 0.87 ? ` That's ${Math.round((1 - ratio) * 100)}% below typical,` : ' That\'s about typical,';
@@ -621,7 +621,7 @@ function renderDetail(focus = false) {
   fact(src === 'M' ? `Estimated from MODIS on the VIIRS scale (±${Math.round(areaUnc() * 100)}%)` : src === 'J' ? 'NOAA-20, converted to S-NPP scale' : 'Observed (VIIRS S-NPP)', `${src === 'M' ? '≈ ' : ''}${fmtInt(v)}`);
   fact(y < 2012 ? 'Raw MODIS Aqua hotspots' : 'Raw VIIRS S-NPP hotspots', fmtInt(raw));
   if (src === 'M' && area.lo[i] !== null) fact('Uncertainty range', `${fmtInt(area.lo[i])}–${fmtInt(area.hi[i])}`);
-  if (b) fact(`Usual ${MONTHS[m]} (median)`, fmtInt(b.median));
+  if (b) fact(`Usual ${MONTHS[m]} (median of other years, ${y} excluded)`, fmtInt(b.median));
   if (b) fact('Middle half of years', `${fmtInt(b.p25)}–${fmtInt(b.p75)}`);
   if (pr !== null) fact('Percentile rank', `${ordinal(Math.round(pr))}`);
   if (cat) fact('Compared with usual', CAT_TEXT[cat]);
@@ -654,7 +654,7 @@ function renderWeekDetail(y, c, grid) {
   box.innerHTML = '';
   box.append(el('button', { class: 'btn ghost small close', type: 'button', text: 'Close', onclick: () => { box.hidden = true; } }),
     el('h3', { text: `${y}, week ${c + 1} · ${area.label}` }),
-    el('p', { class: 'sentence', text: v === null ? 'Data gap.' : `${fmtInt(v)} hotspots in week ${c + 1} of ${y}. A typical week ${c + 1} (${state.from}–${state.to}) has ${fmtInt(b?.median)}. Higher than ${Math.round(pr ?? 0)}% of other years.${y < 2012 ? ` Estimated from MODIS (±${Math.round(meta.uncertainty_monthly * 100)}% or more for single weeks).` : ''}` }));
+    el('p', { class: 'sentence', text: v === null ? 'Data gap.' : `${fmtInt(v)} hotspots in week ${c + 1} of ${y}. A typical week ${c + 1} (other years in ${state.from}–${state.to}, ${y} excluded) has ${fmtInt(b?.median)}. Higher than ${Math.round(pr ?? 0)}% of other years.${y < 2012 ? ` Estimated from MODIS (±${Math.round(meta.uncertainty_monthly * 100)}% or more for single weeks).` : ''}` }));
 }
 
 // ---------------------------------------------------------------- season start
@@ -670,10 +670,19 @@ function renderSeason() {
   });
   box.append(el('h3', { class: 'h4', text: 'Fire season start' }));
   if (starts.length < 6) { box.append(el('p', { text: 'Too few hotspots here to judge.' })); return; }
-  const slope = theilSen(sy, starts) * 10, mk = mannKendall(starts);
   const medStart = Math.round(baseline(starts).median);
-  const dir = slope < -0.05 ? `${Math.abs(slope).toFixed(1)} months earlier per decade` : slope > 0.05 ? `${slope.toFixed(1)} months later per decade` : 'no clear shift';
-  box.append(el('p', { text: `Typical start: ${MONTHS_LONG[medStart - 1]} · trend ${state.from}–${state.to}: ${dir} (${mk.p < 0.05 ? `significant, p = ${mk.p.toFixed(3)}` : `not significant, p = ${mk.p.toFixed(2)}`})` }));
+  // trend on VIIRS years only (2012 onward): MODIS years see fewer small early fires, so a trend across the
+  // 2012 sensor switch could come from the sensor change, not from a real change in the season
+  const vy = sy.filter((y) => y >= 2012), vs = starts.filter((_, i) => sy[i] >= 2012);
+  let trend;
+  if (vs.length < 6) trend = 'too few VIIRS years for a trend';
+  else {
+    const label = `trend ${vy[0]}–${vy[vy.length - 1]} (VIIRS only)`;
+    const slope = theilSen(vy, vs) * 10, mk = mannKendall(vs);
+    if (!(mk.p < 0.05) || Math.abs(slope) <= 0.05) trend = `${label}: no clear trend`;
+    else trend = `${label}: ${Math.abs(slope).toFixed(1)} months ${slope < 0 ? 'earlier' : 'later'} per decade (significant, p = ${mk.p.toFixed(3)})`;
+  }
+  box.append(el('p', { text: `Typical start: ${MONTHS_LONG[medStart - 1]} · ${trend}` }));
   const W = Math.max(320, Math.round(box.clientWidth || 900)), H = W < 600 ? 190 : 160, mL = 48;
   const s = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Season start month by year' });
   const x = (y) => mL + ((y - ys[0]) / Math.max(1, ys[ys.length - 1] - ys[0])) * (W - mL - 20);
@@ -755,6 +764,20 @@ function whenVisible(sel, fn) {
   io.observe(n);
 }
 
+// why this model, in plain words: the choice used the development years only; the table shows all calibration years
+function choiceText() {
+  const v = report.validation, ch = report.chosen_model, cd = v?.cv_dev;
+  if (!cd || !cd[ch]) return report.choice_reason;
+  const best = Object.keys(cd).reduce((a, b) => (cd[b].mae < cd[a].mae ? b : a));
+  const tol = (/within (\d+)%/.exec(v.choice_reason_dev || '') || [])[1];
+  const dev = `${v.dev_years[0]}–${v.dev_years[v.dev_years.length - 1]}`;
+  const near = best === ch ? 'it also had the lowest error of all models' : `the lowest was ${best} with ${fmt(cd[best].mae, 1)}`;
+  return `We chose ${ch}, ${report.model_labels[ch]}, using the development years only (${dev}). `
+    + `There its monthly error (MAE) was ${fmt(cd[ch].mae, 1)} hotspots, and ${near}. `
+    + `Our rule is to take the simplest model ${tol ? `within ${tol}% of the lowest error` : 'close to the lowest error'}. `
+    + `The ${fmt(report.cv[ch].monthly.mae, 1)} in the table is a different check: cross-validation on all calibration years.`;
+}
+
 function renderWhy() {
   const cv = report.cv;
   const order = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5'];
@@ -772,7 +795,7 @@ function renderWhy() {
   });
   tb.append(el('tr', {}, el('td', { text: 'Use VIIRS only' }), el('td', { text: '–' }), el('td', { text: '–' }), el('td', { text: '–' }), el('td', { text: '–' }), el('td', { text: 'Honest but throws away 2003–2011, nine years of history (including Greece 2007).' })));
   t.append(tb);
-  $('#why-table').append(t, el('p', { class: 'fine', text: report.choice_reason + ' Monthly error and typical % error: leave-one-year-out cross-validation on ' + report.calibration.years.join(', ') + '. Test years: model fitted on ' + (report.validation?.dev_years || []).join(', ') + ' only, scored on ' + (report.validation?.test_years || []).join(', ') + '.' }));
+  $('#why-table').append(t, el('p', { class: 'fine', text: choiceText() + ' Monthly error and typical % error: leave-one-year-out cross-validation on ' + report.calibration.years.join(', ') + '. Test years: model fitted on ' + (report.validation?.dev_years || []).join(', ') + ' only, scored on ' + (report.validation?.test_years || []).join(', ') + '.' }));
 
 }
 
