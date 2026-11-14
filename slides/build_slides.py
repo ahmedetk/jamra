@@ -3,7 +3,7 @@
 Every number comes from data/processed/slide_numbers.json (made by
 scripts/story_numbers.py from the pipeline outputs). Run scripts/check_numbers.py after.
 Usage: python slides/build_slides.py --url https://<site>
-Written with the help of an SI coding assistant (Claude Code), following Team Astro Byte's story.
+Written with the help of an AI coding assistant (Claude Code by Anthropic), following Team Astro Byte's story.
 """
 import argparse
 import io
@@ -436,7 +436,7 @@ def build(url, out_path, screenshot=None):
                  "Next, we want more regions, an Arabic interface, Telegram and SMS alerts, and to test Terra plus Aqua, "
                  f"which showed a lower cross-validated error ({N['terra_aqua_mdape_pct']} versus {N['cv_aqua_mdape_pct']} percent) and could extend the record to 2001. "
                  "Each of us owned one part, shown here; together we chose the idea and the method, tested the site with real users, and rehearsed this pitch. "
-                 "We used an SI coding assistant to write the code, following our design; we checked the numbers against NASA FIRMS. "
+                 "We used an AI coding assistant to write the code, following our design; we checked the numbers against NASA FIRMS. "
                  "Thank you, scan the code and try Jamra yourself."))
     team = [("Shahd Farraj", "Problem & users · slides 1–2"), ("Ahmed Etkaidek", "NASA data & live system · slide 3"),
             ("Aya Salman", "Science: method & validation · slides 4, 6"), ("Ahmad Akhras", "Calendar & live demo · slide 5"),
@@ -459,7 +459,7 @@ def build(url, out_path, screenshot=None):
     tb(s, 9.4, 4.1, 3.3, 0.7, ["Scan to try jamra", url.replace("https://", "")], size=11, align=PP_ALIGN.CENTER)
     tb(s, 0.55, 5.85, 12.2, 0.9, [
         [("Data: NASA FIRMS (LANCE / ESDIS). We acknowledge the use of data from NASA's Fire Information for Resource Management System (FIRMS). NASA does not endorse this project.", {"size": 9, "color": MUTED})],
-        [("SI disclosure: we used an SI coding assistant (Claude Code by Anthropic) to write the code for the pipeline, website, live system and slides, following our design and decisions. The team chose the method, checked results against NASA FIRMS data and verified every reference.", {"size": 9, "color": MUTED})],
+        [("AI disclosure: we used an AI coding assistant (Claude Code by Anthropic) to write the code for the pipeline, website, live system and slides, following our design and decisions. The team chose the method, checked results against NASA FIRMS data and verified every reference.", {"size": 9, "color": MUTED})],
     ])
     prs.save(out_path)
     (ROOT / "slides" / "numbers_used.json").write_text(json.dumps(used, indent=1, ensure_ascii=False), encoding="utf-8")

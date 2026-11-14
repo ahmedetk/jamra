@@ -5,7 +5,7 @@ validation results, the limits and the full usage guide) lives in this guide.
 All numbers are read from web/public/data/model_report.json, meta.json and the area files.
 Screenshots: scripts/guide_shots.mjs (Edge + puppeteer-core, cropped to page elements, phone views included).
 Usage: python report/build_guide.py
-Written with the help of an SI coding assistant (Claude Code); text reviewed by Team Astro Byte.
+Written with the help of an AI coding assistant (Claude Code by Anthropic); text reviewed by Team Astro Byte.
 """
 import json
 import shutil
@@ -140,7 +140,7 @@ td.nm {{ width: 36mm; font-weight: 600; }}
 .small {{ font-size: 9.5pt; color: #6B6A66; }}
 .formula {{ direction: ltr; text-align: center; font-family: "Cambria Math", "Segoe UI", serif; font-size: 14pt; margin: 3mm 0; }}
 ol li, ul li {{ margin-bottom: 1.5mm; }}
-.map {{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 2mm; text-align: center; }}
+.map {{ display: grid; grid-template-columns: repeat(6, 1fr); gap: 2mm; text-align: center; }}
 .map div {{ border: 1px solid #2B2B2B; padding: 2mm; font-weight: 600; }}
 .map div.h {{ background: #2B2B2B; color: #F7F6F2; }}
 </style></head><body>
@@ -180,11 +180,11 @@ ol li, ul li {{ margin-bottom: 1.5mm; }}
   <p><b>مستفيدون غير مباشرين:</b> المجالس القروية والبلديات والمزارعون، عبر السلطات المحلية والدفاع المدني الذين يستخدمون جمرة.</p>
 
   <h2 style="margin-top:8mm">3. خريطة الموقع</h2>
-  <p>الموقع أداة عمل فقط، من خمس صفحات، بلوحة ألوان واحدة: رمادي دافئ فاتح مثل أرض خريطتنا، أزرق هادئ مثل مائها، وبرتقالي «الجمرة» للأزرار الأساسية والبؤر والمنطقة المختارة و«أعلى من المعتاد». العناوين بخط <span class="en">Playfair Display</span> والبيانات بخط <span class="en">Inter</span>. شريط التنقل نفسه في أعلى كل صفحة، والصفحة الحالية تحتها خط برتقالي. الضغط على شعار <span class="en">jamra</span> يعيدك إلى الرئيسية. المنطقة والفترة والشهر المختارة تنتقل معك بين الصفحات عبر الرابط.</p>
+  <p>الموقع من ست صفحات، بلوحة ألوان واحدة: رمادي دافئ فاتح مثل أرض خريطتنا، وبرتقالي «الجمرة» فقط للنار: البؤر و«أعلى من المعتاد»، والزر الأساسي، والصفحة الحالية في شريط التنقل. حالات الاختيار (المنطقة المختارة، التبويب) بالرمادي الفحمي. الأزرق فقط لـ«أقل من المعتاد» في التقويم. العناوين بخط <span class="en">Playfair Display</span> والبيانات بخط <span class="en">Inter</span>. شريط التنقل نفسه في أعلى كل صفحة، والصفحة الحالية تحتها خط برتقالي. الضغط على شعار <span class="en">jamra</span> يعيدك إلى الرئيسية. المنطقة والفترة والشهر المختارة تنتقل معك بين الصفحات عبر الرابط.</p>
   <div class="map">
-    <div class="h">Home<br><span class="en">/jamra/</span></div><div>Calendar<br><span class="en">/calendar/</span></div><div>Alerts<br><span class="en">/alerts/</span></div><div>Live Data<br><span class="en">/live/</span></div><div>About<br><span class="en">/about/</span></div>
+    <div class="h">Home<br><span class="en">/jamra/</span></div><div>Calendar<br><span class="en">/calendar/</span></div><div>Alerts<br><span class="en">/alerts/</span></div><div>Live Data<br><span class="en">/live/</span></div><div>Validation<br><span class="en">/validation/</span></div><div>About<br><span class="en">/about/</span></div>
   </div>
-  <p class="small">صفحات الشرح القديمة (<span class="en">How It Works</span> و<span class="en">Validation</span> و<span class="en">Limits</span> و<span class="en">Credits</span>) أُزيلت من الموقع ونُقل محتواها إلى هذا الدليل؛ روابطها القديمة تفتح صفحة <span class="en">About</span> تلقائيًا مع الإبقاء على خياراتك. يمكن تثبيت الموقع على الهاتف كتطبيق (<span class="en">PWA</span>) ويعمل دون إنترنت من آخر نسخة محفوظة.</p>
+  <p class="small">صفحة <span class="en">Validation</span> (بالإنجليزية) تعرض نتائج الاختبار المستقل وطريقة العمل والحدود. الروابط القديمة (<span class="en">How It Works</span> و<span class="en">Limits</span>) تفتح القسم المناسب فيها، و<span class="en">Credits</span> تفتح <span class="en">About</span>، مع الإبقاء على خياراتك. يمكن تثبيت الموقع على الهاتف كتطبيق (<span class="en">PWA</span>) ويعمل دون إنترنت من آخر نسخة محفوظة.</p>
 </section>
 
 <section>
@@ -198,7 +198,7 @@ ol li, ul li {{ margin-bottom: 1.5mm; }}
     ("الكرة الأرضية", "اسحبها بالفأرة أو بالإصبع لتدويرها؛ تتوقف عند اللمس وتعود للدوران البطيء بعد 5 ثوانٍ تقريبًا."),
     ("Open the Calendar", "الزر الأساسي: يفتح صفحة التقويم."),
     ("See Live Alerts", "يفتح صفحة التنبيهات. (مثال إيفيا 2007 صار في صفحة التقويم.)"),
-    ("شريحة البيانات المباشرة", "عدد البؤر في آخر 7 أيام · Data: NASA FIRMS."),
+    ("شارة البيانات المباشرة", "عدد البؤر في آخر 7 أيام · Data: NASA FIRMS. وتحت الصورة: رسم «المشكلة في صورة واحدة» (Raw / Harmonized، اليونان افتراضيًا) وشريط «Does it work? 87% → 40%» الذي يفتح صفحة Validation."),
   ])}
   {fig("mobile_home", "الرئيسية على هاتف بعرض 390 بكسل.", "phone")}
 </section>
@@ -209,7 +209,7 @@ ol li, ul li {{ margin-bottom: 1.5mm; }}
   {fig("cal_top", "أعلى صفحة التقويم: عمود المنطقة المرتّب والخريطة بالنمط الفاتح نفسه في كل مستويات التكبير.")}
   {callouts([
     ("Example: Evia, August 2007", "رابط صغير بجانب عنوان «Area» يحمّل مثال العرض: إيفيا، آب 2007، مع التفاصيل مفتوحة."),
-    ("Fire areas", "شبكة أزرار مستطيلة متساوية: اسم المنطقة وتحته الدولة. المختارة لها حافة برتقالية ولون برتقالي فاتح."),
+    ("Fire areas", "شبكة أزرار مستطيلة متساوية: اسم المنطقة وتحته الدولة. المختارة لها شريط فحمي على اليسار ولون دافئ فاتح."),
     ("Countries", "الدول الثماني في منطقة التغطية."),
     ("Draw", "ارسم مضلّعًا أو دائرة على الخريطة لأي منطقة تهمّك."),
     ("Lat / Lon", "أدخل نقطة ونصف قطر، أو حدود مربع."),
@@ -273,7 +273,7 @@ ol li, ul li {{ margin-bottom: 1.5mm; }}
   {fig("about", "صفحة About.")}
   {callouts([
     ("الفريق", "الأعضاء الخمسة وأدوارهم."),
-    ("الاعتراف ببيانات FIRMS", "النص الذي تطلبه ناسا حرفيًا، ثم مصادر الصور والخرائط والمراجع والإفصاح عن الذكاء الفائق."),
+    ("الاعتراف ببيانات FIRMS", "النص الذي تطلبه ناسا حرفيًا، ثم مصادر الصور والخرائط والمراجع والإفصاح عن الذكاء الاصطناعي."),
     ("GitHub", "الكود مفتوح المصدر (MIT)."),
   ])}
   <p class="small">في الصفحة أيضًا: «Built for the NASA Space Apps Challenge 2026» و«Not an official NASA product» و«Not an emergency service».</p>
@@ -375,7 +375,7 @@ ol li, ul li {{ margin-bottom: 1.5mm; }}
     <li>اضغط الرابط <b>Example: Evia, August 2007</b> بجانب عنوان «Area» (أو اختر Evia من Fire areas ثم خلية آب 2007).</li>
     <li>في التفاصيل: ≈ {ev_v:,} بؤرة، نحو {ev_x} ضعف آب المعتاد؛ قارنها بآب في السنوات الأخرى في الرسم.</li>
     <li>لاحظ الوسم <b>estimated from MODIS · ±{round(u["small_regions_rel"] * 100)}%</b>.</li>
-    <li>نتيجة الاختبار المستقل (الشريحة 6): الخطأ الشهري {pct(tc["M0"]["mdape"])} ← {pct(tc[ch]["mdape"])}، واكتشاف {cc["hits"]} من {cc["hits"] + cc["misses"]} شهرًا عالي النشاط.</li>
+    <li>نتيجة الاختبار المستقل (صفحة Validation): الخطأ الشهري {pct(tc["M0"]["mdape"])} ← {pct(tc[ch]["mdape"])}، واكتشاف {cc["hits"]} من {cc["hits"] + cc["misses"]} شهرًا عالي النشاط.</li>
   </ol>
   <h3>مدير طوارئ: هل هذا الشهر غير عادي؟</h3>
   <ol><li>افتح <b>Alerts</b>.</li><li>تأكد أن الحالة «Data up to date» ولا يوجد «Partial month».</li><li>اقرأ بطاقة منطقتك: الفترة، القيمة مقابل المعتاد، والمستوى.</li><li>اضغط البطاقة لفتح التقويم على المنطقة نفسها.</li></ol>
@@ -389,14 +389,14 @@ ol li, ul li {{ margin-bottom: 1.5mm; }}
 
 <section>
   <h2>9. الفريق وتوزيع العمل</h2>
-  <table><thead><tr><th>العضو</th><th>الدور</th><th>يقدّم</th></tr></thead><tbody>
-  <tr><td>شهد فرّاج</td><td>المشكلة والمستخدمون: من يحتاج جمرة ولماذا، ووصف المشروع في Space Apps.</td><td>الشريحتان 1–2</td></tr>
-  <tr><td>أحمد اتكيدك</td><td>بيانات ناسا والنظام المباشر: أرشيف FIRMS وواجهته، GitHub Pages والتحديث كل 3 ساعات، صفحتا Alerts وLive Data (تحوّل S-NPP ← NOAA-20).</td><td>الشريحة 3</td></tr>
-  <tr><td>آية سلمان</td><td>العلم: طريقة المواءمة والمعامل المحلي، والاختبار المستقل ونتائج المناطق الصغيرة.</td><td>الشريحتان 4 و6</td></tr>
-  <tr><td>أحمد الأخرس</td><td>صفحة Calendar: اختيار المنطقة، التقويم، التفاصيل، وسوم عدم اليقين، التنزيلات، ومسار عرض إيفيا 2007 واختبار الهاتف ولوحة المفاتيح.</td><td>الشريحة 5</td></tr>
-  <tr><td>تالا يوسف</td><td>تجربة المستخدم والتصميم والتواصل: التنقل، إمكانية الوصول، صفحة About، مراجعة الدليل، تصميم الشرائح، الأثر والخطوات القادمة.</td><td>الشريحة 7</td></tr>
+  <table><thead><tr><th>العضو</th><th>الدور</th></tr></thead><tbody>
+  <tr><td>شهد فرّاج</td><td>المشكلة والمستخدمون (<span class="en">Problem and users</span>)</td></tr>
+  <tr><td><span class="en">Ahmed Etkaidek</span> (أحمد اتكيدك)</td><td>المصمّم: تصميم الموقع والهوية، وبيانات ناسا والنظام المباشر (<span class="en">Designer · NASA data and live system</span>)</td></tr>
+  <tr><td>آية سلمان</td><td>العلم: الطريقة والتحقق (<span class="en">Science: method and validation</span>)</td></tr>
+  <tr><td>أحمد الأخرس</td><td>التقويم والعرض المباشر (<span class="en">Calendar and live demo</span>)</td></tr>
+  <tr><td>تالا يوسف</td><td>تجربة المستخدم والتواصل (<span class="en">User experience and communication</span>)</td></tr>
   </tbody></table>
-  <p><b>عمل مشترك:</b> اختيار الفكرة والطريقة، اختبار الموقع مع مستخدمين حقيقيين، والتدرّب على العرض.</p>
+  <p><b>عمل مشترك:</b> اختيار الفكرة والطريقة، واختبار الموقع مع مستخدمين حقيقيين.</p>
 
   <h2 style="margin-top:8mm">10. مسرد المصطلحات</h2>
   <table><thead><tr><th>بالعربية</th><th>بالإنجليزية</th><th>المعنى</th></tr></thead><tbody>
@@ -425,8 +425,8 @@ ol li, ul li {{ margin-bottom: 1.5mm; }}
   </ul>
   <h3>الصور والبرمجيات والخرائط</h3>
   <p>كرة الصفحة الرئيسية: <span class="en">Natural Earth</span> (ملكية عامة) · خريطة التقويم: <span class="en">© OpenStreetMap contributors · OpenMapTiles · OpenFreeMap</span> · <span class="en">three.js (MIT)</span> · <span class="en">MapLibre GL JS (BSD-3)</span> · الخطوط <span class="en">Playfair Display</span> و<span class="en">Inter</span> (<span class="en">SIL OFL</span>) · لوحات Viridis و Cividis و ColorBrewer. لا نستخدم شعارات ناسا، وناسا لا تتبنّى هذا المشروع.</p>
-  <h3>الإفصاح عن استخدام الذكاء الفائق (<span class="en">SI</span>)</h3>
-  <div class="box">استخدمنا مساعد برمجة بالذكاء الفائق (<span class="en">Claude Code</span> من <span class="en">Anthropic</span>) لكتابة كود معالجة البيانات والموقع والنظام المباشر والشرائح وهذا الدليل، وفق تصميمنا وقراراتنا. الفريق اختار الطريقة، وتحقق من النتائج مقابل بيانات ناسا FIRMS، وتأكد من كل مرجع، وكتب العرض وتدرّب عليه.</div>
+  <h3>الإفصاح عن استخدام الذكاء الاصطناعي (<span class="en">AI</span>)</h3>
+  <div class="box">استخدمنا مساعد برمجة بالذكاء الاصطناعي (<span class="en">Claude Code</span> من <span class="en">Anthropic</span>) لكتابة كود معالجة البيانات والموقع والنظام المباشر وهذا الدليل، وفق تصميمنا وقراراتنا. الفريق اختار الطريقة، وتحقق من النتائج مقابل بيانات ناسا FIRMS، وتأكد من كل مرجع. فيديو العرض صُنع بأدوات ذكاء اصطناعي، والتعليق الصوتي فيه مولَّد بالذكاء الاصطناعي (<span class="en">ElevenLabs</span>).</div>
   <p class="small">الكود مفتوح المصدر (MIT): <span class="en">https://github.com/ahmedetk/jamra</span></p>
 </section>
 </body></html>"""
