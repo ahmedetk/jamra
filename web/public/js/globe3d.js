@@ -1,6 +1,6 @@
-// Home hero: a realistic Earth in space (three.js).
-// One equirectangular NASA GIBS Blue Marble texture, gentle sunlight, a soft natural atmosphere and
-// small orange dots for real NASA FIRMS hotspots (last 7 days). Drag (mouse or touch) to turn it,
+// Home hero: a half globe in the colours of our light map (three.js), rising from the bottom right.
+// One equirectangular texture drawn from Natural Earth (warm light-grey land, soft blue water, thin borders)
+// and small vivid orange dots for real NASA FIRMS hotspots (last 7 days). Drag (mouse or touch) to turn it,
 // with inertia; slow auto-rotation when idle, paused on interaction and resumed gently after ~5 s.
 // Respects prefers-reduced-motion (no auto-rotation, no inertia).
 // Written with the help of an SI coding assistant (Claude Code).
@@ -21,40 +21,40 @@ export async function initEarth(canvas, { points = [], hiRes = false, onReady } 
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(26, 1, 0.1, 100);
-  camera.position.set(0, 0, 4.9);
+  const camera = new THREE.PerspectiveCamera(24, 1, 0.1, 100);
+  camera.position.set(0, 0, 4.85);
 
   // tilt (latitude) on the outer group, spin (longitude) on the inner one
   const tilt = new THREE.Group(), spin = new THREE.Group();
   tilt.add(spin); scene.add(tilt);
-  const LAT0 = 30, LON0 = 16;
+  const LAT0 = 8, LON0 = 16;   // the visible upper half shows the Mediterranean
   tilt.rotation.x = LAT0 * DEG;
   spin.rotation.y = -(LON0 + 90) * DEG;
 
   // Earth
-  const tex = await new THREE.TextureLoader().loadAsync(BASE + `img/earth-texture-${hiRes ? 4096 : 2048}.webp`);
+  const tex = await new THREE.TextureLoader().loadAsync(BASE + `img/earth-light-${hiRes ? 4096 : 2048}.webp`);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   const earth = new THREE.Mesh(
     new THREE.SphereGeometry(1, 128, 96),
-    new THREE.MeshStandardMaterial({ map: tex, roughness: 0.92, metalness: 0 }),
+    new THREE.MeshStandardMaterial({ map: tex, roughness: 1, metalness: 0 }),
   );
   spin.add(earth);
 
   // light: soft sun from the upper left, plus sky light so the night side is never pitch black
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x1a2333, 1.15));
-  const sun = new THREE.DirectionalLight(0xffffff, 1.6);
-  sun.position.set(-3, 1.6, 3.4);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xd8d4cc, 2.1));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.55);
+  sun.position.set(-2, 2.5, 3);
   scene.add(sun);
 
   // atmosphere: a thin, soft rim (fresnel), drawn behind the Earth's edge
   const atmo = new THREE.Mesh(
-    new THREE.SphereGeometry(1.04, 96, 64),
+    new THREE.SphereGeometry(1.005, 96, 64),
     new THREE.ShaderMaterial({
-      side: THREE.BackSide, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-      uniforms: { c: { value: new THREE.Color(0x6fa8ff) } },
+      side: THREE.BackSide, transparent: true, depthWrite: false,
+      uniforms: { c: { value: new THREE.Color(0xc4bfb5) } },
       vertexShader: 'varying vec3 vN; varying vec3 vP; void main(){ vN = normalize(normalMatrix * normal); vec4 p = modelViewMatrix * vec4(position,1.0); vP = p.xyz; gl_Position = projectionMatrix * p; }',
-      fragmentShader: 'uniform vec3 c; varying vec3 vN; varying vec3 vP; void main(){ float f = dot(normalize(-vP), vN); float a = pow(clamp(1.0 + f * 1.15, 0.0, 1.0), 3.2) * 0.55; gl_FragColor = vec4(c, a); }',
+      fragmentShader: 'uniform vec3 c; void main(){ gl_FragColor = vec4(c, 0.9); }',   // a thin crisp outline around the globe
     }),
   );
   scene.add(atmo);
@@ -63,9 +63,9 @@ export async function initEarth(canvas, { points = [], hiRes = false, onReady } 
     new THREE.SphereGeometry(1.004, 96, 64),
     new THREE.ShaderMaterial({
       transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-      uniforms: { c: { value: new THREE.Color(0x8fbfff) } },
+      uniforms: { c: { value: new THREE.Color(0xffffff) } },
       vertexShader: 'varying vec3 vN; varying vec3 vP; void main(){ vN = normalize(normalMatrix * normal); vec4 p = modelViewMatrix * vec4(position,1.0); vP = p.xyz; gl_Position = projectionMatrix * p; }',
-      fragmentShader: 'uniform vec3 c; varying vec3 vN; varying vec3 vP; void main(){ float f = 1.0 - max(dot(normalize(-vP), vN), 0.0); gl_FragColor = vec4(c, pow(f, 3.0) * 0.35); }',
+      fragmentShader: 'uniform vec3 c; varying vec3 vN; varying vec3 vP; void main(){ float f = 1.0 - max(dot(normalize(-vP), vN), 0.0); gl_FragColor = vec4(c, pow(f, 3.0) * 0.12); }',
     }),
   );
   spin.add(haze);
@@ -77,9 +77,9 @@ export async function initEarth(canvas, { points = [], hiRes = false, onReady } 
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     const dot = document.createElement('canvas'); dot.width = dot.height = 32;
-    const cx = dot.getContext('2d'); cx.fillStyle = '#E8833A'; cx.beginPath(); cx.arc(16, 16, 13, 0, Math.PI * 2); cx.fill();
+    const cx = dot.getContext('2d'); cx.fillStyle = '#F4511E'; cx.beginPath(); cx.arc(16, 16, 13, 0, Math.PI * 2); cx.fill();
     const sprite = new THREE.CanvasTexture(dot); sprite.colorSpace = THREE.SRGBColorSpace;
-    const dots = new THREE.Points(g, new THREE.PointsMaterial({ size: 3.2 * Math.min(devicePixelRatio || 1, 2), sizeAttenuation: false, map: sprite, transparent: true, alphaTest: 0.4, depthWrite: false }));
+    const dots = new THREE.Points(g, new THREE.PointsMaterial({ size: 4.2 * Math.min(devicePixelRatio || 1, 2), sizeAttenuation: false, map: sprite, transparent: true, alphaTest: 0.4, depthWrite: false }));
     spin.add(dots);
   }
 
@@ -106,7 +106,7 @@ export async function initEarth(canvas, { points = [], hiRes = false, onReady } 
     if (!dragging) return;
     const now = performance.now(), dt = Math.max(1, now - lastT);
     const dx = (e.clientX - lastX) * k(), dy = (e.clientY - lastY) * k();
-    spin.rotation.y += dx; tilt.rotation.x = Math.max(-0.2, Math.min(1.15, tilt.rotation.x + dy));
+    spin.rotation.y += dx; tilt.rotation.x = Math.max(-0.5, Math.min(0.9, tilt.rotation.x + dy));
     vx = (dx / dt) * 16; vy = (dy / dt) * 16;
     lastX = e.clientX; lastY = e.clientY; lastT = now;
   });
@@ -126,7 +126,7 @@ export async function initEarth(canvas, { points = [], hiRes = false, onReady } 
     const dt = Math.min(0.05, (t - last) / 1000); last = t;
     if (!dragging) {
       // inertia
-      spin.rotation.y += vx; tilt.rotation.x = Math.max(-0.2, Math.min(1.15, tilt.rotation.x + vy));
+      spin.rotation.y += vx; tilt.rotation.x = Math.max(-0.5, Math.min(0.9, tilt.rotation.x + vy));
       vx *= 0.94; vy *= 0.94;
       if (Math.abs(vx) < 1e-5) vx = 0; if (Math.abs(vy) < 1e-5) vy = 0;
       // auto-rotation eases back in about 5 s after the last interaction

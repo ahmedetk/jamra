@@ -3,7 +3,7 @@
 import { svg, fmt, fmtInt, MONTHS_LONG } from './util.js';
 import { quantile } from './stats.js';
 
-const INK = '#111827', MUTED = '#4B5563', LINE = '#E5E7EB', EMBER = '#4B5563', BLUE = '#5B7DB1', GREY = '#C4C9D0', SKY = '#B9C7DE', SEL = '#111827';
+const INK = '#2B2B2B', MUTED = '#6B6A66', LINE = '#D6D3CB', EMBER = '#6B6A66', BLUE = '#4E77A6', GREY = '#C9C5BC', SKY = '#B7CADB', SEL = '#F4511E';
 
 export function niceTicks(max, count = 5) {
   if (!(max > 0)) return [0, 1];
@@ -99,7 +99,7 @@ export function monthBars(container, { years, values, selYear, month, src, lo, h
     root.append(svg('line', { x1: m.l, x2: W - m.r, y1: y(t), y2: y(t), stroke: LINE }));
     root.append(svg('text', { x: m.l - 6, y: y(t) + 4, 'text-anchor': 'end', 'font-size': 15, fill: MUTED }, document.createTextNode(fmt(t))));
   }
-  if (p25 !== null) root.append(svg('rect', { x: m.l, width: iw, y: y(p75), height: Math.max(1, y(p25) - y(p75)), fill: 'rgba(91,125,177,.12)' }));
+  if (p25 !== null) root.append(svg('rect', { x: m.l, width: iw, y: y(p75), height: Math.max(1, y(p25) - y(p75)), fill: 'rgba(78,119,166,.12)' }));
   years.forEach((yr, i) => {
     const v = values[i];
     if (v === null) {

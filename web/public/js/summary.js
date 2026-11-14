@@ -7,7 +7,7 @@ import { ramp, CAT_COLOR, logScale } from './colors.js';
 import { CAT_TEXT } from './calendar.js';
 
 const W = 1240, H = 1754; // A4 at 150 dpi
-const INK = '#1F2328', INK2 = '#2B2F36', MUTED = '#5C626B', EMBER = '#A8501C';
+const INK = '#2B2B2B', INK2 = '#3A3936', MUTED = '#6B6A66', EMBER = '#C23A10';
 const ACK = "We acknowledge the use of data and/or imagery from NASA's Fire Information for Resource Management System (FIRMS) (https://earthdata.nasa.gov/firms), part of NASA's Land, Atmosphere Near real-time Capability for Earth observations (LANCE) (https://earthdata.nasa.gov/lance) and NASA's Earth Science Data and Information System (ESDIS).";
 
 function wrap(ctx, text, x, y, maxW, lh) {
@@ -27,7 +27,7 @@ export function drawSummary(c) {
   cv.width = W; cv.height = H;
   const ctx = cv.getContext('2d');
   const F = (s, b = false) => `${b ? '700 ' : ''}${s}px "Segoe UI", Arial, sans-serif`;
-  ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#F7F6F2'; ctx.fillRect(0, 0, W, H);
   ctx.fillStyle = EMBER; ctx.fillRect(0, 0, W, 14);
   let y = 90;
   ctx.fillStyle = INK; ctx.font = F(44, true); ctx.fillText(`${meta.product.name} · Burning activity summary`, 70, y);
@@ -41,7 +41,7 @@ export function drawSummary(c) {
   const others = winYears().filter((yy) => yy !== sy).map((yy) => val(yy, sm));
   const b = baseline(others), pr = percentileRank(v, others), cat = category(v, others, meta.anomaly);
   const src = srcOf(sy, sm);
-  y += 70; ctx.fillStyle = '#F3F4F6'; ctx.fillRect(60, y - 44, W - 120, 250);
+  y += 70; ctx.fillStyle = '#EFEEE9'; ctx.fillRect(60, y - 44, W - 120, 250);
   ctx.fillStyle = INK; ctx.font = F(28, true); ctx.fillText(`${MONTHS_LONG[sm]} ${sy} compared with the historical median`, 85, y);
   y += 58; ctx.font = F(26);
   const diff = b && b.median > 0 && v !== null ? Math.round(((v - b.median) / b.median) * 100) : null;
@@ -54,7 +54,7 @@ export function drawSummary(c) {
   cells.forEach(([k, t], i) => {
     const x = 85 + i * 275;
     ctx.fillStyle = MUTED; ctx.font = F(20); ctx.fillText(k, x, y);
-    ctx.fillStyle = i === 3 && cat ? (cat.includes('higher') ? '#A8501C' : cat.includes('lower') ? '#3E5C76' : INK) : INK;
+    ctx.fillStyle = i === 3 && cat ? (cat.includes('higher') ? '#C23A10' : cat.includes('lower') ? '#3F6590' : INK) : INK;
     ctx.font = F(i === 3 ? 22 : 38, true); ctx.fillText(t, x, y + 46);
   });
   y += 110; ctx.fillStyle = INK2; ctx.font = F(21);

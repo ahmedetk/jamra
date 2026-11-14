@@ -25,9 +25,9 @@ export function renderCalendar(container, legend, grid, opts) {
     svg('pattern', { id: 'cal-hatch', width: 5, height: 5, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' },
       svg('line', { x1: 0, y1: 0, x2: 0, y2: 5, stroke: 'rgba(255,255,255,.6)', 'stroke-width': 1.6 })),
     svg('pattern', { id: 'cal-hatch-dark', width: 5, height: 5, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' },
-      svg('line', { x1: 0, y1: 0, x2: 0, y2: 5, stroke: 'rgba(17,24,39,.35)', 'stroke-width': 1.4 })),
+      svg('line', { x1: 0, y1: 0, x2: 0, y2: 5, stroke: 'rgba(43,43,43,.38)', 'stroke-width': 1.4 })),
     svg('pattern', { id: 'cal-gap', width: 6, height: 6, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(-45)' },
-      svg('rect', { width: 6, height: 6, fill: '#eeeeee' }), svg('line', { x1: 0, y1: 0, x2: 0, y2: 6, stroke: '#c7c7c7', 'stroke-width': 2 }))));
+      svg('rect', { width: 6, height: 6, fill: '#E9E7E1' }), svg('line', { x1: 0, y1: 0, x2: 0, y2: 6, stroke: '#CFCBC2', 'stroke-width': 2 }))));
 
   // values + colour
   const [b0, b1] = opts.baselineYears;
@@ -43,7 +43,7 @@ export function renderCalendar(container, legend, grid, opts) {
     const v = grid.value(y, c);
     const others = colInfo[c].filter(([yy]) => yy !== y).map(([, vv]) => vv);
     const cat = opts.mode === 'anomaly' ? category(v, others, opts.anomalyCfg) : null;
-    const fill = v === null ? 'url(#cal-gap)' : opts.mode === 'anomaly' ? (cat ? CAT_COLOR[cat] : '#f7f7f7') : ramp(opts.palette, scale(v));
+    const fill = v === null ? 'url(#cal-gap)' : opts.mode === 'anomaly' ? (cat ? CAT_COLOR[cat] : '#F7F6F2') : ramp(opts.palette, scale(v));
     return { v, cat, fill, others, src: grid.src(y, c) };
   };
 
@@ -63,9 +63,9 @@ export function renderCalendar(container, legend, grid, opts) {
       const d = cellData(y, c);
       const g = svg('g', { class: 'cell', role: 'gridcell', tabindex: '-1', 'data-y': y, 'data-c': c });
       const x = labelW + c * cw, yy = top + r * ch;
-      g.append(svg('rect', { class: 'bg', x: x + 1, y: yy + 1, width: cw - 2, height: ch - 2, rx: 2, fill: d.fill, stroke: d.src === 'J' ? '#4B5563' : 'none', 'stroke-dasharray': d.src === 'J' ? '3 2' : null }));
+      g.append(svg('rect', { class: 'bg', x: x + 1, y: yy + 1, width: cw - 2, height: ch - 2, rx: 3, fill: d.fill, stroke: d.src === 'J' ? '#6B6A66' : 'none', 'stroke-dasharray': d.src === 'J' ? '3 2' : null }));
       if (d.src === 'M' && d.v !== null) {
-        const dark = opts.mode === 'anomaly' ? (d.cat === 'typical' || d.cat === 'lower' || d.cat === 'higher') : scale(d.v) > 0.6 && opts.palette !== 'ylorrd';
+        const dark = textOn(d.fill.startsWith('#') ? d.fill : '#ffffff') !== '#ffffff'; // light cell: dark hatch
         g.append(svg('rect', { x: x + 1, y: yy + 1, width: cw - 2, height: ch - 2, rx: 2, fill: dark ? 'url(#cal-hatch-dark)' : 'url(#cal-hatch)', 'pointer-events': 'none' }));
       }
       const fillHex = d.fill.startsWith('#') ? d.fill : '#ffffff';

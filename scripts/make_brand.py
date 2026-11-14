@@ -1,7 +1,7 @@
 """Make the Jamra brand files (rendered with Edge headless, real Inter font).
 
-Logo: the wordmark IS the logo, lowercase "jamra" in Inter SemiBold; the dot of the j is the ember
-(a solid calm-orange circle #E8833A crossed by one thin dark orbit arc). Flat: no gradients, no glow.
+Logo: the wordmark IS the logo, lowercase "jamra" in Playfair Display Bold; the dot of the j is the ember
+(a vivid orange circle #F4511E with one thin orbit arc and a small spark). Flat: no gradients, no glow.
 Files (web/public/icons/):
   wordmark-dark.png / wordmark-dark.svg    dark ink (#111827), for light backgrounds
   wordmark-white.png / wordmark-white.svg  white ink, for dark backgrounds
@@ -27,12 +27,14 @@ EDGE = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 FONTS = PUB / "fonts"
 FONT_CSS = "".join(
     f"@font-face{{font-family:Inter;font-weight:{w};src:url('{(FONTS / f'inter-latin-{w}-normal.woff2').as_uri()}') format('woff2')}}"
-    for w in (400, 600, 700))
+    for w in (400, 600, 700)) + "".join(
+    f"@font-face{{font-family:'Playfair Display';font-weight:{w};src:url('{(FONTS / f'playfair-display-latin-{w}-normal.woff2').as_uri()}') format('woff2')}}"
+    for w in (700,))
 
 
 def embedded_face(weight):
-    b64 = base64.b64encode((FONTS / f"inter-latin-{weight}-normal.woff2").read_bytes()).decode()
-    return f"<style>@font-face{{font-family:Inter;font-weight:{weight};src:url(data:font/woff2;base64,{b64}) format('woff2')}}</style>"
+    b64 = base64.b64encode((FONTS / f"playfair-display-latin-{weight}-normal.woff2").read_bytes()).decode()
+    return f"<style>@font-face{{font-family:'Playfair Display';font-weight:{weight};src:url(data:font/woff2;base64,{b64}) format('woff2')}}</style>"
 
 
 def render(name, body, w, h, bg="transparent"):
@@ -52,27 +54,28 @@ def main():
     for old in ("icon.svg", "logo-on-blue.svg", "logo-on-white.svg", "logo-navy-256.png", "logo-white-256.png"):
         (ICONS / old).unlink(missing_ok=True)
     # scalable wordmarks with the font embedded (for the team: slides, posters, documents)
-    for nm, ink in (("wordmark-dark.svg", "#111827"), ("wordmark-white.svg", "#FFFFFF")):
-        svg = logo(ink=ink, height=108, font_face=embedded_face(600)).replace('<svg class="wordmark"', '<svg xmlns="http://www.w3.org/2000/svg"', 1)
+    for nm, ink in (("wordmark-dark.svg", "#2B2B2B"), ("wordmark-white.svg", "#FFFFFF")):
+        svg = logo(ink=ink, height=116, font_face=embedded_face(700)).replace('<svg class="wordmark"', '<svg xmlns="http://www.w3.org/2000/svg"', 1)
         (ICONS / nm).write_text(svg, encoding="utf-8")
     # raster wordmarks (transparent)
-    for nm, ink in (("wordmark-dark.png", "#111827"), ("wordmark-white.png", "#FFFFFF")):
-        render(nm, logo(ink=ink, height=240), 618, 240)
+    for nm, ink in (("wordmark-dark.png", "#2B2B2B"), ("wordmark-white.png", "#FFFFFF")):
+        render(nm, logo(ink=ink, height=240), 592, 240)
     # app icons: just the j with the ember dot
-    for nm, size, kw in (("favicon-16.png", 16, {"pad": 0.04, "radius": 0.18, "bold": 9}), ("favicon-32.png", 32, {"pad": 0.07, "bold": 5}),
+    for nm, size, kw in (("favicon-16.png", 16, {"pad": 0.03, "bold": 9, "sparks": False}), ("favicon-32.png", 32, {"pad": 0.06, "bold": 5, "sparks": False}),
                          ("apple-touch-icon.png", 180, {"radius": 0}), ("icon-192.png", 192, {}), ("icon-512.png", 512, {}),
-                         ("icon-maskable-512.png", 512, {"radius": 0, "pad": 0.27})):
+                         ("icon-maskable-512.png", 512, {"radius": 0, "pad": 0.26})):
         render(nm, j_icon(size=size, **kw), size, size)
-    # share image: real star sky, Blue Marble Earth, white wordmark and the headline
-    stars = (PUB / "img" / "space-stars.webp").as_uri()
-    earth = (PUB / "img" / "earth-blue-marble.png").as_uri()
-    og = f"""<div style="position:relative;width:1200px;height:630px;background:#03050A url('{stars}') center/cover;font-family:Inter;color:#fff">
-<img src="{earth}" style="position:absolute;right:-150px;top:15px;width:600px;height:600px">
-<div style="position:absolute;left:80px;top:78px">{logo(ink='#FFFFFF', height=92)}</div>
-<div style="position:absolute;left:84px;top:250px;width:640px;font:700 58px/1.12 Inter;letter-spacing:-.02em">20 years of NASA fire data. One fair calendar.</div>
-<div style="position:absolute;left:84px;top:500px;font:400 24px Inter;color:#D1D5DB">MODIS + VIIRS · live early warning · Data: NASA FIRMS</div>
+    # share image: warm palette, the light half globe rising from the bottom right, wordmark and the headline
+    earth = (PUB / "img" / "earth-light.png").as_uri()
+    wm = (ICONS / "wordmark-dark.png").as_uri()
+    og = f"""<div style="position:relative;width:1200px;height:630px;overflow:hidden;background:linear-gradient(180deg,#F7F6F2,#EFEEE9);font-family:Inter;color:#2B2B2B">
+<img src="{earth}" style="position:absolute;right:-230px;bottom:-470px;width:960px;height:960px">
+<img src="{wm}" style="position:absolute;left:80px;top:70px;height:96px">
+<div style="position:absolute;left:84px;top:230px;width:600px;font:700 62px/1.06 'Playfair Display';letter-spacing:-.01em">20 years of NASA fire data. One fair calendar.</div>
+<div style="position:absolute;left:84px;top:520px;font:500 22px Inter;color:#6B6A66;letter-spacing:.03em">MODIS + VIIRS · live early warning · Data: NASA FIRMS</div>
+<div style="position:absolute;left:84px;top:500px;width:64px;height:3px;background:#F4511E"></div>
 </div>"""
-    render("og-image.png", og, 1200, 630, bg="#03050A")
+    render("og-image.png", og, 1200, 630, bg="#EFEEE9")
 
 
 if __name__ == "__main__":

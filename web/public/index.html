@@ -5,13 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>jamra · 20 years of NASA fire data, one fair calendar</title>
 <meta name="description" content="jamra harmonizes 20+ years of NASA MODIS and VIIRS active-fire hotspots into one fair burning activity calendar, with live early warning from NASA FIRMS.">
-<meta name="theme-color" content="#FFFFFF">
+<meta name="theme-color" content="#F7F6F2">
 <meta property="og:title" content="jamra · 20 years of NASA fire data, one fair calendar">
 <meta property="og:description" content="NASA MODIS and VIIRS fire data in one fair calendar, with live early warning. Data: NASA FIRMS.">
 <meta property="og:image" content="https://ahmedetk.github.io/jamra/icons/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="fonts/playfair-display-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/inter-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" as="image" href="img/space-stars-1280.webp" media="(max-width: 1299px)"><link rel="preload" as="image" href="img/space-stars.webp" media="(min-width: 1300px)">
+<link rel="preload" as="image" href="img/earth-light.webp">
 <script>
 // Old links (one-page #hashes, removed pages) open the right page and keep their parameters.
 (function () {
@@ -33,7 +34,7 @@
 <a class="skip" href="#main">Skip to content</a>
 <header class="top">
   <div class="wrap top-in">
-    <a class="brand" href="" data-nav aria-label="jamra home"><svg class="wordmark" viewBox="0 0 278 108" height="32" width="82" role="img" aria-label="jamra"><defs><clipPath id="jc111827"><rect x="0" y="23.5" width="40" height="108"/></clipPath></defs><g font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="100" fill="#111827"><text x="6" y="82" clip-path="url(#jc111827)">j</text><text x="31.17" y="82" letter-spacing="-1.6">amra</text></g><path d="M5.11 12.70A13.94 4.10 0 0 1 32.99 12.70" fill="none" stroke="#111827" stroke-width="1.5" stroke-linecap="round" transform="rotate(-18 19.05 12.700000000000003)"/><circle cx="19.05" cy="12.700000000000003" r="8.2" fill="#E8833A"/><path d="M32.99 12.70A13.94 4.10 0 0 1 5.11 12.70" fill="none" stroke="#111827" stroke-width="1.5" stroke-linecap="round" transform="rotate(-18 19.05 12.700000000000003)"/></svg></a>
+    <a class="brand" href="" data-nav aria-label="jamra home"><img src="icons/wordmark-dark.png" width="108" height="44" alt="jamra"></a>
     <nav aria-label="Main" class="nav" id="site-nav">
       <a href="" data-nav aria-current="page">Home</a>
       <a href="calendar/" data-nav>Calendar</a>
@@ -51,18 +52,18 @@
 
   <section class="hero" id="hero">
     <div class="globe-wrap" id="globe-wrap">
-      <img class="globe-still" id="globe-still" src="img/earth-blue-marble.webp" width="720" height="720" alt="Earth from space, centred on the Mediterranean (NASA Blue Marble imagery)" fetchpriority="low">
+      <img class="globe-still" id="globe-still" src="img/earth-light.webp" width="720" height="720" alt="Globe in the colours of our map, centred on the Mediterranean" fetchpriority="low">
       <canvas id="globe" role="img" aria-label="Globe with recent fire hotspots from NASA FIRMS. Drag to turn it."></canvas>
     </div>
     <div class="wrap hero-in">
       <h1>20 years of NASA fire data. One fair calendar.</h1>
       <div class="cta-row">
         <a class="btn primary big" data-nav href="calendar/">Open the Calendar</a>
-        <a class="btn big" id="evia-btn" href="calendar/?area=evia&amp;from=2003&amp;to=2025&amp;month=2007-08&amp;mode=abs&amp;detail=1">Try Evia 2007</a>
+        <a class="btn big" data-nav href="alerts/">See Live Alerts</a>
       </div>
       <p class="live-chip" id="live-chip"><span class="dot" aria-hidden="true"></span><span class="txt">Loading live data · Data: NASA FIRMS</span></p>
     </div>
-    <p class="img-credit">Earth: NASA GIBS / Blue Marble · Stars: Yale Bright Star Catalogue (NASA HEASARC)</p>
+    <p class="img-credit">Map: Natural Earth · Hotspots: NASA FIRMS</p>
   </section>
 
   <section id="tools">
@@ -78,7 +79,7 @@
 <footer class="foot">
   <div class="wrap foot-in">
     <div>
-      <a class="brand" href="" data-nav aria-label="jamra home"><svg class="wordmark" viewBox="0 0 278 108" height="26" width="67" role="img" aria-label="jamra"><defs><clipPath id="jc111827"><rect x="0" y="23.5" width="40" height="108"/></clipPath></defs><g font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="100" fill="#111827"><text x="6" y="82" clip-path="url(#jc111827)">j</text><text x="31.17" y="82" letter-spacing="-1.6">amra</text></g><path d="M5.11 12.70A13.94 4.10 0 0 1 32.99 12.70" fill="none" stroke="#111827" stroke-width="1.5" stroke-linecap="round" transform="rotate(-18 19.05 12.700000000000003)"/><circle cx="19.05" cy="12.700000000000003" r="8.2" fill="#E8833A"/><path d="M32.99 12.70A13.94 4.10 0 0 1 5.11 12.70" fill="none" stroke="#111827" stroke-width="1.5" stroke-linecap="round" transform="rotate(-18 19.05 12.700000000000003)"/></svg></a>
+      <a class="brand" href="" data-nav aria-label="jamra home"><img src="icons/wordmark-dark.png" width="78" height="32" alt="jamra" loading="lazy"></a>
       <p>Team Astro Byte · Built for the NASA Space Apps Challenge 2026</p>
       <p>Not an official NASA product · Not an emergency service · <b>Data: NASA FIRMS</b></p>
     </div>

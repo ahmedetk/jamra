@@ -1,6 +1,7 @@
 // Colour ramps. Viridis/Cividis (matplotlib, CC0) and YlOrRd/RdBu (ColorBrewer).
 // Written with the help of an SI coding assistant (Claude Code).
 const RAMPS = {
+  ember: ['#F3F1EB', '#F5DCCD', '#F7C2A6', '#F7A07A', '#F67A4C', '#F4511E', '#C23A10', '#8A2A0B'],
   viridis: ['#440154', '#482878', '#3e4989', '#31688e', '#26828e', '#1f9e89', '#35b779', '#6ece58', '#b5de2b', '#fde725'],
   cividis: ['#00204c', '#00336f', '#39486b', '#575d6d', '#707173', '#8a8779', '#a69d75', '#c4b56c', '#e4cf5b', '#ffe945'],
   ylorrd: ['#ffffcc', '#ffeda0', '#fed976', '#feb24c', '#fd8d3c', '#fc4e2a', '#e31a1c', '#bd0026', '#800026'],
@@ -11,7 +12,7 @@ function hex2rgb(h) { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 25
 function rgb2hex([r, g, b]) { return '#' + [r, g, b].map((v) => Math.round(v).toString(16).padStart(2, '0')).join(''); }
 
 export function ramp(name, t) {
-  const stops = RAMPS[name] || RAMPS.viridis;
+  const stops = RAMPS[name] || RAMPS.ember;
   const x = Math.min(Math.max(t, 0), 1) * (stops.length - 1);
   const i = Math.min(Math.floor(x), stops.length - 2), f = x - i;
   const a = hex2rgb(stops[i]), b = hex2rgb(stops[i + 1]);
@@ -19,13 +20,13 @@ export function ramp(name, t) {
 }
 
 export function rampCSS(name) {
-  const stops = RAMPS[name] || RAMPS.viridis;
+  const stops = RAMPS[name] || RAMPS.ember;
   return `linear-gradient(90deg, ${stops.join(', ')})`;
 }
 
 // Diverging slate blue <-> neutral grey <-> orange (colourblind-safe): lower / typical / higher. Text labels are always shown.
 export const CAT_COLOR = {
-  much_lower: '#5B7DB1', lower: '#B7C6DE', typical: '#E5E7EB', higher: '#F5BE93', much_higher: '#E8833A',
+  much_lower: '#4E77A6', lower: '#B7CADB', typical: '#E2DFD7', higher: '#F9A98A', much_higher: '#F4511E',
 };
 
 // pick dark or white text by real WCAG contrast
@@ -34,8 +35,8 @@ function lum(hex) {
     .reduce((a, v, i) => a + v * [0.2126, 0.7152, 0.0722][i], 0);
 }
 export function textOn(hex) {
-  const L = lum(hex), dark = (L + 0.05) / (lum('#111827') + 0.05), white = 1.05 / (L + 0.05);
-  return dark >= white ? '#111827' : '#ffffff';
+  const L = lum(hex), dark = (L + 0.05) / (lum('#2B2B2B') + 0.05), white = 1.05 / (L + 0.05);
+  return dark >= white ? '#2B2B2B' : '#ffffff';
 }
 
 // log scale helper for skewed counts

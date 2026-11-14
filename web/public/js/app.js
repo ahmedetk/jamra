@@ -3,7 +3,7 @@ import { $, $$, el, svg, fmt, fmtInt, pct, MONTHS, MONTHS_LONG, store, downloadB
 import { BASE, getJSON, loadArea, customArea, monthlyValues, monthLabel, monthIndex } from './data.js';
 import { heroChart, monthBars } from './charts.js';
 import { renderCalendar, CAT_TEXT } from './calendar.js';
-import { initMap, showArea, showLive, startDraw, clearDraw, webglOK, softwareGL } from './map.js';
+import { initMap, showArea, showLive, startDraw, clearDraw, webglOK, softwareGL, flyToGlobe } from './map.js';
 import { loadLive, loadStatus, renderBadge, renderAlerts, renderStatusPanel, areaWarning, fetchLive, renderTable, downloadLiveCSV, LEVEL_LABEL, liveState, periodText } from './live.js';
 import { downloadSummary } from './summary.js';
 import { baseline, percentileRank, category, CAT_LABEL, seasonStart, theilSen, mannKendall } from './stats.js';
@@ -29,7 +29,7 @@ const TERMS = {
 
 const state = {
   areaId: 'greece', custom: null, from: 2003, to: 2025, sel: null, mode: 'abs', res: 'month',
-  palette: 'viridis', staticFilter: true, hero: 'raw', liveWin: 1,
+  palette: 'ember', staticFilter: true, hero: 'raw', liveWin: 1,
 };
 let meta, report, site, live, status, area, monthly, years;
 const PAGE = document.body.dataset.page || 'home';
@@ -51,7 +51,7 @@ const tip = {
 // ---------------------------------------------------------------- state <-> URL
 function readURL() {
   const p = new URLSearchParams(location.search);
-  const saved = store.get('jamra-state', {});
+  const saved = store.get('jamra-state-v4', {});
   Object.assign(state, saved);
   if (p.get('area')) { state.areaId = p.get('area'); state.custom = null; }
   if (p.get('from')) state.from = +p.get('from');
@@ -79,13 +79,13 @@ const writeURL = debounce(() => {
   if (state.sel) p.set('month', `${state.sel[0]}-${String(state.sel[1] + 1).padStart(2, '0')}`);
   p.set('mode', state.mode);
   if (state.res === 'week') p.set('res', 'week');
-  if (state.palette !== 'viridis') p.set('pal', state.palette);
+  if (state.palette !== 'ember') p.set('pal', state.palette);
   // Home keeps only the area in its own URL (calendar parameters there mean an old shared link)
   const own = PAGE === 'home' ? new URLSearchParams([...p].filter(([k]) => ['area', 'from', 'to', 'poly'].includes(k))) : p;
   history.replaceState(null, '', `${location.pathname}?${own}`);
   updateNavLinks(p);
   const { custom, ...rest } = state;
-  store.set('jamra-state', { ...rest, custom: null });
+  store.set('jamra-state-v4', { ...rest, custom: null });
 }, 200);
 
 function updateNavLinks(p) {
@@ -103,6 +103,8 @@ function updateNavLinks(p) {
 
 // ---------------------------------------------------------------- boot
 let firstLive = null;
+// always open a page at its top (no restored scroll that hides the title under the sticky nav)
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 async function boot() {
   firstLive = Promise.all([loadLive(), loadStatus()]);
   firstLive.then(([l, st]) => { renderBadge(st, l); renderStatusPanel(st, l); }).catch(() => {});
@@ -266,6 +268,7 @@ function buildControls() {
   seg('mode', 'mode', update);
   seg('res', 'res', update);
   seg('livewin', 'liveWin', applyLiveLayer);
+  on('#globe-btn', 'click', () => flyToGlobe());
   on('#dl-cal-csv', 'click', downloadCalendarCSV);
   on('#dl-cal-png', 'click', downloadCalendarPNG);
   on('#live-form', 'submit', async (e) => {
@@ -314,8 +317,7 @@ async function selectArea(id, custom = null) {
   update();
   if (state.openDetail && has('#detail')) {
     state.openDetail = false;
-    renderDetail(true);
-    setTimeout(() => $('#detail').scrollIntoView({ block: 'start' }), 300);
+    renderDetail(false);   // open the month details, but keep the page at the top so the title stays visible
   }
 }
 
@@ -390,9 +392,11 @@ function renderAreaInfo() {
   box.innerHTML = '';
   if (has('#area-title')) $('#area-title').textContent = area.label;
   const country = area.country === 'Turkey' ? 'Türkiye' : area.country;
-  const kind = area.kind === 'custom' ? `Custom area · ${fmtInt(area.cells)} cells of 0.1°` : area.kind === 'preset' ? `Fire area · ${country}` : 'Country';
-  box.append(el('b', { text: area.label }), el('br'), el('span', { text: kind }), el('br'),
-    el('span', { class: 'factor', text: `1 MODIS hotspot ≈ ${fmt(f.k, 2)} VIIRS hotspots · ±${Math.round((areaUnc() || 0) * 100)}% on a month` }));
+  const kind = area.kind === 'custom' ? `Custom · ${fmtInt(area.cells)} cells of 0.1°` : area.kind === 'preset' ? `Fire area · ${country}` : 'Country';
+  const name = area.kind === 'preset' ? area.label.replace(/\s*\([^)]*\)\s*$/, '') : area.label;
+  const row = (k, v) => el('tr', {}, el('th', { scope: 'row', text: k }), el('td', { text: v }));
+  box.append(el('table', { class: 'info-table' }, el('tbody', {},
+    row('Area', name), row('Type', kind), row('Conversion', `1 MODIS ≈ ${fmt(f.k, 2)} VIIRS`), row('Uncertainty', `±${Math.round((areaUnc() || 0) * 100)}% per month`))));
   if (['Palestine', 'Lebanon'].includes(area.country)) box.append(el('p', { class: 'msg', text: 'Conflict area 2023–2025: some hotspots may not be fires.' }));
   if (area.kind === 'custom' && area.cells === 0) box.append(el('p', { class: 'msg', text: 'No hotspots here in 2003–2025, or outside our 8 countries.' }));
 }
@@ -616,9 +620,9 @@ function renderSeason() {
   const s = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Season start month by year' });
   const x = (y) => mL + ((y - ys[0]) / Math.max(1, ys[ys.length - 1] - ys[0])) * (W - mL - 20);
   const yy = (m) => 10 + ((m - 1) / 11) * (H - 30);
-  [1, 4, 7, 10].forEach((m) => { s.append(svg('text', { x: 4, y: yy(m) + 4, 'font-size': 15, fill: '#4B5563' }, document.createTextNode(MONTHS[m - 1]))); s.append(svg('line', { x1: mL, x2: W - 20, y1: yy(m), y2: yy(m), stroke: '#E5E7EB' })); });
-  sy.forEach((y, i) => s.append(svg('circle', { cx: x(y), cy: yy(starts[i]), r: 5, fill: y < 2012 ? '#B9C7DE' : '#5B7DB1' })));
-  sy.filter((y, i) => i % 3 === 0).forEach((y) => s.append(svg('text', { x: x(y), y: H - 4, 'text-anchor': 'middle', 'font-size': 15, fill: '#4B5563' }, document.createTextNode(String(y)))));
+  [1, 4, 7, 10].forEach((m) => { s.append(svg('text', { x: 4, y: yy(m) + 4, 'font-size': 15, fill: '#6B6A66' }, document.createTextNode(MONTHS[m - 1]))); s.append(svg('line', { x1: mL, x2: W - 20, y1: yy(m), y2: yy(m), stroke: '#D6D3CB' })); });
+  sy.forEach((y, i) => s.append(svg('circle', { cx: x(y), cy: yy(starts[i]), r: 5, fill: y < 2012 ? '#B7CADB' : '#4E77A6' })));
+  sy.filter((y, i) => i % 3 === 0).forEach((y) => s.append(svg('text', { x: x(y), y: H - 4, 'text-anchor': 'middle', 'font-size': 15, fill: '#6B6A66' }, document.createTextNode(String(y)))));
   box.append(s);
 }
 
@@ -649,10 +653,10 @@ async function downloadCalendarPNG() {
   const title = `${meta.product.name} · ${area.label} · ${state.mode === 'anomaly' ? 'anomaly vs usual' : 'hotspots (VIIRS-equivalent)'} · data: NASA FIRMS`;
   const pad = 40;
   const wrapper = svg('svg', { xmlns: 'http://www.w3.org/2000/svg', width: w + 20, height: h + pad + 10 });
-  wrapper.append(svg('rect', { width: '100%', height: '100%', fill: '#ffffff' }));
-  wrapper.append(svg('text', { x: 10, y: 24, 'font-size': 15, 'font-family': 'Segoe UI, Arial, sans-serif', fill: '#111827' }, document.createTextNode(title)));
+  wrapper.append(svg('rect', { width: '100%', height: '100%', fill: '#F7F6F2' }));
+  wrapper.append(svg('text', { x: 10, y: 24, 'font-size': 15, 'font-family': 'Segoe UI, Arial, sans-serif', fill: '#2B2B2B' }, document.createTextNode(title)));
   clone.setAttribute('x', 10); clone.setAttribute('y', pad);
-  clone.querySelectorAll('text').forEach((t) => { t.setAttribute('font-family', 'Segoe UI, Arial, sans-serif'); if (!t.getAttribute('font-size')) t.setAttribute('font-size', 11); if (!t.getAttribute('fill')) t.setAttribute('fill', '#4B5563'); });
+  clone.querySelectorAll('text').forEach((t) => { t.setAttribute('font-family', 'Segoe UI, Arial, sans-serif'); if (!t.getAttribute('font-size')) t.setAttribute('font-size', 11); if (!t.getAttribute('fill')) t.setAttribute('fill', '#6B6A66'); });
   wrapper.append(clone);
   const blob = new Blob([new XMLSerializer().serializeToString(wrapper)], { type: 'image/svg+xml' });
   const url = URL.createObjectURL(blob);
@@ -705,7 +709,7 @@ if (GUIDE.get('guide') === '1' || GUIDE.get('rects') === '1') {
         const n = document.querySelector(sel);
         if (!n) return;
         const r = n.getBoundingClientRect();
-        n.style.outline = '3px dashed #E8833A';
+        n.style.outline = '2px dashed #F4511E';
         n.style.outlineOffset = '2px';
         const b = el('div', { class: 'guide-badge', text: String(i + 1) });
         b.style.left = `${Math.max(2, r.left + scrollX - 14)}px`;

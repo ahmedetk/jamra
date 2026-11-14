@@ -3,76 +3,42 @@
 import { circleRing, haversineKm, ringBBox } from './util.js';
 import { BASE } from './data.js';
 
-// Realistic Earth: NASA GIBS Blue Marble imagery (EPSG:3857, GoogleMapsCompatible_Level8, max zoom 8,
-// verified from the GIBS GetCapabilities), a subtle atmosphere, and above zoom ~6.5 a crossfade to a
-// clean, muted vector basemap (OpenFreeMap) so detail stays sharp.
-// WMTS order is {TileMatrix}/{TileRow}/{TileCol} = {z}/{y}/{x}; 256 px tiles; levels 0-8 only (maxzoom 8).
-const GIBS = 'gibsr://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_ShadedRelief_Bathymetry/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg';
-let protocolAdded = false;
-function addRetryProtocol(ml) {
-  if (protocolAdded) return;
-  protocolAdded = true;
-  ml.addProtocol('gibsr', async (params, abort) => {
-    const url = params.url.replace('gibsr://', 'https://');
-    for (let i = 0; ; i++) {
-      try {
-        const r = await fetch(url, { signal: abort.signal, mode: 'cors' });
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return { data: await r.arrayBuffer() };
-      } catch (e) {
-        if (abort.signal.aborted || i >= 3) throw e;
-        await new Promise((res) => setTimeout(res, 400 * (i + 1)));
-      }
-    }
-  });
-}
 const TILES = 'https://tiles.openfreemap.org/planet';
 const GLYPHS = 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
 const EN = ['coalesce', ['get', 'name:en'], ['get', 'name_en']]; // English-only labels
-const FADE = (from, to) => ['interpolate', ['linear'], ['zoom'], 6.2, from, 7.4, to];
+// One light cartographic style at every zoom, globe view included (Design v4): warm light-grey land,
+// soft blue water, thin borders, charcoal labels. OpenFreeMap / OpenMapTiles vector tiles.
+const LAND = '#F3F1EB', WATER = '#B7CADB';
 export function earthStyle({ labels = true, flat = false } = {}) {
   const layers = [
-    // the globe surface under the imagery: polar ice white, so the caps beyond 85° look natural (no dark wedge)
-    { id: 'space', type: 'background', paint: { 'background-color': '#E9EEF2' } },
-    { id: 'imagery', type: 'raster', source: 'gibs', paint: { 'raster-opacity': FADE(1, 0), 'raster-fade-duration': 300 } },
-    { id: 'v-land', type: 'background', paint: { 'background-color': '#F2F1EC', 'background-opacity': FADE(0, 1) } },
-    { id: 'v-water', type: 'fill', source: 'omt', 'source-layer': 'water', minzoom: 5.5, paint: { 'fill-color': '#B8CDE0', 'fill-opacity': FADE(0, 1) } },
-    { id: 'v-park', type: 'fill', source: 'omt', 'source-layer': 'park', minzoom: 6, paint: { 'fill-color': '#DDE8D5', 'fill-opacity': FADE(0, 0.8) } },
-    { id: 'v-roads', type: 'line', source: 'omt', 'source-layer': 'transportation', minzoom: 7,
+    { id: 'land', type: 'background', paint: { 'background-color': LAND } },
+    { id: 'water', type: 'fill', source: 'omt', 'source-layer': 'water', paint: { 'fill-color': WATER } },
+    { id: 'park', type: 'fill', source: 'omt', 'source-layer': 'park', minzoom: 7, paint: { 'fill-color': '#E3E8D8', 'fill-opacity': 0.7 } },
+    { id: 'roads', type: 'line', source: 'omt', 'source-layer': 'transportation', minzoom: 7,
       filter: ['in', ['get', 'class'], ['literal', ['motorway', 'trunk', 'primary', 'secondary']]],
-      paint: { 'line-color': '#FFFFFF', 'line-width': ['interpolate', ['linear'], ['zoom'], 7, 0.8, 12, 2.6], 'line-opacity': FADE(0, 1) } },
+      paint: { 'line-color': '#FFFFFF', 'line-width': ['interpolate', ['linear'], ['zoom'], 7, 0.7, 12, 2.4] } },
     { id: 'admin-region', type: 'line', source: 'omt', 'source-layer': 'boundary', minzoom: 6,
       filter: ['all', ['==', ['get', 'admin_level'], 4], ['!=', ['get', 'maritime'], 1]],
-      paint: { 'line-color': '#9CA3AF', 'line-width': 0.6, 'line-dasharray': [3, 2] } },
-    { id: 'admin-country', type: 'line', source: 'omt', 'source-layer': 'boundary', minzoom: 3.5,
+      paint: { 'line-color': '#C9C5BC', 'line-width': 0.6, 'line-dasharray': [3, 2] } },
+    { id: 'admin-country', type: 'line', source: 'omt', 'source-layer': 'boundary',
       filter: ['all', ['<=', ['get', 'admin_level'], 2], ['!=', ['get', 'maritime'], 1]],
-      paint: { 'line-color': ['interpolate', ['linear'], ['zoom'], 6.2, 'rgba(255,255,255,0.5)', 7.4, '#8B929C'], 'line-width': 0.9 } },
+      paint: { 'line-color': '#B8B3A9', 'line-width': ['interpolate', ['linear'], ['zoom'], 1, 0.5, 8, 1.1] } },
   ];
   if (labels) {
-    const text = (size) => ({
-      'text-color': ['interpolate', ['linear'], ['zoom'], 6.2, '#F9FAFB', 7.4, '#1F2937'],
-      'text-halo-color': ['interpolate', ['linear'], ['zoom'], 6.2, 'rgba(3,5,10,0.85)', 7.4, 'rgba(255,255,255,0.95)'],
-      'text-halo-width': 1.3,
-    });
+    const text = () => ({ 'text-color': '#2B2B2B', 'text-halo-color': 'rgba(247,246,242,0.95)', 'text-halo-width': 1.3 });
     layers.push(
       { id: 'place-city', type: 'symbol', source: 'omt', 'source-layer': 'place', minzoom: 5.5,
         filter: ['in', ['get', 'class'], ['literal', ['city', 'town']]],
         layout: { 'text-field': EN, 'text-font': ['Noto Sans Regular'], 'text-size': ['interpolate', ['linear'], ['zoom'], 6, 11, 11, 14] }, paint: text() },
-      { id: 'place-country', type: 'symbol', source: 'omt', 'source-layer': 'place', minzoom: 3.8, maxzoom: 8,
+      { id: 'place-country', type: 'symbol', source: 'omt', 'source-layer': 'place', minzoom: 3, maxzoom: 8,
         filter: ['==', ['get', 'class'], 'country'],
-        layout: { 'text-field': EN, 'text-font': ['Noto Sans Bold'], 'text-size': 12, 'text-letter-spacing': 0.04 }, paint: text() });
+        layout: { 'text-field': EN, 'text-font': ['Noto Sans Regular'], 'text-size': 12, 'text-letter-spacing': 0.06, 'text-transform': 'uppercase' }, paint: text() });
   }
   return {
     version: 8, glyphs: GLYPHS, projection: { type: flat ? 'mercator' : 'globe' },
-    sky: {
-      'sky-color': '#03050A', 'horizon-color': '#9CC3F2', 'fog-color': '#DCE9F7',
-      'sky-horizon-blend': 0.5, 'horizon-fog-blend': 0.6, 'fog-ground-blend': 0.9,
-      'atmosphere-blend': ['interpolate', ['linear'], ['zoom'], 0, 0.85, 5, 0.6, 7, 0],
-    },
-    sources: {
-      gibs: { type: 'raster', tiles: [GIBS], tileSize: 256, maxzoom: 8, attribution: 'Imagery: NASA GIBS / Blue Marble' },
-      omt: { type: 'vector', url: TILES, attribution: '© OpenStreetMap contributors · OpenMapTiles · OpenFreeMap' },
-    },
+    sky: { 'sky-color': '#E7E5DF', 'horizon-color': '#DCE4EA', 'fog-color': '#E7E5DF', 'sky-horizon-blend': 0.4, 'horizon-fog-blend': 0.5, 'fog-ground-blend': 0.9,
+      'atmosphere-blend': ['interpolate', ['linear'], ['zoom'], 0, 0.35, 4, 0.15, 6, 0] },
+    sources: { omt: { type: 'vector', url: TILES, attribution: '© OpenStreetMap contributors · OpenMapTiles · OpenFreeMap' } },
     layers,
   };
 }
@@ -80,9 +46,9 @@ export function earthStyle({ labels = true, flat = false } = {}) {
 const HOT_RADIUS = ['interpolate', ['linear'], ['zoom'],
   1, 1.6, 4, 2.4, 7, ['+', 2.5, ['*', 0.12, ['sqrt', ['to-number', ['get', 'frp'], 1]]]],
   11, ['+', 3.5, ['*', 0.25, ['sqrt', ['to-number', ['get', 'frp'], 1]]]]];
-const HOT_PAINT = { 'circle-radius': HOT_RADIUS, 'circle-color': '#E8833A', 'circle-stroke-color': 'rgba(17,24,39,0.45)', 'circle-stroke-width': 0.6 };
-const SOFT_ORANGE = '#E8833A';   // area outline / selection (calm orange, no yellow)
-const NEW_HOT = '#F6B98C';       // hotspots from the last 24 h: lighter orange
+const HOT_PAINT = { 'circle-radius': HOT_RADIUS, 'circle-color': '#F4511E', 'circle-stroke-color': 'rgba(247,246,242,0.9)', 'circle-stroke-width': 0.8 };
+const SOFT_ORANGE = '#F4511E';   // selected area outline: vivid ember orange
+const NEW_HOT = '#F4511E';       // hotspots from the last 24 h: full orange (older ones are lighter)
 
 let map = null, ready = null, drawMode = null, drawPts = [], onDrawDone = null;
 const empty = { type: 'FeatureCollection', features: [] };
@@ -106,13 +72,15 @@ export function initMap(container, { onFallback, loader } = {}) {
     loadCSS(BASE + 'vendor/maplibre-gl.css');
     await loadScript(BASE + 'vendor/maplibre-gl.js');
     const ml = window.maplibregl;
-    addRetryProtocol(ml);
     map = new ml.Map({
       container, style: earthStyle({ flat: SOFT }), center: [18, 30], zoom: 1.7, attributionControl: { compact: true }, maxZoom: 14, pixelRatio: SOFT ? 1 : undefined,
       cooperativeGestures: matchMedia('(pointer: coarse)').matches,
     });
     map.addControl(new ml.NavigationControl({ showCompass: false }), 'top-right');
     window.__jamraMap = map; // for our automated checks
+    // globe view: the globe floats on the page; zoomed in: the canvas edges fade into the page (CSS mask)
+    const view = () => container.classList.toggle('globe-view', !SOFT && map.getZoom() < 3.6);
+    view(); map.on('zoom', view);
     // 1) the style (our own, inline) must load: only then layers can be added; a real failure here means no map
     await new Promise((res, rej) => {
       const t = setTimeout(() => rej(new Error('map style timeout')), 20000);
@@ -123,15 +91,15 @@ export function initMap(container, { onFallback, loader } = {}) {
     // 2) show the globe when the Earth imagery is in (subtle loader until then), at most 8 s; tiles keep loading after
     await new Promise((res) => {
       const t0 = performance.now();
-      const wait = () => ((map.isSourceLoaded('gibs') && map.areTilesLoaded()) || performance.now() - t0 > 8000 ? (loader && loader.classList.add('done'), res()) : setTimeout(wait, 150));
+      const wait = () => ((map.isSourceLoaded('omt') && map.areTilesLoaded()) || performance.now() - t0 > 8000 ? (loader && loader.classList.add('done'), res()) : setTimeout(wait, 150));
       wait();
     });
     map.addSource('area', { type: 'geojson', data: empty });
-    map.addLayer({ id: 'area-line', type: 'line', source: 'area', paint: { 'line-color': SOFT_ORANGE, 'line-width': 2 } });
+    map.addLayer({ id: 'area-line', type: 'line', source: 'area', paint: { 'line-color': SOFT_ORANGE, 'line-width': 2.2 } });
     map.addSource('live', { type: 'geojson', data: empty });
     map.addLayer({
       id: 'live-pts', type: 'circle', source: 'live',
-      paint: { ...HOT_PAINT, 'circle-color': ['case', ['<', ['get', 'age'], 1], NEW_HOT, '#E8833A'], 'circle-opacity': ['case', ['<', ['get', 'age'], 1], 1, 0.9] },
+      paint: { ...HOT_PAINT, 'circle-color': ['case', ['<', ['get', 'age'], 1], NEW_HOT, '#F7A07A'], 'circle-opacity': 1 },
     });
     map.addSource('draw', { type: 'geojson', data: empty });
     map.addLayer({ id: 'draw-line', type: 'line', source: 'draw', paint: { 'line-color': SOFT_ORANGE, 'line-width': 1.6, 'line-dasharray': [2, 1] } });
@@ -165,6 +133,13 @@ export async function showArea(ring) {
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     m.fitBounds([[w, s], [e, n]], { padding: 40, maxZoom: 9, duration: reduce || SOFT ? 0 : 3000, easing: (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2), essential: true });
   }
+}
+
+export async function flyToGlobe() {
+  if (!ready) return;
+  const m = await ready; if (!m) return;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  m.flyTo({ center: [18, 30], zoom: 1.7, duration: reduce ? 0 : 3000, easing: (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2), essential: true });
 }
 
 export async function showLive(points) {

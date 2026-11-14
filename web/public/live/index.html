@@ -5,11 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Live Data · jamra</title>
 <meta name="description" content="jamra harmonizes 20+ years of NASA MODIS and VIIRS active-fire hotspots into one fair burning activity calendar, with live early warning from NASA FIRMS.">
-<meta name="theme-color" content="#FFFFFF">
+<meta name="theme-color" content="#F7F6F2">
 <meta property="og:title" content="jamra · 20 years of NASA fire data, one fair calendar">
 <meta property="og:description" content="NASA MODIS and VIIRS fire data in one fair calendar, with live early warning. Data: NASA FIRMS.">
 <meta property="og:image" content="https://ahmedetk.github.io/jamra/icons/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="../fonts/playfair-display-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../fonts/inter-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
 
 
@@ -24,7 +25,7 @@
 <a class="skip" href="#main">Skip to content</a>
 <header class="top">
   <div class="wrap top-in">
-    <a class="brand" href="../" data-nav aria-label="jamra home"><svg class="wordmark" viewBox="0 0 278 108" height="32" width="82" role="img" aria-label="jamra"><defs><clipPath id="jc111827"><rect x="0" y="23.5" width="40" height="108"/></clipPath></defs><g font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="100" fill="#111827"><text x="6" y="82" clip-path="url(#jc111827)">j</text><text x="31.17" y="82" letter-spacing="-1.6">amra</text></g><path d="M5.11 12.70A13.94 4.10 0 0 1 32.99 12.70" fill="none" stroke="#111827" stroke-width="1.5" stroke-linecap="round" transform="rotate(-18 19.05 12.700000000000003)"/><circle cx="19.05" cy="12.700000000000003" r="8.2" fill="#E8833A"/><path d="M32.99 12.70A13.94 4.10 0 0 1 5.11 12.70" fill="none" stroke="#111827" stroke-width="1.5" stroke-linecap="round" transform="rotate(-18 19.05 12.700000000000003)"/></svg></a>
+    <a class="brand" href="../" data-nav aria-label="jamra home"><img src="../icons/wordmark-dark.png" width="108" height="44" alt="jamra"></a>
     <nav aria-label="Main" class="nav" id="site-nav">
       <a href="../" data-nav>Home</a>
       <a href="../calendar/" data-nav>Calendar</a>
@@ -44,14 +45,15 @@
   <section id="area">
     <div class="wrap grid-2">
       <div>
+        <div class="area-head"><h2>Area</h2></div>
         <div class="tabs" role="tablist" aria-label="Choose an area">
           <button role="tab" id="tab-preset" aria-controls="pane-preset" aria-selected="true" class="tab">Fire areas</button>
           <button role="tab" id="tab-country" aria-controls="pane-country" aria-selected="false" class="tab" tabindex="-1">Countries</button>
           <button role="tab" id="tab-draw" aria-controls="pane-draw" aria-selected="false" class="tab" tabindex="-1">Draw</button>
           <button role="tab" id="tab-coords" aria-controls="pane-coords" aria-selected="false" class="tab" tabindex="-1">Lat / Lon</button>
         </div>
-        <div id="pane-preset" role="tabpanel" aria-labelledby="tab-preset" class="pane"><div id="preset-list" class="chips"><button type="button" class="chip" data-area="evia" aria-pressed="false">Evia (Greece)</button><button type="button" class="chip" data-area="attica" aria-pressed="false">Attica (Greece)</button><button type="button" class="chip" data-area="peloponnese" aria-pressed="false">Peloponnese (Greece)</button><button type="button" class="chip" data-area="evros" aria-pressed="false">Evros / Dadia (Greece)</button><button type="button" class="chip" data-area="rhodes" aria-pressed="false">Rhodes (Greece)</button><button type="button" class="chip" data-area="central_portugal" aria-pressed="false">Central Portugal (Pedrógão Grande)</button><button type="button" class="chip" data-area="culebra" aria-pressed="false">Sierra de la Culebra (Spain)</button><button type="button" class="chip" data-area="tenerife" aria-pressed="false">Tenerife (Spain)</button><button type="button" class="chip" data-area="antalya_mugla" aria-pressed="false">Antalya–Muğla coast (Türkiye)</button></div></div>
-        <div id="pane-country" role="tabpanel" aria-labelledby="tab-country" class="pane" hidden><div id="country-list" class="chips"><button type="button" class="chip" data-area="portugal" aria-pressed="false">Portugal</button><button type="button" class="chip" data-area="spain" aria-pressed="false">Spain</button><button type="button" class="chip" data-area="greece" aria-pressed="false">Greece</button><button type="button" class="chip" data-area="turkiye" aria-pressed="false">Türkiye</button><button type="button" class="chip" data-area="cyprus" aria-pressed="false">Cyprus</button><button type="button" class="chip" data-area="lebanon" aria-pressed="false">Lebanon</button><button type="button" class="chip" data-area="jordan" aria-pressed="false">Jordan</button><button type="button" class="chip" data-area="palestine" aria-pressed="false">Palestine</button></div></div>
+        <div id="pane-preset" role="tabpanel" aria-labelledby="tab-preset" class="pane"><div id="preset-list" class="chips"><button type="button" class="chip" data-area="evia" aria-pressed="false">Evia<small>Greece</small></button><button type="button" class="chip" data-area="attica" aria-pressed="false">Attica<small>Greece</small></button><button type="button" class="chip" data-area="peloponnese" aria-pressed="false">Peloponnese<small>Greece</small></button><button type="button" class="chip" data-area="evros" aria-pressed="false">Evros / Dadia<small>Greece</small></button><button type="button" class="chip" data-area="rhodes" aria-pressed="false">Rhodes<small>Greece</small></button><button type="button" class="chip" data-area="central_portugal" aria-pressed="false">Central Portugal<small>Portugal · Pedrógão Grande</small></button><button type="button" class="chip" data-area="culebra" aria-pressed="false">Sierra de la Culebra<small>Spain</small></button><button type="button" class="chip" data-area="tenerife" aria-pressed="false">Tenerife<small>Spain</small></button><button type="button" class="chip" data-area="antalya_mugla" aria-pressed="false">Antalya–Muğla coast<small>Türkiye</small></button></div></div>
+        <div id="pane-country" role="tabpanel" aria-labelledby="tab-country" class="pane" hidden><div id="country-list" class="chips"><button type="button" class="chip" data-area="portugal" aria-pressed="false">Portugal<small>Country</small></button><button type="button" class="chip" data-area="spain" aria-pressed="false">Spain<small>Country</small></button><button type="button" class="chip" data-area="greece" aria-pressed="false">Greece<small>Country</small></button><button type="button" class="chip" data-area="turkiye" aria-pressed="false">Türkiye<small>Country</small></button><button type="button" class="chip" data-area="cyprus" aria-pressed="false">Cyprus<small>Country</small></button><button type="button" class="chip" data-area="lebanon" aria-pressed="false">Lebanon<small>Country</small></button><button type="button" class="chip" data-area="jordan" aria-pressed="false">Jordan<small>Country</small></button><button type="button" class="chip" data-area="palestine" aria-pressed="false">Palestine<small>Country</small></button></div></div>
         <div id="pane-draw" role="tabpanel" aria-labelledby="tab-draw" class="pane" hidden>
           <div class="row">
             <button type="button" class="btn" id="draw-polygon">Draw polygon</button>
@@ -77,11 +79,12 @@
             <p id="coords-msg" class="msg" role="status"></p>
           </form>
         </div>
-        <div id="area-info" class="area-info" aria-live="polite"><b>Loading the area…</b><br><span>Fire area, country or your own shape</span><br><span>1 MODIS hotspot ≈ … VIIRS hotspots · ±…% on a month</span></div>
+        <div id="area-info" class="area-info" aria-live="polite"><table class="info-table"><tbody><tr><th scope="row">Area</th><td>Loading…</td></tr><tr><th scope="row">Type</th><td>Fire area or country</td></tr><tr><th scope="row">Conversion</th><td>1 MODIS ≈ … VIIRS</td></tr><tr><th scope="row">Uncertainty</th><td>±…% per month</td></tr></tbody></table></div>
       </div>
       <div>
-        <div class="map-wrap card">
+        <div class="map-wrap">
           <div id="map" class="map" role="region" aria-label="Map of the selected area and recent hotspots"><div class="map-loader" id="map-loader"></div></div>
+          <button type="button" class="globe-btn" id="globe-btn">Back to globe</button>
           <div class="map-tools">
             <span>Recent hotspots</span>
             <div class="seg small" role="group" aria-label="Recent hotspot period">
@@ -90,7 +93,7 @@
               <button type="button" class="seg-btn" data-livewin="0" aria-pressed="false">Off</button>
             </div>
           </div>
-          <p class="map-note">Imagery: NASA GIBS / Blue Marble · Map © OpenStreetMap contributors (OpenFreeMap) · Hotspots: NASA FIRMS</p>
+          <p class="map-note">Map © OpenStreetMap contributors (OpenFreeMap · OpenMapTiles) · Hotspots: NASA FIRMS</p>
         </div>
       </div>
     </div>
@@ -114,7 +117,7 @@
 <footer class="foot">
   <div class="wrap foot-in">
     <div>
-      <a class="brand" href="../" data-nav aria-label="jamra home"><svg class="wordmark" viewBox="0 0 278 108" height="26" width="67" role="img" aria-label="jamra"><defs><clipPath id="jc111827"><rect x="0" y="23.5" width="40" height="108"/></clipPath></defs><g font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="100" fill="#111827"><text x="6" y="82" clip-path="url(#jc111827)">j</text><text x="31.17" y="82" letter-spacing="-1.6">amra</text></g><path d="M5.11 12.70A13.94 4.10 0 0 1 32.99 12.70" fill="none" stroke="#111827" stroke-width="1.5" stroke-linecap="round" transform="rotate(-18 19.05 12.700000000000003)"/><circle cx="19.05" cy="12.700000000000003" r="8.2" fill="#E8833A"/><path d="M32.99 12.70A13.94 4.10 0 0 1 5.11 12.70" fill="none" stroke="#111827" stroke-width="1.5" stroke-linecap="round" transform="rotate(-18 19.05 12.700000000000003)"/></svg></a>
+      <a class="brand" href="../" data-nav aria-label="jamra home"><img src="../icons/wordmark-dark.png" width="78" height="32" alt="jamra" loading="lazy"></a>
       <p>Team Astro Byte · Built for the NASA Space Apps Challenge 2026</p>
       <p>Not an official NASA product · Not an emergency service · <b>Data: NASA FIRMS</b></p>
     </div>
