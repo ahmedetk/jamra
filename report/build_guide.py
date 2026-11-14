@@ -184,7 +184,7 @@ ol li, ul li {{ margin-bottom: 1.5mm; }}
   <div class="map">
     <div class="h">Home<br><span class="en">/jamra/</span></div><div>Calendar<br><span class="en">/calendar/</span></div><div>Alerts<br><span class="en">/alerts/</span></div><div>Live Data<br><span class="en">/live/</span></div><div>Validation<br><span class="en">/validation/</span></div><div>About<br><span class="en">/about/</span></div>
   </div>
-  <p class="small">صفحة <span class="en">Validation</span> (بالإنجليزية) تعرض نتائج الاختبار المستقل وطريقة العمل والحدود. الروابط القديمة (<span class="en">How It Works</span> و<span class="en">Limits</span>) تفتح القسم المناسب فيها، و<span class="en">Credits</span> تفتح <span class="en">About</span>، مع الإبقاء على خياراتك. يمكن تثبيت الموقع على الهاتف كتطبيق (<span class="en">PWA</span>) ويعمل دون إنترنت من آخر نسخة محفوظة.</p>
+  <p class="small">صفحة <span class="en">Validation</span> (بالإنجليزية، مختصرة) تعرض الأرقام الأساسية للاختبار المستقل والطريقة في 3 خطوات والحدود؛ والرسم السنوي في التقويم بوضع Harmonized هو عرض التحقق: «Validation: harmonized MODIS vs VIIRS, 2012–2025». الروابط القديمة (<span class="en">How It Works</span> و<span class="en">Limits</span>) تفتح القسم المناسب فيها، و<span class="en">Credits</span> تفتح <span class="en">About</span>، مع الإبقاء على خياراتك. يمكن تثبيت الموقع على الهاتف كتطبيق (<span class="en">PWA</span>) ويعمل دون إنترنت من آخر نسخة محفوظة.</p>
 </section>
 
 <section>
@@ -198,7 +198,7 @@ ol li, ul li {{ margin-bottom: 1.5mm; }}
     ("الكرة الأرضية", "اسحبها بالفأرة أو بالإصبع لتدويرها؛ تتوقف عند اللمس وتعود للدوران البطيء بعد 5 ثوانٍ تقريبًا."),
     ("Open the Calendar", "الزر الأساسي: يفتح صفحة التقويم."),
     ("See Live Alerts", "يفتح صفحة التنبيهات. (مثال إيفيا 2007 صار في صفحة التقويم.)"),
-    ("شارة البيانات المباشرة", "عدد البؤر في آخر 7 أيام · Data: NASA FIRMS. وتحت الصورة: رسم «المشكلة في صورة واحدة» (Raw / Harmonized، اليونان افتراضيًا) وشريط «Does it work? 87% → 40%» الذي يفتح صفحة Validation."),
+    ("شارة البيانات المباشرة", "عدد البؤر في آخر 7 أيام · Data: NASA FIRMS. وتحت الصورة شريط صغير «Does it work?» برقمين (87% → 40% و82 من 121) يفتح صفحة Validation."),
   ])}
   {fig("mobile_home", "الرئيسية على هاتف بعرض 390 بكسل.", "phone")}
 </section>
