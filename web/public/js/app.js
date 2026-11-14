@@ -1,20 +1,19 @@
 // Jamra main app. Written with the help of an SI coding assistant (Claude Code), following Team Astro Byte's design.
 import { $, $$, el, svg, fmt, fmtInt, pct, MONTHS, MONTHS_LONG, store, downloadBlob, toCSV, debounce, circleRing, boxRing, ordinal } from './util.js';
 import { BASE, getJSON, loadArea, customArea, monthlyValues, monthLabel, monthIndex } from './data.js';
-import { heroChart, monthBars, scatter, errorBars, driftChart } from './charts.js';
+import { heroChart, monthBars } from './charts.js';
 import { renderCalendar, CAT_TEXT } from './calendar.js';
-import { initMap, showArea, showLive, startDraw, clearDraw, initGlobe, webglOK } from './map.js';
+import { initMap, showArea, showLive, startDraw, clearDraw, webglOK } from './map.js';
 import { loadLive, loadStatus, renderBadge, renderAlerts, renderStatusPanel, areaWarning, fetchLive, renderTable, downloadLiveCSV, LEVEL_LABEL, liveState, periodText } from './live.js';
-import { renderValidation, renderLimits } from './pages.js';
 import { downloadSummary } from './summary.js';
 import { baseline, percentileRank, category, CAT_LABEL, seasonStart, theilSen, mannKendall } from './stats.js';
 
 const TEAM = [
-  ['Shahd Farraj', 'Problem and users', 'Users research: who needs Jamra and why. The Home page story and target users. The Space Apps project description. Presents slides 1–2.'],
-  ['Ahmed Etkaidek', 'NASA data and live system', 'FIRMS archive and API, the MAP_KEY, GitHub Pages and the 3-hour updates. Alerts, Live Data and Limits pages (S-NPP → NOAA-20). Presents slide 3.'],
-  ['Aya Salman', 'Science', 'Harmonization method and local factor (How It Works), the independent test and small-region results (Validation). Presents slides 4 and 6.'],
-  ['Ahmad Akhras', 'Calendar and live demo', 'Calendar page: area picker, calendar, month details, uncertainty labels, exports. The Evia 2007 demo path; mobile and keyboard testing. Presents slide 5.'],
-  ['Tala Yousef', 'UX and communication', 'Multi-page navigation and design review, accessibility, Credits and Team page, Arabic user guide review, slide design, impact and next steps. Presents slide 7.'],
+  ['Shahd Farraj', 'Problem and users', 'Slides 1–2'],
+  ['Ahmed Etkaidek', 'NASA data and live system', 'Slide 3'],
+  ['Aya Salman', 'Science: method and validation', 'Slides 4 and 6'],
+  ['Ahmad Akhras', 'Calendar and live demo', 'Slide 5'],
+  ['Tala Yousef', 'UX, design and communication', 'Slide 7'],
 ];
 
 const TERMS = {
@@ -97,7 +96,7 @@ function updateNavLinks(p) {
   $$('a[data-nav]').forEach((a) => {
     if (!a.dataset.base) a.dataset.base = new URL(a.getAttribute('href'), location.href).pathname;
     const path = a.dataset.base;
-    const q = path === rootPath ? homeQ : /\/(credits|limits|how-it-works)\/$/.test(path) ? '' : full;
+    const q = path === rootPath ? homeQ : /\/(about|credits|limits|how-it-works)\/$/.test(path) ? '' : full;
     a.href = path + (String(q) ? `?${q}` : '');
   });
 }
@@ -124,10 +123,10 @@ async function boot() {
   renderStatic();
   if (has('#map')) {
     const idle = window.requestIdleCallback || ((f) => setTimeout(f, 600));
-    const start = () => idle(() => initMap($('#map')).then(() => { if (area) { if (area.ring) showArea(area.ring); else showArea(countryRing(area)); applyLiveLayer(); } }), { timeout: 2500 });
+    const start = () => idle(() => initMap($('#map'), { loader: $('#map-loader') }).then(() => { if (area) { if (area.ring) showArea(area.ring); else showArea(countryRing(area)); applyLiveLayer(); } }), { timeout: 2500 });
     if (document.readyState === 'complete') start(); else addEventListener('load', start, { once: true });
   }
-  if (['home', 'calendar', 'live'].includes(PAGE)) await selectArea(state.custom ? null : state.areaId, state.custom);
+  if (['calendar', 'live'].includes(PAGE)) await selectArea(state.custom ? null : state.areaId, state.custom);
   await refreshLive();
   setInterval(refreshLive, 10 * 60 * 1000);
   if (PAGE === 'home') homeExtras();
@@ -140,31 +139,19 @@ function renderLiveChip() {
   if (s.state === 'none') { t.textContent = 'Live data unavailable right now · Data: NASA FIRMS'; return; }
   const h = s.hours;
   const ago = h < 1 ? `${Math.max(1, Math.round(h * 60))} min ago` : h < 48 ? `${Math.round(h)} h ago` : `${Math.round(h / 24)} days ago`;
-  t.textContent = `${fmtInt(live.points.length)} hotspots in the last 7 days · updated ${ago} · Data: NASA FIRMS`;
+  t.textContent = `${fmtInt(live.points.length)} hotspots in the last 7 days · Data: NASA FIRMS`;
+  t.parentElement.title = `Updated ${ago}`;
 }
 
 function homeExtras() {
-  const v = report.validation;
-  if (v && has('#big-err')) {
-    const tc = v.test_countries;
-    $('#big-err').textContent = `${pct(tc.M0.mdape)} → ${pct(tc[report.chosen_model].mdape)}`;
-    $('#big-err-text').textContent = `Typical monthly error, raw MODIS → harmonized, on test years ${v.test_years[0]}–${v.test_years[v.test_years.length - 1]} that the model never saw. High-fire months caught: ${v.confusion_countries.harmonized.hits} of ${v.confusion_countries.harmonized.hits + v.confusion_countries.harmonized.misses}.`;
-  }
-  // the 3D globe: only when it helps and costs little (wide screen, motion allowed, WebGL available)
-  const ok = has('#globe') && innerWidth >= 900 && !matchMedia('(prefers-reduced-motion: reduce)').matches && webglOK() && !(navigator.connection && navigator.connection.saveData);
-  if (!ok) return;
-  const go = () => {
-    const lvl = live?.areas || {};
-    const areas = meta.areas.filter((a) => a.kind === 'preset').map((a) => ({
-      id: a.id, label: a.label, center: [(a.box[0] + a.box[2]) / 2, (a.box[1] + a.box[3]) / 2], level: LEVEL_LABEL[lvl[a.id]?.level || 'unknown'],
-    }));
-    initGlobe($('#globe'), {
-      points: live?.points || [], areas,
-      onPick: (id) => { location.href = `${BASE}calendar/?area=${id}&from=${state.from}&to=${state.to}`; },
-      onReady: () => { $('#globe').classList.add('ready'); setTimeout(() => { $('#globe-fallback').style.display = 'none'; const c = document.querySelector('.img-credit'); if (c) c.hidden = true; }, 800); },
-    }).catch((e) => console.warn('globe unavailable', e?.message));
-  };
-  const later = (f) => setTimeout(() => (window.requestIdleCallback || setTimeout)(f), 2500);
+  // the 3D Earth: real Blue Marble texture, real FIRMS hotspots; drag to turn it
+  if (!has('#globe') || !webglOK() || (navigator.connection && navigator.connection.saveData)) return;
+  const go = () => import('./globe3d.js').then(({ initEarth }) => initEarth($('#globe'), {
+    points: live?.points || [],
+    hiRes: innerWidth >= 900 && devicePixelRatio * innerWidth >= 1200,
+    onReady: () => { $('#globe').classList.add('ready'); $('#globe-still').classList.add('hide'); },
+  })).catch((e) => console.warn('globe unavailable', e?.message));
+  const later = (f) => setTimeout(() => (window.requestIdleCallback || setTimeout)(f, { timeout: 3000 }), innerWidth < 900 ? 3500 : 1200);
   if (document.readyState === 'complete') later(go); else addEventListener('load', () => later(go), { once: true });
 }
 
@@ -198,11 +185,6 @@ function applyLiveLayer() {
 
 // ---------------------------------------------------------------- pickers
 function buildPickers() {
-  if (has('#hero-area')) {
-    const sel = $('#hero-area');
-    meta.areas.forEach((a) => sel.append(el('option', { value: a.id, text: a.label, selected: a.id === state.areaId })));
-    sel.addEventListener('change', () => selectArea(sel.value));
-  }
   if (!has('#preset-list')) return;
   const mk = (box, kind) => {
     box.innerHTML = '';
@@ -225,11 +207,11 @@ function buildPickers() {
   });
   on('#draw-polygon', 'click', async () => {
     const ok = await startDraw('polygon', (ring, label) => selectArea(null, { ring, label }));
-    $('#area-info').textContent = ok ? 'Click on the map to add points. Double-click (or click the first point) to finish.' : 'The map is not available.';
+    $('#area-info').textContent = ok ? 'Click points on the map · double-click to finish' : 'The map is not available.';
   });
   on('#draw-circle', 'click', async () => {
     const ok = await startDraw('circle', (ring, label) => selectArea(null, { ring, label }));
-    $('#area-info').textContent = ok ? 'Click the centre, then click the edge of the circle.' : 'The map is not available.';
+    $('#area-info').textContent = ok ? 'Click the centre, then the edge' : 'The map is not available.';
   });
   on('#draw-clear', 'click', () => { clearDraw(); selectArea('evia'); });
   on('#coords-form', 'submit', (e) => {
@@ -399,16 +381,13 @@ function renderAreaInfo() {
   const f = area.factor || {};
   const box = $('#area-info');
   box.innerHTML = '';
-  if (has('#area-title')) $('#area-title').textContent = `Burning Activity Calendar · ${area.label}`;
-  const kind = area.kind === 'custom' ? `Custom area · ${fmtInt(area.cells)} grid cells (0.1°)` : area.kind === 'preset' ? `Fire area in ${area.country === 'Turkey' ? 'Türkiye' : area.country} (approximate box)` : 'Country';
-  box.append(el('b', { text: area.label }), el('br'), el('span', { text: kind }), el('br'));
-  const unc = areaUnc();
-  box.append(el('span', { class: 'factor', html: null },
-    `Conversion factor for this area: 1 MODIS hotspot ≈ ${fmt(f.k, 2)} VIIRS hotspots (±${Math.round((unc || 0) * 100)}% on monthly values). `,
-    area.kind === 'country' ? `Country model: ${report.model_labels[report.chosen_model]}.` :
-      (meta.area_method === 'baseline' ? `Uses the country value (${fmt(f.k_country, 2)}); the local factor did not pass the independent test.` : `Local factor: ${Math.round((f.own_weight || 0) * 100)}% from this area's own overlap years (${fmtInt(f.M_overlap)} MODIS / ${fmtInt(f.V_overlap)} VIIRS hotspots), the rest from the country value (${fmt(f.k_country, 2)}).`)));
-  if (['Palestine', 'Lebanon'].includes(area.country)) box.append(el('p', { class: 'msg', text: 'Note: in 2023–2025 this area saw armed conflict. Some hotspots may come from explosions or burning buildings, not wildfires or farm burning. Read changes here with care.' }));
-  if (area.kind === 'custom' && area.cells === 0) box.append(el('p', { class: 'msg', text: 'No hotspots recorded here in 2003–2025, or the area is outside our coverage region (Portugal, Spain, Greece, Türkiye, Cyprus, Lebanon, Jordan, Palestine). Live data still work anywhere in the region.' }));
+  if (has('#area-title')) $('#area-title').textContent = area.label;
+  const country = area.country === 'Turkey' ? 'Türkiye' : area.country;
+  const kind = area.kind === 'custom' ? `Custom area · ${fmtInt(area.cells)} cells of 0.1°` : area.kind === 'preset' ? `Fire area · ${country}` : 'Country';
+  box.append(el('b', { text: area.label }), el('br'), el('span', { text: kind }), el('br'),
+    el('span', { class: 'factor', text: `1 MODIS hotspot ≈ ${fmt(f.k, 2)} VIIRS hotspots · ±${Math.round((areaUnc() || 0) * 100)}% on a month` }));
+  if (['Palestine', 'Lebanon'].includes(area.country)) box.append(el('p', { class: 'msg', text: 'Conflict area 2023–2025: some hotspots may not be fires.' }));
+  if (area.kind === 'custom' && area.cells === 0) box.append(el('p', { class: 'msg', text: 'No hotspots here in 2003–2025, or outside our 8 countries.' }));
 }
 
 // ---------------------------------------------------------------- hero
@@ -427,8 +406,8 @@ function renderHero() {
   const rawJump = avg(rawY, post) / avg(rawY, pre), harmJump = avg(harmY, post) / avg(harmY, pre);
   const span = `${post[0]}–${post[post.length - 1]}`, spanPre = `${pre[0]}–${pre[pre.length - 1]}`;
   const cap = $('#hero-caption');
-  if (state.hero === 'raw') cap.textContent = Number.isFinite(rawJump) ? `Raw: the yearly average for ${span} is ${rawJump.toFixed(1)}× the average for ${spanPre}. Most of that jump is the sharper sensor, not more fire. Press "Harmonized".` : '';
-  else cap.textContent = Number.isFinite(harmJump) ? `Harmonized: ${span} vs ${spanPre} is ${harmJump.toFixed(1)}×, so the fake rise is gone. Hatched bars are estimated from MODIS. The dashed line is MODIS converted to the VIIRS scale in the overlap years; it follows the dark VIIRS bars.` : '';
+  if (state.hero === 'raw') cap.textContent = Number.isFinite(rawJump) ? `Raw (MODIS, then VIIRS): ${span} = ${rawJump.toFixed(1)}× ${spanPre}` : '';
+  else cap.textContent = Number.isFinite(harmJump) ? `Harmonized (VIIRS scale): ${span} = ${harmJump.toFixed(1)}× ${spanPre} · hatched = estimated from MODIS` : '';
 }
 
 // ---------------------------------------------------------------- KPIs
@@ -565,7 +544,7 @@ function renderDetail(focus = false) {
   box.innerHTML = '';
   box.append(
     el('button', { class: 'btn ghost small close', type: 'button', text: 'Close', onclick: () => { box.hidden = true; } }),
-    el('h3', { text: `${MONTHS_LONG[m]} ${y} · ${area.label}` }),
+    el('h3', {}, `${MONTHS_LONG[m]} ${y} · ${area.label}`, srcTag(src)),
     el('p', { class: 'sentence', text: sentence(y, m) }),
   );
   const facts = el('div', { class: 'facts' });
@@ -580,7 +559,7 @@ function renderDetail(focus = false) {
   if (b && b.median > 0 && v !== null) fact('Difference from usual', `${v >= b.median ? '+' : ''}${Math.round(((v - b.median) / b.median) * 100)}%`);
   box.append(facts);
   const chart = el('div', { class: 'chart' });
-  box.append(el('h4', { class: 'h4', text: `${MONTHS_LONG[m]} in every year (selected year in orange)` }), chart);
+  box.append(el('h4', { class: 'h4', text: `${MONTHS_LONG[m]} in every year` }), chart);
   const ys = years.filter((yy) => yy >= state.from && yy <= Math.max(state.to, y));
   monthBars(chart, {
     years: ys, values: ys.map((yy) => val(yy, m)), selYear: y, month: m + 1,
@@ -588,6 +567,13 @@ function renderDetail(focus = false) {
     tip, onPick: (yy) => { state.sel = [yy, m]; writeURL(); renderDetail(); renderCalendarNow(); },
   });
   if (focus) box.focus({ preventScroll: true });
+}
+
+function srcTag(src) {
+  if (src === 'M') return el('span', { class: 'src-tag est', text: `estimated from MODIS · ±${Math.round(areaUnc() * 100)}%` });
+  if (src === 'J') return el('span', { class: 'src-tag obs', text: 'observed · NOAA-20, converted' });
+  if (src === 'N') return el('span', { class: 'src-tag obs', text: 'observed · VIIRS' });
+  return el('span', { class: 'src-tag est', text: 'data gap' });
 }
 
 function renderWeekDetail(y, c, grid) {
@@ -613,19 +599,19 @@ function renderSeason() {
     const s = seasonStart(vals);
     if (s) { starts.push(s); sy.push(y); }
   });
-  box.append(el('h3', { class: 'h4', text: 'Is the fire season starting earlier?' }));
-  if (starts.length < 6) { box.append(el('p', { text: 'Not enough hotspots in this area to judge the season start.' })); return; }
+  box.append(el('h3', { class: 'h4', text: 'Fire season start' }));
+  if (starts.length < 6) { box.append(el('p', { text: 'Too few hotspots here to judge.' })); return; }
   const slope = theilSen(sy, starts) * 10, mk = mannKendall(starts);
   const medStart = Math.round(baseline(starts).median);
   const dir = slope < -0.05 ? `${Math.abs(slope).toFixed(1)} months earlier per decade` : slope > 0.05 ? `${slope.toFixed(1)} months later per decade` : 'no clear shift';
-  box.append(el('p', { text: `Season start = the first month when a year reaches 10% of its hotspots. Typical start here: ${MONTHS_LONG[medStart - 1]}. Trend ${state.from}–${state.to}: ${dir}. ${mk.p < 0.05 ? `This trend is statistically significant (Mann–Kendall p = ${mk.p.toFixed(3)}).` : `This is not statistically significant (Mann–Kendall p = ${mk.p.toFixed(2)}), so we cannot say the season is shifting.`}` }));
-  const W = 900, H = 120, mL = 40;
+  box.append(el('p', { text: `Typical start: ${MONTHS_LONG[medStart - 1]} · trend ${state.from}–${state.to}: ${dir} (${mk.p < 0.05 ? `significant, p = ${mk.p.toFixed(3)}` : `not significant, p = ${mk.p.toFixed(2)}`})` }));
+  const W = 900, H = 140, mL = 44;
   const s = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Season start month by year' });
   const x = (y) => mL + ((y - ys[0]) / Math.max(1, ys[ys.length - 1] - ys[0])) * (W - mL - 20);
   const yy = (m) => 10 + ((m - 1) / 11) * (H - 30);
-  [1, 4, 7, 10].forEach((m) => { s.append(svg('text', { x: 4, y: yy(m) + 4, 'font-size': 11, fill: '#5C626B' }, document.createTextNode(MONTHS[m - 1]))); s.append(svg('line', { x1: mL, x2: W - 20, y1: yy(m), y2: yy(m), stroke: '#eef0f4' })); });
-  sy.forEach((y, i) => s.append(svg('circle', { cx: x(y), cy: yy(starts[i]), r: 5, fill: y < 2012 ? '#A9BCCD' : '#4A6785' })));
-  sy.filter((y, i) => i % 3 === 0).forEach((y) => s.append(svg('text', { x: x(y), y: H - 4, 'text-anchor': 'middle', 'font-size': 11, fill: '#5C626B' }, document.createTextNode(String(y)))));
+  [1, 4, 7, 10].forEach((m) => { s.append(svg('text', { x: 4, y: yy(m) + 4, 'font-size': 15, fill: '#4B5563' }, document.createTextNode(MONTHS[m - 1]))); s.append(svg('line', { x1: mL, x2: W - 20, y1: yy(m), y2: yy(m), stroke: '#E5E7EB' })); });
+  sy.forEach((y, i) => s.append(svg('circle', { cx: x(y), cy: yy(starts[i]), r: 5, fill: y < 2012 ? '#B9C7DE' : '#5B7DB1' })));
+  sy.filter((y, i) => i % 3 === 0).forEach((y) => s.append(svg('text', { x: x(y), y: H - 4, 'text-anchor': 'middle', 'font-size': 15, fill: '#4B5563' }, document.createTextNode(String(y)))));
   box.append(s);
 }
 
@@ -657,9 +643,9 @@ async function downloadCalendarPNG() {
   const pad = 40;
   const wrapper = svg('svg', { xmlns: 'http://www.w3.org/2000/svg', width: w + 20, height: h + pad + 10 });
   wrapper.append(svg('rect', { width: '100%', height: '100%', fill: '#ffffff' }));
-  wrapper.append(svg('text', { x: 10, y: 24, 'font-size': 15, 'font-family': 'Segoe UI, Arial, sans-serif', fill: '#1F2328' }, document.createTextNode(title)));
+  wrapper.append(svg('text', { x: 10, y: 24, 'font-size': 15, 'font-family': 'Segoe UI, Arial, sans-serif', fill: '#111827' }, document.createTextNode(title)));
   clone.setAttribute('x', 10); clone.setAttribute('y', pad);
-  clone.querySelectorAll('text').forEach((t) => { t.setAttribute('font-family', 'Segoe UI, Arial, sans-serif'); if (!t.getAttribute('font-size')) t.setAttribute('font-size', 11); if (!t.getAttribute('fill')) t.setAttribute('fill', '#3d4a63'); });
+  clone.querySelectorAll('text').forEach((t) => { t.setAttribute('font-family', 'Segoe UI, Arial, sans-serif'); if (!t.getAttribute('font-size')) t.setAttribute('font-size', 11); if (!t.getAttribute('fill')) t.setAttribute('fill', '#4B5563'); });
   wrapper.append(clone);
   const blob = new Blob([new XMLSerializer().serializeToString(wrapper)], { type: 'image/svg+xml' });
   const url = URL.createObjectURL(blob);
@@ -678,71 +664,12 @@ async function downloadCalendarPNG() {
 // ---------------------------------------------------------------- static report sections
 function renderStatic() {
   if (has('#team-grid')) renderTeam();
-  if (has('#why-table')) renderWhy();
-  if (has('#val-kpis')) renderValidationPage();
-  if (has('#unc-kpis')) renderLimits(report, meta);
 }
 
 function renderTeam() {
   // team
   const tg = $('#team-grid');
   TEAM.forEach(([n, r, d]) => tg.append(el('div', { class: 'member' }, el('b', { text: n }), el('span', { text: r }), el('p', { class: 'fine', text: d }))));
-}
-
-function renderWhy() {
-  const cv = report.cv;
-  const order = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5'];
-  const t = el('table', {}, el('thead', {}, el('tr', {}, ...['Approach', 'Monthly error (MAE)', 'Typical % error', 'Test years: % error', 'Total bias', 'Verdict'].map((h) => el('th', { scope: 'col', text: h })))));
-  const tb = el('tbody');
-  const verdict = {
-    M0: 'Shows the problem: VIIRS-era counts look much higher.', M1: 'Simple, but ignores country differences.', M2: 'Simple and fair per country.',
-    M3: 'Adds seasons; leans on the country value when a month has few fires.', M4: 'Curved fit; can drift at the extremes.', M5: 'Matches distributions; needs many years.',
-  };
-  order.forEach((m) => {
-    const r = cv[m].monthly;
-    tb.append(el('tr', { class: m === report.chosen_model ? 'chosen' : '' },
-      el('td', { text: `${m}: ${report.model_labels[m]}${m === report.chosen_model ? ' ✓ chosen' : ''}` }),
-      el('td', { text: fmt(r.mae, 1) }), el('td', { text: pct(r.mdape) }), el('td', { text: pct(report.validation?.test_countries?.[m]?.mdape) }), el('td', { text: pct(r.bias, 1) }), el('td', { text: verdict[m] })));
-  });
-  tb.append(el('tr', {}, el('td', { text: 'Use VIIRS only' }), el('td', { text: '–' }), el('td', { text: '–' }), el('td', { text: '–' }), el('td', { text: '–' }), el('td', { text: 'Honest but throws away 2003–2011, nine years of history (including Greece 2007).' })));
-  t.append(tb);
-  $('#why-table').append(t, el('p', { class: 'fine', text: report.choice_reason + ' Monthly error and typical % error: leave-one-year-out cross-validation on ' + report.calibration.years.join(', ') + '. Test years: model fitted on ' + (report.validation?.dev_years || []).join(', ') + ' only, scored on ' + (report.validation?.test_years || []).join(', ') + '.' }));
-
-}
-
-function renderValidationPage() {
-  const order = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5'];
-  const cv = report.cv;
-  renderValidation(report, meta, tip);
-  scatter($('#scatter'), { points: report.scatter, tip });
-  $('#scatter-cap').textContent = 'Orange: harmonized MODIS. Grey: raw MODIS. Dashed: perfect agreement. Each dot is one country-month in a hidden year.';
-  const tc = report.validation.test_countries;
-  errorBars($('#err-bars'), {
-    rows: order.map((m) => ({ id: m, label: `${m} ${report.model_labels[m]}`, value: tc[m].mdape, text: pct(tc[m].mdape) })),
-    chosen: report.chosen_model, metricLabel: 'Typical % error on test years',
-  });
-  $('#err-cap').textContent = `Typical (median) % error per country-month in the test years ${report.validation.test_years.join(', ')} (months with at least 10 VIIRS hotspots). Raw MODIS: ${pct(tc.M0.mdape)} → harmonized (${report.chosen_model}): ${pct(tc[report.chosen_model].mdape)}.`;
-  const vk = $('#val-kpis');
-  const ca = report.colour_agreement;
-  const kp = (k, v, d) => vk.append(el('div', { class: 'kpi' }, el('div', { class: 'k', text: k }), el('div', { class: 'v', text: v }), el('div', { class: 'd', text: d })));
-  kp('Calendar colours agree', `${fmt(ca.same_colour_pct, 0)}%`, `Same anomaly colour from harmonized MODIS as from real VIIRS (${fmtInt(ca.months)} country-months). Raw MODIS: ${fmt(ca.without_harmonization_pct, 0)}%.`);
-  kp('Uncertainty', `±${Math.round(report.uncertainty.monthly_rel * 100)}%`, `on a country-month · ±${Math.round(report.uncertainty.annual_rel * 100)}% on a year · ±${Math.round(report.uncertainty.small_regions_rel * 100)}% for small areas (test years)`);
-  const fr = report.frp_test;
-  kp('FRP test', fr.validated ? 'Passed' : 'Not supported', `Is summed fire heat (FRP) more stable between sensors than counts? Variation of the ratio: FRP ${fmt(fr.pooled_cv_frp_ratio, 2)} vs counts ${fmt(fr.pooled_cv_count_ratio, 2)}. ${fr.validated ? 'FRP could be offered.' : 'So the calendar uses counts.'}`);
-  const jn = report.noaa20_to_snpp;
-  kp('NOAA-20 → S-NPP scale', `×${fmt(jn.global, 2)}`, `Live counts come from NOAA-20 since S-NPP stopped (2 Nov 2026) and are multiplied by this factor to stay on the S-NPP scale. Measured on ${fmtInt(jn.months_used)} country-months, 2018–2025.`);
-  const ref = median(report.drift.filter((d) => d.ratio_N_over_A && d.months >= 10).map((d) => d.ratio_N_over_A));
-  driftChart($('#drift'), { drift: report.drift, ref, tol: 0.15, tip });
-  $('#drift-cap').textContent = `Each dot = one year's VIIRS S-NPP ÷ MODIS Aqua hotspots (8 countries). ${report.calibration.rule} The headline ${meta.viirs_vs_modis_ratio.toFixed(1)}× pools all hotspots of the calibration years instead of taking the median year. Filled dots = years used to calibrate. MODIS satellites have been drifting in orbit in recent years, so the ratio can shift; we check it every year.`;
-  // where it struggles: per-country error
-  const per = {};
-  report.scatter.forEach((p) => { if (p.V >= 10) { (per[p.c] = per[p.c] || []).push(Math.abs(p.P - p.V) / p.V); } });
-  const rows = Object.entries(per).map(([c, e]) => [c, median(e), e.length]).sort((a, b) => b[1] - a[1]);
-  const st = $('#struggle');
-  st.append(el('p', { text: 'Typical monthly error by country (months with 10+ VIIRS hotspots). Small countries have few fires, so errors are larger there.' }));
-  st.append(el('table', { class: 'table' }, el('thead', {}, el('tr', {}, el('th', { text: 'Country' }), el('th', { text: 'Typical error' }), el('th', { text: 'Months' }))),
-    el('tbody', {}, ...rows.map(([c, e, n]) => el('tr', {}, el('td', { text: c === 'Turkey' ? 'Türkiye' : c }), el('td', { text: pct(e) }), el('td', { text: n }))))));
-  if (report.outages.length) st.append(el('p', { class: 'fine', text: `Outage months detected and excluded from calibration: ${report.outages.map((o) => `${o.month} (${o.sensor === 'N' ? 'S-NPP' : o.sensor === 'A' ? 'Aqua' : 'NOAA-20'})`).join(', ')}.` }));
 }
 
 // test hook (used by our automated checks): renders the summary without downloading
@@ -752,7 +679,6 @@ function summaryCtx() {
   return { area, meta, report, state: { ...state }, monthly, years, unc: areaUnc(), val, srcOf, winYears };
 }
 
-function median(xs) { const s = [...xs].sort((a, b) => a - b); const n = s.length; return n ? (n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2) : null; }
 
 boot().catch((err) => {
   console.error(err);
@@ -771,7 +697,7 @@ if (new URLSearchParams(location.search).get('guide') === '1') {
         const n = document.querySelector(sel);
         if (!n) return;
         const r = n.getBoundingClientRect();
-        n.style.outline = '3px dashed #D9733A';
+        n.style.outline = '3px dashed #E8833A';
         n.style.outlineOffset = '2px';
         const b = el('div', { class: 'guide-badge', text: String(i + 1) });
         b.style.left = `${Math.max(2, r.left + scrollX - 14)}px`;

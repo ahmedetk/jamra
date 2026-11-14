@@ -16,16 +16,16 @@ export function renderCalendar(container, legend, grid, opts) {
   legend.innerHTML = '';
   const { years, cols } = grid;
   const width = Math.max(container.clientWidth || 800, 320);
-  const labelW = 44, top = 22;
-  const cw = Math.max(cols === 12 ? 22 : 9, Math.floor((width - labelW - 4) / cols));
-  const ch = cols === 12 ? Math.max(20, Math.min(30, cw * 0.55)) : 16;
+  const labelW = 56, top = 30;
+  const cw = Math.max(cols === 12 ? 24 : 9, Math.floor((width - labelW - 4) / cols));
+  const ch = cols === 12 ? Math.max(24, Math.min(36, cw * 0.5)) : 18;
   const W = labelW + cw * cols + 4, H = top + ch * years.length + 4;
   const root = svg('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, 'aria-hidden': 'false' });
   root.append(svg('defs', {},
     svg('pattern', { id: 'cal-hatch', width: 5, height: 5, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' },
       svg('line', { x1: 0, y1: 0, x2: 0, y2: 5, stroke: 'rgba(255,255,255,.6)', 'stroke-width': 1.6 })),
     svg('pattern', { id: 'cal-hatch-dark', width: 5, height: 5, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' },
-      svg('line', { x1: 0, y1: 0, x2: 0, y2: 5, stroke: 'rgba(20,33,61,.35)', 'stroke-width': 1.4 })),
+      svg('line', { x1: 0, y1: 0, x2: 0, y2: 5, stroke: 'rgba(17,24,39,.35)', 'stroke-width': 1.4 })),
     svg('pattern', { id: 'cal-gap', width: 6, height: 6, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(-45)' },
       svg('rect', { width: 6, height: 6, fill: '#eeeeee' }), svg('line', { x1: 0, y1: 0, x2: 0, y2: 6, stroke: '#c7c7c7', 'stroke-width': 2 }))));
 
@@ -50,27 +50,27 @@ export function renderCalendar(container, legend, grid, opts) {
   // headers
   for (let c = 0; c < cols; c++) {
     if (cols === 12 || c % 4 === 0) {
-      root.append(svg('text', { x: labelW + c * cw + cw / 2, y: 14, 'text-anchor': 'middle' }, document.createTextNode(grid.label(c))));
+      root.append(svg('text', { x: labelW + c * cw + cw / 2, y: 18, 'text-anchor': 'middle' }, document.createTextNode(grid.label(c))));
     }
   }
   const cells = [];
   years.forEach((y, r) => {
-    root.append(svg('text', { x: labelW - 6, y: top + r * ch + ch / 2 + 4, 'text-anchor': 'end' }, document.createTextNode(String(y))));
+    root.append(svg('text', { x: labelW - 8, y: top + r * ch + ch / 2 + 5, 'text-anchor': 'end' }, document.createTextNode(String(y))));
     for (let c = 0; c < cols; c++) {
       if (grid.value(y, c) === undefined) continue; // future: nothing to show
       const d = cellData(y, c);
       const g = svg('g', { class: 'cell', role: 'gridcell', tabindex: '-1', 'data-y': y, 'data-c': c });
       const x = labelW + c * cw, yy = top + r * ch;
-      g.append(svg('rect', { class: 'bg', x: x + 1, y: yy + 1, width: cw - 2, height: ch - 2, rx: 2, fill: d.fill, stroke: d.src === 'J' ? '#495057' : 'none', 'stroke-dasharray': d.src === 'J' ? '3 2' : null }));
+      g.append(svg('rect', { class: 'bg', x: x + 1, y: yy + 1, width: cw - 2, height: ch - 2, rx: 2, fill: d.fill, stroke: d.src === 'J' ? '#4B5563' : 'none', 'stroke-dasharray': d.src === 'J' ? '3 2' : null }));
       if (d.src === 'M' && d.v !== null) {
         const dark = opts.mode === 'anomaly' ? (d.cat === 'typical' || d.cat === 'lower' || d.cat === 'higher') : scale(d.v) > 0.6 && opts.palette !== 'ylorrd';
         g.append(svg('rect', { x: x + 1, y: yy + 1, width: cw - 2, height: ch - 2, rx: 2, fill: dark ? 'url(#cal-hatch-dark)' : 'url(#cal-hatch)', 'pointer-events': 'none' }));
       }
       const fillHex = d.fill.startsWith('#') ? d.fill : '#ffffff';
       if (opts.mode === 'anomaly' && d.cat && CAT_SYM[d.cat] && cw >= 14) {
-        g.append(svg('text', { x: x + cw / 2, y: yy + ch / 2 + 4, 'text-anchor': 'middle', 'font-size': cols === 12 ? 10.5 : 8, fill: textOn(fillHex), 'pointer-events': 'none' }, document.createTextNode(CAT_SYM[d.cat])));
-      } else if (opts.mode !== 'anomaly' && cols === 12 && cw >= 44 && d.v !== null) {
-        g.append(svg('text', { x: x + cw / 2, y: yy + ch / 2 + 4, 'text-anchor': 'middle', 'font-size': 10.5, fill: textOn(fillHex), 'pointer-events': 'none' }, document.createTextNode(short(d.v))));
+        g.append(svg('text', { x: x + cw / 2, y: yy + ch / 2 + 4, 'text-anchor': 'middle', 'font-size': cols === 12 ? 13 : 9, fill: textOn(fillHex), 'pointer-events': 'none' }, document.createTextNode(CAT_SYM[d.cat])));
+      } else if (opts.mode !== 'anomaly' && cols === 12 && cw >= 50 && d.v !== null) {
+        g.append(svg('text', { x: x + cw / 2, y: yy + ch / 2 + 5, 'text-anchor': 'middle', 'font-size': 14, fill: textOn(fillHex), 'pointer-events': 'none' }, document.createTextNode(short(d.v))));
       }
       const text = describe(y, c, d, grid, opts);
       g.setAttribute('aria-label', text.replace(/<[^>]+>/g, ''));
@@ -118,10 +118,10 @@ export function renderCalendar(container, legend, grid, opts) {
   if (opts.mode === 'abs') {
     const maxV = Math.max(...all, 1);
     legend.append(el('span', { text: '0' }), el('span', { class: 'ramp', style: `background:${rampCSS(opts.palette)}` }),
-      el('span', { text: `${fmtInt(maxV)} ${cols === 12 ? 'hotspots / month' : 'hotspots / week'} (log scale, VIIRS-equivalent)` }));
+      el('span', { text: `${fmtInt(maxV)} hotspots per ${cols === 12 ? 'month' : 'week'}` }), el('span', { class: 'base', text: 'VIIRS scale · log colour scale' }));
   } else {
     CAT_ORDER.forEach((k) => legend.append(el('span', { class: 'sw' }, el('i', { style: `background:${CAT_COLOR[k]}` }), `${CAT_SYM[k] ? CAT_SYM[k] + ' ' : ''}${CAT_TEXT[k]}`)));
-    legend.append(el('span', { text: `vs the same ${cols === 12 ? 'month' : 'week'} in ${b0}–${b1} (other years)` }));
+    legend.append(el('span', { class: 'base', text: `vs the same ${cols === 12 ? 'month' : 'week'} in ${b0}–${b1}` }));
   }
 }
 

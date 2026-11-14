@@ -23,9 +23,9 @@ export function rampCSS(name) {
   return `linear-gradient(90deg, ${stops.join(', ')})`;
 }
 
-// Diverging slate-blue <-> neutral gray <-> orange (colourblind-safe): lower / typical / higher.
+// Diverging slate blue <-> neutral grey <-> orange (colourblind-safe): lower / typical / higher. Text labels are always shown.
 export const CAT_COLOR = {
-  much_lower: '#3E5C76', lower: '#A9BCCD', typical: '#E5E7EB', higher: '#F7B990', much_higher: '#D9733A',
+  much_lower: '#5B7DB1', lower: '#B7C6DE', typical: '#E5E7EB', higher: '#F5BE93', much_higher: '#E8833A',
 };
 
 // pick dark or white text by real WCAG contrast
@@ -34,8 +34,8 @@ function lum(hex) {
     .reduce((a, v, i) => a + v * [0.2126, 0.7152, 0.0722][i], 0);
 }
 export function textOn(hex) {
-  const L = lum(hex), dark = (L + 0.05) / (lum('#1F2328') + 0.05), white = 1.05 / (L + 0.05);
-  return dark >= white ? '#1F2328' : '#ffffff';
+  const L = lum(hex), dark = (L + 0.05) / (lum('#111827') + 0.05), white = 1.05 / (L + 0.05);
+  return dark >= white ? '#111827' : '#ffffff';
 }
 
 // log scale helper for skewed counts

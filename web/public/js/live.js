@@ -62,10 +62,10 @@ export function renderStatusPanel(status, live) {
   const rows = [];
   if (s.state === 'none') rows.push(['down', 'Live data unavailable', 'The status file could not be read. Alerts are hidden until data arrive.']);
   else {
-    rows.push([s.state === 'live' ? 'ok' : 'warn', s.state === 'live' ? 'Up to date' : s.state === 'delayed' ? 'Delayed' : 'Outdated',
-      `Last successful update ${utc(status.last_success_utc)} (${ago(status.last_success_utc)}). Source: ${status.source}.`]);
-    if (s.failed) rows.push(['down', 'Last update failed', `The newest attempt (${utc(status.last_attempt_utc)}) failed; showing the last good data. ${status.message || ''}`]);
-    if ((live.from_day ?? 1) > 1) rows.push(['warn', 'Partial data', `This month's data start on day ${live.from_day}, so only days ${live.from_day}–${live.day} are compared.`]);
+    rows.push([s.state === 'live' ? 'ok' : 'warn', s.state === 'live' ? 'Data up to date' : s.state === 'delayed' ? 'Data delayed' : 'Data outdated',
+      `· updated ${ago(status.last_success_utc)} (${utc(status.last_success_utc)}) · NASA FIRMS API`]);
+    if (s.failed) rows.push(['down', 'Last update failed', `· showing the last good data (${utc(status.last_attempt_utc)})`]);
+    if ((live.from_day ?? 1) > 1) rows.push(['warn', 'Partial month', `· days ${live.from_day}–${live.day} compared`]);
   }
   rows.forEach(([cls, h, t]) => box.append(el('div', { class: `st st-${cls}` }, el('b', { text: h }), el('span', { text: ' ' + t }))));
 }
@@ -76,7 +76,7 @@ export function renderAlerts(live, meta, status, onPick) {
   box.innerHTML = '';
   const s = liveState(status, live);
   if (s.state === 'none' || !live.areas) {
-    box.append(el('p', { class: 'note', text: 'No live alerts can be shown: the live data are missing. The historical calendar still works.' }));
+    box.append(el('p', { class: 'note', text: 'No live data right now. The Calendar still works.' }));
     return;
   }
   const label = Object.fromEntries(meta.areas.map((a) => [a.id, a.label]));
@@ -91,10 +91,11 @@ export function renderAlerts(live, meta, status, onPick) {
         s.state === 'delayed' ? el('span', { class: 'lvl lvl-elevated tag', text: 'Delayed' }) : null,
         partial ? el('span', { class: 'lvl lvl-unknown tag', text: 'Partial data' }) : null),
       el('p', { class: 'period', text: periodText(live, a) }),
-      el('p', { text: a.level === 'unknown' ? 'Not enough history to compare.' :
-        `${fmt(a.mtd, 0)} hotspots vs usual ${fmt(a.median, 0)}${diff === null ? '' : ` (${diff >= 0 ? '+' : ''}${diff}%)`} · higher than ${Math.round(a.percentile)}% of past years.` }),
-      el('p', { class: 'fine', text: `Source: VIIRS NOAA-20 (${fmtInt(a.mtd_raw)} detections × ${fmt(a.k_jn, 2)} → S-NPP scale) · updated ${utc(status.last_success_utc)}` }));
-    if (id === 'palestine' || id === 'lebanon') card.append(el('p', { class: 'fine', text: 'Conflict-related heat sources possible.' }));
+      el('p', { class: 'value', text: a.level === 'unknown' ? 'Not enough history' :
+        `${fmt(a.mtd, 0)} hotspots · usual ${fmt(a.median, 0)}${diff === null ? '' : ` (${diff >= 0 ? '+' : ''}${diff}%)`}` }),
+      a.level === 'unknown' ? null : el('p', { text: `Higher than ${Math.round(a.percentile)}% of past years` }),
+      el('p', { class: 'fine', text: `Updated ${utc(status.last_success_utc)} · ${s.state === 'live' ? 'data up to date' : s.state === 'delayed' ? 'data delayed' : 'data outdated'} · NOAA-20 × ${fmt(a.k_jn, 2)}` }));
+    if (id === 'palestine' || id === 'lebanon') card.append(el('p', { class: 'fine', text: 'Conflict area: some hotspots may not be fires.' }));
     box.append(card);
   }
 }
@@ -200,7 +201,7 @@ export function renderTable(rows) {
   thead.append(tr);
   tbody.innerHTML = '';
   if (!rows.length) {
-    tbody.append(el('tr', {}, el('td', { class: 'empty', colspan: COLS.length, text: 'No hotspots yet. Choose an area and press "Fetch from NASA FIRMS".' })));
+    tbody.append(el('tr', {}, el('td', { class: 'empty', colspan: COLS.length, text: 'Choose an area, then press "Get data from NASA FIRMS".' })));
     return;
   }
   const sorted = [...rows].sort((a, b) => (a[sortKey] > b[sortKey] ? 1 : a[sortKey] < b[sortKey] ? -1 : 0) * sortDir);

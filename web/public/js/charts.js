@@ -3,7 +3,7 @@
 import { svg, fmt, fmtInt, MONTHS_LONG } from './util.js';
 import { quantile } from './stats.js';
 
-const INK = '#2B2F36', MUTED = '#5C626B', LINE = '#E1E3E7', EMBER = '#D9733A', BLUE = '#4A6785', GREY = '#8A9099', SKY = '#A9BCCD';
+const INK = '#111827', MUTED = '#4B5563', LINE = '#E5E7EB', EMBER = '#4B5563', BLUE = '#5B7DB1', GREY = '#C4C9D0', SKY = '#B9C7DE', SEL = '#111827';
 
 export function niceTicks(max, count = 5) {
   if (!(max > 0)) return [0, 1];
@@ -29,7 +29,7 @@ function attachTip(node, html, tip) {
 /** Yearly totals: raw stitched record vs harmonized. */
 export function heroChart(container, { years, raw, harm, modisAqua, viirs, modisConverted, mode, tip }) {
   container.innerHTML = '';
-  const W = 900, H = 320, m = { t: 16, r: 16, b: 34, l: 56 };
+  const W = Math.max(320, Math.round(container.clientWidth || 900)), H = W < 600 ? 280 : 340, m = { t: 22, r: 16, b: 38, l: 62 };
   const iw = W - m.l - m.r, ih = H - m.t - m.b;
   const vals = mode === 'raw' ? raw : harm;
   const max = Math.max(1, ...vals.filter((v) => v !== null), ...(mode === 'raw' ? modisAqua : modisConverted).filter((v) => v !== null), ...viirs.filter((v) => v !== null));
@@ -42,13 +42,13 @@ export function heroChart(container, { years, raw, harm, modisAqua, viirs, modis
   root.append(hatchDefs('hero-hatch'));
   for (const t of ticks) {
     root.append(svg('line', { x1: m.l, x2: W - m.r, y1: y(t), y2: y(t), stroke: LINE }));
-    root.append(svg('text', { x: m.l - 8, y: y(t) + 4, 'text-anchor': 'end', 'font-size': 12, fill: MUTED }, document.createTextNode(fmt(t))));
+    root.append(svg('text', { x: m.l - 8, y: y(t) + 4, 'text-anchor': 'end', 'font-size': 15, fill: MUTED }, document.createTextNode(fmt(t))));
   }
   const iSwitch = years.indexOf(2012);
   if (iSwitch > 0) {
     const xs = m.l + iSwitch * (iw / years.length);
     root.append(svg('line', { x1: xs, x2: xs, y1: m.t, y2: m.t + ih, stroke: INK, 'stroke-dasharray': '4 4' }));
-    root.append(svg('text', { x: xs + 6, y: m.t + 12, 'font-size': 12, fill: INK }, document.createTextNode('2012: VIIRS starts')));
+    root.append(svg('text', { x: xs + 6, y: m.t + 2, 'font-size': 15, fill: INK }, document.createTextNode('2012: VIIRS starts')));
   }
   years.forEach((yr, i) => {
     const v = vals[i];
@@ -63,8 +63,9 @@ export function heroChart(container, { years, raw, harm, modisAqua, viirs, modis
       : `${yr}: ${fmtInt(v)} VIIRS-equivalent hotspots${isModisEra ? ' (estimated from MODIS)' : ''}`;
     attachTip(g, label, tip);
     root.append(g);
-    if (years.length <= 30 && (i % (years.length > 16 ? 2 : 1) === 0 || i === years.length - 1)) {
-      root.append(svg('text', { x: x(i), y: H - 12, 'text-anchor': 'middle', 'font-size': 12, fill: MUTED }, document.createTextNode(String(yr))));
+    const step = Math.max(1, Math.ceil(46 / (iw / years.length)));
+    if (i % step === 0) {
+      root.append(svg('text', { x: x(i), y: H - 12, 'text-anchor': 'middle', 'font-size': 15, fill: MUTED }, document.createTextNode(String(yr))));
     }
   });
   // overlap lines: both sensors from 2012
@@ -73,7 +74,7 @@ export function heroChart(container, { years, raw, harm, modisAqua, viirs, modis
     if (pts.length < 2) return;
     root.append(svg('polyline', { points: pts.join(' '), fill: 'none', stroke: color, 'stroke-width': 3, 'stroke-dasharray': dash || null }));
     const last = arr.map((v, i) => [v, i]).filter(([v, i]) => v !== null && years[i] >= 2012).pop();
-    if (last) root.append(svg('text', { x: Math.min(x(last[1]) + 6, W - 4), y: y(last[0]) - 6, 'font-size': 12, fill: color, 'text-anchor': x(last[1]) > W - 120 ? 'end' : 'start' }, document.createTextNode(label)));
+    if (last) root.append(svg('text', { x: Math.min(x(last[1]) + 6, W - 4), y: y(last[0]) - 6, 'font-size': 15, fill: color, 'text-anchor': x(last[1]) > W - 160 ? 'end' : 'start' }, document.createTextNode(label)));
   };
   if (mode === 'raw') line(modisAqua, BLUE, '6 4', 'MODIS Aqua (same years)');
   else line(modisConverted, INK, '6 4', 'MODIS converted');
@@ -83,7 +84,7 @@ export function heroChart(container, { years, raw, harm, modisAqua, viirs, modis
 /** Bars for one calendar month across years, with median line and 25–75% band. */
 export function monthBars(container, { years, values, selYear, month, src, lo, hi, tip, onPick }) {
   container.innerHTML = '';
-  const W = 900, H = 260, m = { t: 14, r: 12, b: 30, l: 52 };
+  const W = Math.max(320, Math.round(container.clientWidth || 900)), H = W < 600 ? 240 : 290, m = { t: 22, r: 12, b: 36, l: 58 };
   const iw = W - m.l - m.r, ih = H - m.t - m.b;
   const others = values.filter((v, i) => years[i] !== selYear && v !== null);
   const med = quantile(others, 0.5), p25 = quantile(others, 0.25), p75 = quantile(others, 0.75);
@@ -96,28 +97,29 @@ export function monthBars(container, { years, values, selYear, month, src, lo, h
   root.append(hatchDefs('bar-hatch'));
   for (const t of ticks) {
     root.append(svg('line', { x1: m.l, x2: W - m.r, y1: y(t), y2: y(t), stroke: LINE }));
-    root.append(svg('text', { x: m.l - 6, y: y(t) + 4, 'text-anchor': 'end', 'font-size': 12, fill: MUTED }, document.createTextNode(fmt(t))));
+    root.append(svg('text', { x: m.l - 6, y: y(t) + 4, 'text-anchor': 'end', 'font-size': 15, fill: MUTED }, document.createTextNode(fmt(t))));
   }
-  if (p25 !== null) root.append(svg('rect', { x: m.l, width: iw, y: y(p75), height: Math.max(1, y(p25) - y(p75)), fill: 'rgba(31,79,216,.10)' }));
+  if (p25 !== null) root.append(svg('rect', { x: m.l, width: iw, y: y(p75), height: Math.max(1, y(p25) - y(p75)), fill: 'rgba(91,125,177,.12)' }));
   years.forEach((yr, i) => {
     const v = values[i];
     if (v === null) {
-      root.append(svg('text', { x: x(i), y: y(0) - 4, 'text-anchor': 'middle', 'font-size': 11, fill: MUTED }, document.createTextNode('gap')));
+      root.append(svg('text', { x: x(i), y: y(0) - 4, 'text-anchor': 'middle', 'font-size': 13, fill: MUTED }, document.createTextNode('gap')));
       return;
     }
     const sel = yr === selYear;
     const g = svg('g', { style: 'cursor:pointer' });
-    g.append(svg('rect', { x: x(i) - bw / 2, y: y(v), width: bw, height: Math.max(0, y(0) - y(v)), fill: sel ? EMBER : (src[i] === 'M' ? SKY : BLUE), rx: 2 }));
+    g.append(svg('rect', { x: x(i) - bw / 2, y: y(v), width: bw, height: Math.max(0, y(0) - y(v)), fill: sel ? SEL : (src[i] === 'M' ? SKY : BLUE), rx: 2 }));
     if (src[i] === 'M') g.append(svg('rect', { x: x(i) - bw / 2, y: y(v), width: bw, height: Math.max(0, y(0) - y(v)), fill: 'url(#bar-hatch)' }));
     if (lo[i] !== null && hi[i] !== null) g.append(svg('line', { x1: x(i), x2: x(i), y1: y(hi[i]), y2: y(lo[i]), stroke: INK, 'stroke-width': 1.5 }));
     attachTip(g, `${MONTHS_LONG[month - 1]} ${yr}: ${fmtInt(v)} hotspots${src[i] === 'M' ? ` (estimated from MODIS, ${fmtInt(lo[i])}–${fmtInt(hi[i])})` : src[i] === 'J' ? ' (from NOAA-20, converted)' : ''}`, tip);
     g.addEventListener('click', () => onPick && onPick(yr));
     root.append(g);
-    if (i % (years.length > 16 ? 2 : 1) === 0) root.append(svg('text', { x: x(i), y: H - 10, 'text-anchor': 'middle', 'font-size': 11, fill: MUTED }, document.createTextNode(String(yr).slice(2))));
+    const step = Math.max(1, Math.ceil(40 / (iw / years.length)));
+    if (i % step === 0 || yr === selYear) root.append(svg('text', { x: x(i), y: H - 10, 'text-anchor': 'middle', 'font-size': 15, fill: yr === selYear ? INK : MUTED, 'font-weight': yr === selYear ? 700 : 400 }, document.createTextNode(String(yr))));
   });
   if (med !== null) {
-    root.append(svg('line', { x1: m.l, x2: W - m.r, y1: y(med), y2: y(med), stroke: BLUE, 'stroke-width': 2, 'stroke-dasharray': '6 4' }));
-    root.append(svg('text', { x: W - m.r, y: y(med) - 6, 'text-anchor': 'end', 'font-size': 12, fill: BLUE }, document.createTextNode(`median ${fmtInt(med)} · band = 25–75%`)));
+    root.append(svg('line', { x1: m.l, x2: W - m.r, y1: y(med), y2: y(med), stroke: INK, 'stroke-width': 2, 'stroke-dasharray': '6 4' }));
+    root.append(svg('text', { x: W - m.r, y: y(med) - 6, 'text-anchor': 'end', 'font-size': 15, fill: INK }, document.createTextNode(`usual ${fmtInt(med)} · band = middle half`)));
   }
   container.append(root);
 }

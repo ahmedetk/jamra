@@ -6,32 +6,52 @@ import { BASE } from './data.js';
 // Realistic Earth: NASA GIBS Blue Marble imagery (EPSG:3857, GoogleMapsCompatible_Level8, max zoom 8,
 // verified from the GIBS GetCapabilities), a subtle atmosphere, and above zoom ~6.5 a crossfade to a
 // clean, muted vector basemap (OpenFreeMap) so detail stays sharp.
-const GIBS = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_ShadedRelief_Bathymetry/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg';
+// WMTS order is {TileMatrix}/{TileRow}/{TileCol} = {z}/{y}/{x}; 256 px tiles; levels 0-8 only (maxzoom 8).
+const GIBS = 'gibsr://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_ShadedRelief_Bathymetry/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg';
+let protocolAdded = false;
+function addRetryProtocol(ml) {
+  if (protocolAdded) return;
+  protocolAdded = true;
+  ml.addProtocol('gibsr', async (params, abort) => {
+    const url = params.url.replace('gibsr://', 'https://');
+    for (let i = 0; ; i++) {
+      try {
+        const r = await fetch(url, { signal: abort.signal, mode: 'cors' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return { data: await r.arrayBuffer() };
+      } catch (e) {
+        if (abort.signal.aborted || i >= 3) throw e;
+        await new Promise((res) => setTimeout(res, 400 * (i + 1)));
+      }
+    }
+  });
+}
 const TILES = 'https://tiles.openfreemap.org/planet';
 const GLYPHS = 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
 const EN = ['coalesce', ['get', 'name:en'], ['get', 'name_en']]; // English-only labels
 const FADE = (from, to) => ['interpolate', ['linear'], ['zoom'], 6.2, from, 7.4, to];
 export function earthStyle({ labels = true } = {}) {
   const layers = [
-    { id: 'space', type: 'background', paint: { 'background-color': '#1F2328' } },
+    // the globe surface under the imagery: polar ice white, so the caps beyond 85° look natural (no dark wedge)
+    { id: 'space', type: 'background', paint: { 'background-color': '#E9EEF2' } },
     { id: 'imagery', type: 'raster', source: 'gibs', paint: { 'raster-opacity': FADE(1, 0), 'raster-fade-duration': 300 } },
-    { id: 'v-land', type: 'background', paint: { 'background-color': '#2B2F36', 'background-opacity': FADE(0, 1) } },
-    { id: 'v-water', type: 'fill', source: 'omt', 'source-layer': 'water', minzoom: 5.5, paint: { 'fill-color': '#1A1D21', 'fill-opacity': FADE(0, 1) } },
-    { id: 'v-park', type: 'fill', source: 'omt', 'source-layer': 'park', minzoom: 6, paint: { 'fill-color': '#30363A', 'fill-opacity': FADE(0, 0.8) } },
+    { id: 'v-land', type: 'background', paint: { 'background-color': '#F2F1EC', 'background-opacity': FADE(0, 1) } },
+    { id: 'v-water', type: 'fill', source: 'omt', 'source-layer': 'water', minzoom: 5.5, paint: { 'fill-color': '#B8CDE0', 'fill-opacity': FADE(0, 1) } },
+    { id: 'v-park', type: 'fill', source: 'omt', 'source-layer': 'park', minzoom: 6, paint: { 'fill-color': '#DDE8D5', 'fill-opacity': FADE(0, 0.8) } },
     { id: 'v-roads', type: 'line', source: 'omt', 'source-layer': 'transportation', minzoom: 7,
       filter: ['in', ['get', 'class'], ['literal', ['motorway', 'trunk', 'primary', 'secondary']]],
-      paint: { 'line-color': '#41464E', 'line-width': ['interpolate', ['linear'], ['zoom'], 7, 0.6, 12, 2.4], 'line-opacity': FADE(0, 1) } },
+      paint: { 'line-color': '#FFFFFF', 'line-width': ['interpolate', ['linear'], ['zoom'], 7, 0.8, 12, 2.6], 'line-opacity': FADE(0, 1) } },
     { id: 'admin-region', type: 'line', source: 'omt', 'source-layer': 'boundary', minzoom: 6,
       filter: ['all', ['==', ['get', 'admin_level'], 4], ['!=', ['get', 'maritime'], 1]],
-      paint: { 'line-color': '#8A9099', 'line-width': 0.4, 'line-opacity': 0.6, 'line-dasharray': [3, 2] } },
+      paint: { 'line-color': '#9CA3AF', 'line-width': 0.6, 'line-dasharray': [3, 2] } },
     { id: 'admin-country', type: 'line', source: 'omt', 'source-layer': 'boundary', minzoom: 3.5,
       filter: ['all', ['<=', ['get', 'admin_level'], 2], ['!=', ['get', 'maritime'], 1]],
-      paint: { 'line-color': '#8A9099', 'line-width': 0.7, 'line-opacity': 0.8 } },
+      paint: { 'line-color': ['interpolate', ['linear'], ['zoom'], 6.2, 'rgba(255,255,255,0.5)', 7.4, '#8B929C'], 'line-width': 0.9 } },
   ];
   if (labels) {
     const text = (size) => ({
-      'text-color': '#E5E7EB',
-      'text-halo-color': 'rgba(31,35,40,0.9)',
+      'text-color': ['interpolate', ['linear'], ['zoom'], 6.2, '#F9FAFB', 7.4, '#1F2937'],
+      'text-halo-color': ['interpolate', ['linear'], ['zoom'], 6.2, 'rgba(3,5,10,0.85)', 7.4, 'rgba(255,255,255,0.95)'],
       'text-halo-width': 1.3,
     });
     layers.push(
@@ -45,7 +65,7 @@ export function earthStyle({ labels = true } = {}) {
   return {
     version: 8, glyphs: GLYPHS, projection: { type: 'globe' },
     sky: {
-      'sky-color': '#1F2328', 'horizon-color': '#9CC3F2', 'fog-color': '#DCE9F7',
+      'sky-color': '#03050A', 'horizon-color': '#9CC3F2', 'fog-color': '#DCE9F7',
       'sky-horizon-blend': 0.5, 'horizon-fog-blend': 0.6, 'fog-ground-blend': 0.9,
       'atmosphere-blend': ['interpolate', ['linear'], ['zoom'], 0, 0.85, 5, 0.6, 7, 0],
     },
@@ -60,9 +80,9 @@ export function earthStyle({ labels = true } = {}) {
 const HOT_RADIUS = ['interpolate', ['linear'], ['zoom'],
   1, 1.6, 4, 2.4, 7, ['+', 2.5, ['*', 0.12, ['sqrt', ['to-number', ['get', 'frp'], 1]]]],
   11, ['+', 3.5, ['*', 0.25, ['sqrt', ['to-number', ['get', 'frp'], 1]]]]];
-const HOT_PAINT = { 'circle-radius': HOT_RADIUS, 'circle-color': '#F28C4B', 'circle-stroke-color': 'rgba(31,35,40,0.55)', 'circle-stroke-width': 0.6 };
-const SOFT_ORANGE = '#F28C4B';   // area outline / selection (soft orange, no yellow)
-const NEW_HOT = '#FBC6A0';       // hotspots from the last 24 h: lighter orange
+const HOT_PAINT = { 'circle-radius': HOT_RADIUS, 'circle-color': '#E8833A', 'circle-stroke-color': 'rgba(17,24,39,0.45)', 'circle-stroke-width': 0.6 };
+const SOFT_ORANGE = '#E8833A';   // area outline / selection (calm orange, no yellow)
+const NEW_HOT = '#F6B98C';       // hotspots from the last 24 h: lighter orange
 
 let map = null, ready = null, drawMode = null, drawPts = [], onDrawDone = null;
 const empty = { type: 'FeatureCollection', features: [] };
@@ -78,28 +98,36 @@ function loadCSS(href) {
   const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.append(l);
 }
 
-export function initMap(container, { onFallback } = {}) {
+export function initMap(container, { onFallback, loader } = {}) {
   if (ready) return ready;
   ready = (async () => {
     loadCSS(BASE + 'vendor/maplibre-gl.css');
     await loadScript(BASE + 'vendor/maplibre-gl.js');
     const ml = window.maplibregl;
+    addRetryProtocol(ml);
     map = new ml.Map({
-      container, style: earthStyle(), center: [16, 38], zoom: 3.3, attributionControl: { compact: true },
+      container, style: earthStyle(), center: [18, 30], zoom: 1.7, attributionControl: { compact: true }, maxZoom: 14,
       cooperativeGestures: matchMedia('(pointer: coarse)').matches,
     });
     map.addControl(new ml.NavigationControl({ showCompass: false }), 'top-right');
+    window.__jamraMap = map; // for our automated checks
     await new Promise((res, rej) => {
       const t = /guide=1/.test(location.search) ? 0 : setTimeout(() => rej(new Error('map timeout')), 20000);
-      map.on('load', () => { clearTimeout(t); res(); });
+      map.on('load', () => {
+        clearTimeout(t);
+        // show the globe only when the imagery is in (or after 6 s), then fly in once
+        const t0 = performance.now();
+        const wait = () => ((map.isSourceLoaded('gibs') && map.areTilesLoaded()) || performance.now() - t0 > 6000 ? (loader && loader.classList.add('done'), res()) : setTimeout(wait, 150));
+        wait();
+      });
       map.on('error', (e) => { if (!map.loaded()) console.warn('map error', e?.error?.message); });
     });
     map.addSource('area', { type: 'geojson', data: empty });
-    map.addLayer({ id: 'area-line', type: 'line', source: 'area', paint: { 'line-color': SOFT_ORANGE, 'line-width': 1.6 } });
+    map.addLayer({ id: 'area-line', type: 'line', source: 'area', paint: { 'line-color': SOFT_ORANGE, 'line-width': 2 } });
     map.addSource('live', { type: 'geojson', data: empty });
     map.addLayer({
       id: 'live-pts', type: 'circle', source: 'live',
-      paint: { ...HOT_PAINT, 'circle-color': ['case', ['<', ['get', 'age'], 1], NEW_HOT, '#F28C4B'], 'circle-opacity': ['case', ['<', ['get', 'age'], 1], 1, 0.85] },
+      paint: { ...HOT_PAINT, 'circle-color': ['case', ['<', ['get', 'age'], 1], NEW_HOT, '#E8833A'], 'circle-opacity': ['case', ['<', ['get', 'age'], 1], 1, 0.9] },
     });
     map.addSource('draw', { type: 'geojson', data: empty });
     map.addLayer({ id: 'draw-line', type: 'line', source: 'draw', paint: { 'line-color': SOFT_ORANGE, 'line-width': 1.6, 'line-dasharray': [2, 1] } });
@@ -131,7 +159,7 @@ export async function showArea(ring) {
   if (ring) {
     const [w, s, e, n] = ringBBox(ring);
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    m.fitBounds([[w, s], [e, n]], { padding: 40, maxZoom: 9, duration: reduce ? 0 : 2200, easing: (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2), essential: true });
+    m.fitBounds([[w, s], [e, n]], { padding: 40, maxZoom: 9, duration: reduce ? 0 : 3000, easing: (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2), essential: true });
   }
 }
 
@@ -217,64 +245,6 @@ function finish(ring, label) {
   cb && cb(ring, label);
 }
 
-
-// ---------------------------------------------------------------- Home hero globe
-/**
- * Slowly turning globe centred on the Mediterranean, with real FIRMS hotspots (ember dots)
- * and the preset fire areas (hover: name and alert level, click: open the Calendar).
- */
-export async function initGlobe(container, { points = [], areas = [], onPick, onReady } = {}) {
-  loadCSS(BASE + 'vendor/maplibre-gl.css');
-  await loadScript(BASE + 'vendor/maplibre-gl.js');
-  const ml = window.maplibregl;
-  const g = new ml.Map({
-    container, style: earthStyle({ labels: false }), center: [10, 30], zoom: 1.95, attributionControl: { compact: true },
-    dragRotate: false, pitchWithRotate: false, scrollZoom: false, touchZoomRotate: false, doubleClickZoom: false, keyboard: false,
-  });
-  window.__jamraGlobe = g; // for our automated checks
-  await new Promise((res, rej) => { g.on('load', res); g.on('error', (e) => { if (!g.loaded()) rej(e.error || new Error('globe')); }); });
-  g.addSource('hot', { type: 'geojson', data: { type: 'FeatureCollection', features: points.map((p) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [p[1], p[0]] }, properties: { frp: p[4] } })) } });
-  g.addLayer({ id: 'hot', type: 'circle', source: 'hot', paint: HOT_PAINT });
-  // invisible hit areas for the fire areas (hover: name and alert level; click: open the Calendar)
-  g.addSource('areas', { type: 'geojson', data: { type: 'FeatureCollection', features: areas.map((a) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: a.center }, properties: { id: a.id, label: a.label, level: a.level } })) } });
-  g.addLayer({ id: 'areas', type: 'circle', source: 'areas', paint: { 'circle-radius': 9, 'circle-opacity': 0, 'circle-stroke-width': 0 } });
-  const tip = document.createElement('div');
-  tip.className = 'globe-tip'; tip.hidden = true;
-  container.parentElement.append(tip);
-  g.on('mousemove', 'areas', (e) => {
-    const f = e.features[0].properties;
-    g.getCanvas().style.cursor = 'pointer';
-    tip.innerHTML = `<b>${f.label}</b><br>Alert level: ${f.level}`;
-    tip.style.left = `${e.point.x + 12}px`; tip.style.top = `${e.point.y + 12}px`; tip.hidden = false;
-  });
-  g.on('mouseleave', 'areas', () => { g.getCanvas().style.cursor = ''; tip.hidden = true; });
-  g.on('click', 'areas', (e) => onPick && onPick(e.features[0].properties.id));
-
-  // slow rotation: one turn per 120 s, easing in at the start and out when the user interacts
-  const DEG_PER_MS = 360 / 120000;
-  let speed = 0, target = 1, last = null, visible = true, lng = 10;
-  const stop = () => { target = 0; };
-  ['mousedown', 'touchstart', 'wheel', 'keydown'].forEach((ev) => container.addEventListener(ev, stop, { passive: true }));
-  new IntersectionObserver(([en]) => { visible = en.isIntersecting; }).observe(container);
-  const step = (t) => {
-    if (last !== null && visible) {
-      const dt = Math.min(64, t - last);
-      speed += (target - speed) * Math.min(1, dt / 1200);     // smooth ease in / out
-      if (speed > 0.002) { lng = (lng + DEG_PER_MS * speed * dt + 540) % 360 - 180; g.setCenter([lng, 30]); }
-    }
-    last = t;
-    if (target > 0 || speed > 0.002) requestAnimationFrame(step);
-  };
-  const t1 = performance.now();
-  const reveal = () => {
-    if ((g.isSourceLoaded('gibs') && g.areTilesLoaded()) || performance.now() - t1 > 12000) {
-      onReady && onReady();
-      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) requestAnimationFrame(step);
-    } else setTimeout(reveal, 300);
-  };
-  reveal();
-  return g;
-}
 
 export function webglOK() {
   try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch { return false; }
