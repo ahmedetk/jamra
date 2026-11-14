@@ -6,6 +6,9 @@ Usage: python scripts/build_pages.py
 Written with the help of an AI coding assistant (Claude Code by Anthropic), following Team Astro Byte's design.
 """
 from pathlib import Path
+from datetime import datetime, timezone
+import json
+import re
 
 PUB = Path(__file__).resolve().parents[1] / "web" / "public"
 
@@ -323,19 +326,39 @@ BODY = {
 "validation": """
   <section id="validation">
     <div class="wrap stack">
-      <div class="card split" id="split-text"><h2 class="h3">How we tested</h2><p>We built the model on development years and kept the last four years hidden as a final test. Every number below comes only from those held-out test years.</p></div>
+      <div class="card split" id="split-text"><h2 class="h3">How we tested</h2><p>We built the model on development years and kept the last four years hidden as a final test. Every number marked "test years" comes only from those held-out years.</p></div>
       <div class="kpi-grid" id="test-kpis"></div>
+      <div class="grid-2">
+        <div class="card"><h2 class="h4">High-activity months in the test years (countries)</h2><div id="conf-country" class="scroll-x"></div></div>
+        <div class="card"><h2 class="h4">Small regions: local factor vs country factor (test years)</h2><div id="small-table" class="scroll-x"></div><p class="fine" id="decision-text"></p></div>
+      </div>
+      <div class="card"><h2 class="h4">Fire areas one by one (test years)</h2><div id="preset-table" class="scroll-x"></div></div>
+      <div class="grid-2">
+        <div class="card"><h2 class="h4">Error by method (test years)</h2><div id="err-bars" class="chart"></div><p class="caption" id="err-cap"></p></div>
+        <div class="card"><h2 class="h4">Predicted vs actual (cross-validation)</h2><div id="scatter" class="chart"></div><p class="caption" id="scatter-cap"></p></div>
+      </div>
+      <div class="kpi-grid" id="val-kpis"></div>
+      <div class="grid-2">
+        <div class="card"><h2 class="h4">Is the VIIRS / MODIS ratio stable over time?</h2><div id="drift" class="chart"></div><p class="caption" id="drift-cap"></p></div>
+        <div class="card"><h2 class="h4">Error by country (cross-validation)</h2><div id="struggle" class="scroll-x"></div></div>
+      </div>
     </div>
   </section>
   <section id="how">
     <div class="wrap stack">
       <h2>How it works</h2>
       <ol class="steps">
-        <li class="card"><span class="num">1</span><h3>Overlap years</h3><p>From 2012 both sensors watched the same fires: MODIS on Aqua and VIIRS on S-NPP pass at the same time of day.</p></li>
-        <li class="card"><span class="num">2</span><h3>Conversion factor</h3><p>For each country and calendar month we measure VIIRS hotspots per MODIS hotspot; small areas lean on the country value: k = (V + λ·k<sub>country</sub>) / (M + λ).</p></li>
-        <li class="card"><span class="num">3</span><h3>Old record on the new scale</h3><p>MODIS months before 2012 become VIIRS-equivalent hotspots with an error range, then each month is compared with its usual.</p></li>
+        <li class="card"><span class="num">1</span><h3>Overlap years</h3><p>From 2012 both sensors watched the same fires. MODIS on Aqua and VIIRS on S-NPP pass at the same time of day (about 1:30 pm and 1:30 am).</p></li>
+        <li class="card"><span class="num">2</span><h3>Conversion factor</h3><p>For each country and calendar month we measure VIIRS hotspots per MODIS hotspot. A small area gets its own factor, pulled toward the country value when it has few detections: k = (V + λ·k<sub>country</sub>) / (M + λ).</p></li>
+        <li class="card"><span class="num">3</span><h3>Old record on the new scale</h3><p>MODIS months before 2012 become <em>VIIRS-equivalent hotspots</em> with an error range. Each month is then compared with the same month in other years.</p></li>
       </ol>
-      <p class="fine">Why 2003? We use MODIS on Aqua only: its first full year is 2003 and it crosses at the same afternoon time as VIIRS. Live data come from NOAA-20 since S-NPP stopped (2 Nov 2026), × <span data-k-jn>0.97</span>.</p>
+      <div class="card why"><h3>Methods compared</h3><div id="why-table" class="scroll-x"></div></div>
+      <div class="card arch">
+        <h3>Data flow and the 2003 start</h3>
+        <p>History (2003 → last month) comes from NASA FIRMS yearly archive files and the FIRMS API, rebuilt automatically every month. The newest days come from the FIRMS API every 3 hours. <span class="term" data-term="api">Why not fetch 20 years on every click?</span></p>
+        <p>The record starts in 2003 because we use MODIS on Aqua only: Aqua's first full year is 2003, and it crosses at the same afternoon time as VIIRS, so the two sensors see the same fires at the same hour. Adding Terra (from 2000/2001) is a next step.</p>
+        <p>S-NPP stopped on 2 Nov 2026. Live data come from NOAA-20 (same VIIRS instrument), converted to the S-NPP scale with a measured factor (×<span data-k-jn>0.97</span>).</p>
+      </div>
     </div>
   </section>
   <section id="limits">
@@ -343,10 +366,14 @@ BODY = {
       <h2>Limits</h2>
       <div class="kpi-grid" id="unc-kpis"></div>
       <ul class="limits card">
-        <li><strong>Hotspots are not fires</strong> and not burned area; clouds and smoke hide fires.</li>
-        <li><strong>Values before 2012 are estimates</strong> from MODIS, shown with an error range (wider for small areas).</li>
-        <li><strong>Not every hotspot is a wildfire:</strong> farm burning, gas flares, industry and, in conflict areas, explosions.</li>
-        <li><strong>Harmonized history covers</strong> Portugal, Spain, Greece, Türkiye, Cyprus, Lebanon, Jordan and Palestine; elsewhere, live data only.</li>
+        <li><strong>Hotspots are not fires</strong> and not burned area. One big fire makes many hotspots.</li>
+        <li><strong>Clouds and smoke hide fires.</strong> Small or short fires are missed, MODIS more than VIIRS.</li>
+        <li><strong>Values before 2012 are estimates</strong> from MODIS on the VIIRS scale, shown with an error range. Small areas have wider ranges.</li>
+        <li><strong>Outages and orbit drift.</strong> Old satellites drift in orbit; the VIIRS/MODIS ratio is checked year by year.</li>
+        <li><strong>S-NPP stopped on 2 Nov 2026.</strong> Live data come from NOAA-20 (same VIIRS instrument), converted to the S-NPP scale with a measured factor.</li>
+        <li><strong>Near-real-time and standard data differ slightly.</strong> Recent months use near-real-time data until NASA's standard data replace them.</li>
+        <li><strong>Not every hotspot is a wildfire.</strong> Farm burning, gas flares, industry and, in conflict areas, explosions or burning buildings can create hotspots. The static-source filter can make mistakes.</li>
+        <li><strong>Coverage:</strong> Portugal, Spain, Greece, Türkiye, Cyprus, Lebanon, Jordan and Palestine (outlined on the map).</li>
         <li><strong>Latency is hours. This is not an emergency service.</strong></li>
       </ul>
     </div>
@@ -416,6 +443,19 @@ HOME_PRELOAD = '<link rel="preload" as="image" href="img/earth-light.webp" fetch
 MENU_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>'
 
 
+# Build stamp: shown in the footer and used to version every code file, so a browser never mixes an old cached
+# script with a new page (the service worker and the HTTP cache see a new URL after each build).
+NOW = datetime.now(timezone.utc)
+BUILD = NOW.strftime("%Y-%m-%d %H:%M UTC")
+BID = NOW.strftime("%Y%m%d%H%M")
+
+
+def import_map(R):
+    """Every ES module mapped to its versioned URL (relative imports inside the code stay unchanged)."""
+    mods = sorted(p.name for p in (PUB / "js").glob("*.js"))
+    return json.dumps({"imports": {f"{R}js/{m}": f"{R}js/{m}?v={BID}" for m in mods}}, separators=(",", ":"))
+
+
 def page(slug, label, title):
     R = "" if slug == "" else "../"
     nav = "\n".join(
@@ -445,7 +485,8 @@ def page(slug, label, title):
 <link rel="icon" href="{R}icons/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="{R}icons/favicon-16.png" sizes="16x16" type="image/png">
 <link rel="apple-touch-icon" href="{R}icons/apple-touch-icon.png">
-<link rel="stylesheet" href="{R}css/app.css">
+<link rel="stylesheet" href="{R}css/app.css?v={BID}">
+<script type="importmap">{import_map(R)}</script>
 <!-- Generated by scripts/build_pages.py. Code written with the help of an AI coding assistant (Claude Code by Anthropic). -->
 </head>
 <body data-page="{slug or 'home'}">
@@ -472,7 +513,8 @@ def page(slug, label, title):
     <div>
       <a class="brand" href="{R}" data-nav aria-label="jamra home"><img src="{R}icons/wordmark-dark.png" width="78" height="32" alt="jamra" loading="lazy"></a>
       <p>Team Astro Byte · Built for the NASA Space Apps Challenge 2026</p>
-      <p>Not an official NASA product · Not an emergency service · <b>Data: NASA FIRMS</b></p>
+      <p>Not an official NASA product · NASA does not endorse this project · Not an emergency service · <b>Data: NASA FIRMS</b></p>
+      <p class="build">Build {BUILD}</p>
     </div>
     <ul>
       <li><a href="{R}calendar/" data-nav>Calendar</a></li><li><a href="{R}alerts/" data-nav>Alerts</a></li><li><a href="{R}live/" data-nav>Live Data</a></li>
@@ -480,7 +522,7 @@ def page(slug, label, title):
     </ul>
   </div>
 </footer>
-<script type="module" src="{R}js/app.js"></script>
+<script type="module" src="{R}js/app.js?v={BID}"></script>
 </body>
 </html>
 """
@@ -510,6 +552,12 @@ def main():
         d.mkdir(parents=True, exist_ok=True)
         (d / "index.html").write_text(stub(target, hash_), encoding="utf-8")
         print("redirect", old, "->", target)
+    # service worker: same build id (new cache, versioned code files precached for offline use)
+    sw = PUB / "sw.js"
+    t = sw.read_text(encoding="utf-8")
+    t = re.sub(r"const BID = '[^']*';", f"const BID = '{BID}';", t)
+    sw.write_text(t, encoding="utf-8")
+    print("build", BUILD)
 
 
 if __name__ == "__main__":

@@ -405,3 +405,6 @@ body.outside-coverage #yearly, body.outside-coverage #kpis, body.outside-coverag
 
 #test-kpis { grid-template-columns: repeat(3, 1fr); min-height: 300px; }
 @media (max-width: 800px) { #test-kpis { grid-template-columns: 1fr; min-height: 980px; } }
+
+/* Validation tables: wrap long headers so every column fits its card */
+#conf-country .table th, #conf-country .table td, #small-table .table th, #small-table .table td { white-space: normal; padding: 10px 10px; }

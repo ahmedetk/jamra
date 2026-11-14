@@ -1,12 +1,12 @@
 // Jamra main app. Written with the help of an AI coding assistant (Claude Code by Anthropic), following Team Astro Byte's design.
 import { $, $$, el, svg, fmt, fmtInt, pct, MONTHS, MONTHS_LONG, store, downloadBlob, toCSV, debounce, circleRing, boxRing, ordinal, pointInRing, ringBBox, haversineKm } from './util.js';
 import { BASE, getJSON, loadArea, customArea, monthlyValues, monthLabel, monthIndex } from './data.js';
-import { heroChart, monthBars } from './charts.js';
+import { heroChart, monthBars, scatter, errorBars, driftChart } from './charts.js';
 import { renderCalendar, CAT_TEXT } from './calendar.js';
 import { initMap, showArea, showLive, startDraw, clearDraw, webglOK, softwareGL, flyToGlobe } from './map.js';
 import { loadLive, loadStatus, renderBadge, renderAlerts, renderStatusPanel, areaWarning, fetchLive, renderTable, downloadLiveCSV, LEVEL_LABEL, liveState, periodText } from './live.js';
 import { downloadSummary } from './summary.js';
-import { renderKeyNumbers, renderLimits } from './pages.js';
+import { renderKeyNumbers, renderLimits, renderValidationDetails } from './pages.js';
 import { baseline, percentileRank, category, CAT_LABEL, seasonStart, theilSen, mannKendall } from './stats.js';
 
 const TEAM = [
@@ -35,6 +35,8 @@ const state = {
 let meta, report, site, live, status, area, monthly, years;
 const PAGE = document.body.dataset.page || 'home';
 const has = (sel) => !!document.querySelector(sel);
+// write text only if the element exists on this page (a missing element is skipped, never a crash)
+const setText = (sel, text) => { const n = document.querySelector(sel); if (n) n.textContent = text; };
 const on = (sel, ev, fn) => { const n = document.querySelector(sel); if (n) n.addEventListener(ev, fn); };
 
 // ---------------------------------------------------------------- tooltip
@@ -160,15 +162,15 @@ function homeExtras() {
   const v = report.validation;
   if (v && has('#big-err')) {
     const tc = v.test_countries, cc = v.confusion_countries.harmonized;
-    $('#big-err').textContent = `${pct(tc.M0.mdape)} → ${pct(tc[report.chosen_model].mdape)}`;
-    $('#big-hits').textContent = `${cc.hits} of ${cc.hits + cc.misses}`;
+    setText('#big-err', `${pct(tc.M0.mdape)} → ${pct(tc[report.chosen_model].mdape)}`);
+    setText('#big-hits', `${cc.hits} of ${cc.hits + cc.misses}`);
   }
   // the 3D Earth: real Blue Marble texture, real FIRMS hotspots; drag to turn it
   if (!has('#globe') || !webglOK() || softwareGL() || (navigator.connection && navigator.connection.saveData)) return;
   const go = () => import('./globe3d.js').then(({ initEarth }) => initEarth($('#globe'), {
     points: live?.points || [],
     hiRes: innerWidth >= 900 && devicePixelRatio * innerWidth >= 1200,
-    onReady: () => { $('#globe').classList.add('ready'); $('#globe-still').classList.add('hide'); },
+    onReady: () => { $('#globe')?.classList.add('ready'); $('#globe-still')?.classList.add('hide'); },
   })).catch((e) => console.warn('globe unavailable', e?.message));
   const later = (f) => setTimeout(() => (window.requestIdleCallback || setTimeout)(f, { timeout: 3000 }), innerWidth < 900 ? 3500 : 1200);
   if (document.readyState === 'complete') later(go); else addEventListener('load', () => later(go), { once: true });
@@ -231,11 +233,11 @@ function buildPickers() {
   });
   on('#draw-polygon', 'click', async () => {
     const ok = await startDraw('polygon', (ring, label) => selectArea(null, { ring, label }));
-    $('#area-info').textContent = ok ? 'Click points on the map · double-click to finish' : 'The map is not available.';
+    setText('#area-info', ok ? 'Click points on the map · double-click to finish' : 'The map is not available.');
   });
   on('#draw-circle', 'click', async () => {
     const ok = await startDraw('circle', (ring, label) => selectArea(null, { ring, label }));
-    $('#area-info').textContent = ok ? 'Click the centre, then the edge' : 'The map is not available.';
+    setText('#area-info', ok ? 'Click the center, then the edge' : 'The map is not available.');
   });
   on('#draw-clear', 'click', () => { clearDraw(); selectArea('evia'); });
   on('#coords-form', 'submit', (e) => {
@@ -273,7 +275,7 @@ function buildPickers() {
 }
 
 function activateTab(t) {
-  $$('[role="tab"]').forEach((x) => { x.setAttribute('aria-selected', x === t); x.tabIndex = x === t ? 0 : -1; $('#' + x.getAttribute('aria-controls')).hidden = x !== t; });
+  $$('[role="tab"]').forEach((x) => { x.setAttribute('aria-selected', x === t); x.tabIndex = x === t ? 0 : -1; const pn = $('#' + x.getAttribute('aria-controls')); if (pn) pn.hidden = x !== t; });
 }
 
 function buildControls() {
@@ -467,7 +469,7 @@ function renderHero() {
   const viirs = ys.map((y) => (y >= 2012 ? annual(y, area.series.N) : null));
   const conv = ys.map((y) => (y >= 2012 && aqua[ys.indexOf(y)] !== null ? aqua[ys.indexOf(y)] * area.factor.k : null));
   heroChart($('#hero-chart'), { years: ys, raw: rawY, harm: harmY, modisAqua: aqua, viirs, modisConverted: conv, mode: state.hero, tip });
-  $('#hero-title').textContent = `Yearly hotspots · ${area.label}`;
+  setText('#hero-title', `Yearly hotspots · ${area.label}`);
   const pre = ys.filter((y) => y <= 2011), post = ys.filter((y) => y >= 2012);
   const avg = (arr, sel) => { const v = sel.map((y) => arr[ys.indexOf(y)]).filter((x) => x !== null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
   const rawJump = avg(rawY, post) / avg(rawY, pre), harmJump = avg(harmY, post) / avg(harmY, pre);
@@ -734,6 +736,8 @@ function renderStatic() {
   if (has('#test-kpis')) renderKeyNumbers(report, $('#test-kpis'), { full: true, split: $('#split-text') });
   if (has('#about-val')) renderKeyNumbers(report, $('#about-val'), { full: false });
   if (has('#unc-kpis')) renderLimits(report, meta);
+  if (has('#why-table')) renderWhy();
+  if (has('#val-kpis')) renderValidationPage();
 }
 
 function renderTeam() {
@@ -741,6 +745,63 @@ function renderTeam() {
   const tg = $('#team-grid');
   TEAM.forEach(([n, r]) => tg.append(el('div', { class: 'member' }, el('b', { text: n }), el('span', { text: r }))));
 }
+
+function renderWhy() {
+  const cv = report.cv;
+  const order = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5'];
+  const t = el('table', {}, el('thead', {}, el('tr', {}, ...['Approach', 'Monthly error (MAE)', 'Typical % error', 'Test years: % error', 'Total bias', 'Verdict'].map((h) => el('th', { scope: 'col', text: h })))));
+  const tb = el('tbody');
+  const verdict = {
+    M0: 'Shows the problem: VIIRS-era counts look much higher.', M1: 'Simple, but ignores country differences.', M2: 'Simple and fair per country.',
+    M3: 'Adds seasons; leans on the country value when a month has few fires.', M4: 'Curved fit; can drift at the extremes.', M5: 'Matches distributions; needs many years.',
+  };
+  order.forEach((m) => {
+    const r = cv[m].monthly;
+    tb.append(el('tr', { class: m === report.chosen_model ? 'chosen' : '' },
+      el('td', { text: `${m}: ${report.model_labels[m]}${m === report.chosen_model ? ' ✓ chosen' : ''}` }),
+      el('td', { text: fmt(r.mae, 1) }), el('td', { text: pct(r.mdape) }), el('td', { text: pct(report.validation?.test_countries?.[m]?.mdape) }), el('td', { text: pct(r.bias, 1) }), el('td', { text: verdict[m] })));
+  });
+  tb.append(el('tr', {}, el('td', { text: 'Use VIIRS only' }), el('td', { text: '–' }), el('td', { text: '–' }), el('td', { text: '–' }), el('td', { text: '–' }), el('td', { text: 'Honest but throws away 2003–2011, nine years of history (including Greece 2007).' })));
+  t.append(tb);
+  $('#why-table').append(t, el('p', { class: 'fine', text: report.choice_reason + ' Monthly error and typical % error: leave-one-year-out cross-validation on ' + report.calibration.years.join(', ') + '. Test years: model fitted on ' + (report.validation?.dev_years || []).join(', ') + ' only, scored on ' + (report.validation?.test_years || []).join(', ') + '.' }));
+
+}
+
+function renderValidationPage() {
+  const order = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5'];
+  const cv = report.cv;
+  renderValidationDetails(report, meta);
+  scatter($('#scatter'), { points: report.scatter, tip });
+  $('#scatter-cap').textContent = 'Dark dots: harmonized MODIS. Light gray: raw MODIS. Dashed line: perfect agreement. Each dot is one country-month in a hidden year.';
+  const tc = report.validation.test_countries;
+  errorBars($('#err-bars'), {
+    rows: order.map((m) => ({ id: m, label: `${m} ${({ M0: 'raw MODIS', M1: 'one ratio', M2: 'per country', M3: 'country × month', M4: 'log-log', M5: 'quantile map' })[m]}`, value: tc[m].mdape, text: pct(tc[m].mdape) })),
+    chosen: report.chosen_model, metricLabel: 'Typical % error on test years',
+  });
+  $('#err-cap').textContent = `Typical (median) % error per country-month in the test years ${report.validation.test_years.join(', ')} (months with at least 10 VIIRS hotspots). Raw MODIS: ${pct(tc.M0.mdape)} → harmonized (${report.chosen_model}): ${pct(tc[report.chosen_model].mdape)}.`;
+  const vk = $('#val-kpis');
+  const ca = report.colour_agreement;
+  const kp = (k, v, d) => vk.append(el('div', { class: 'kpi' }, el('div', { class: 'k', text: k }), el('div', { class: 'v', text: v }), el('div', { class: 'd', text: d })));
+  kp('Uncertainty', `±${Math.round(report.uncertainty.monthly_rel * 100)}%`, `on a country-month · ±${Math.round(report.uncertainty.annual_rel * 100)}% on a year · ±${Math.round(report.uncertainty.small_regions_rel * 100)}% for small areas (test years)`);
+  const fr = report.frp_test;
+  kp('FRP test (counts vs FRP)', fr.validated ? 'Passed' : 'Not supported', `Is summed fire heat (FRP) more stable between sensors than counts? Variation of the ratio: FRP ${fmt(fr.pooled_cv_frp_ratio, 2)} vs counts ${fmt(fr.pooled_cv_count_ratio, 2)}. ${fr.validated ? 'FRP could be offered.' : 'So the calendar uses counts.'}`);
+  const jn = report.noaa20_to_snpp;
+  kp('NOAA-20 → S-NPP scale', `×${fmt(jn.global, 2)}`, `Live counts come from NOAA-20 since S-NPP stopped (2 Nov 2026) and are multiplied by this factor to stay on the S-NPP scale. Measured on ${fmtInt(jn.months_used)} country-months, 2018–2025.`);
+  const ref = median(report.drift.filter((d) => d.ratio_N_over_A && d.months >= 10).map((d) => d.ratio_N_over_A));
+  driftChart($('#drift'), { drift: report.drift, ref, tol: 0.15, tip });
+  $('#drift-cap').textContent = `Each dot = one year's VIIRS S-NPP ÷ MODIS Aqua hotspots (8 countries). ${report.calibration.rule} The headline ${meta.viirs_vs_modis_ratio.toFixed(1)}× pools all hotspots of the calibration years instead of taking the median year. Filled dots = years used to calibrate. MODIS satellites have been drifting in orbit in recent years, so the ratio can shift; we check it every year.`;
+  // where it struggles: per-country error
+  const per = {};
+  report.scatter.forEach((p) => { if (p.V >= 10) { (per[p.c] = per[p.c] || []).push(Math.abs(p.P - p.V) / p.V); } });
+  const rows = Object.entries(per).map(([c, e]) => [c, median(e), e.length]).sort((a, b) => b[1] - a[1]);
+  const st = $('#struggle');
+  st.append(el('p', { text: 'Typical monthly error by country (months with 10+ VIIRS hotspots). Small countries have few fires, so errors are larger there.' }));
+  st.append(el('table', { class: 'table' }, el('thead', {}, el('tr', {}, el('th', { text: 'Country' }), el('th', { text: 'Typical error' }), el('th', { text: 'Months' }))),
+    el('tbody', {}, ...rows.map(([c, e, n]) => el('tr', {}, el('td', { text: c === 'Turkey' ? 'Türkiye' : c }), el('td', { text: pct(e) }), el('td', { text: n }))))));
+  if (report.outages.length) st.append(el('p', { class: 'fine', text: `Outage months detected and excluded from calibration: ${report.outages.map((o) => `${o.month} (${o.sensor === 'N' ? 'S-NPP' : o.sensor === 'A' ? 'Aqua' : 'NOAA-20'})`).join(', ')}.` }));
+}
+
+function median(xs) { const s = [...xs].sort((a, b) => a - b); const n = s.length; return n ? (n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2) : null; }
 
 // test hook (used by our automated checks): renders the summary without downloading
 window.__jamraSummaryTest = async () => { const m = await import('./summary.js'); const cv = m.drawSummary(summaryCtx()); const url = cv.toDataURL('image/png'); window.__jamraSummaryURL = url; return [cv.width, cv.height, url.length]; };

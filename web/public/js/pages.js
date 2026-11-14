@@ -30,10 +30,36 @@ export function renderKeyNumbers(report, box, { full = true, split = null } = {}
   kp('High-activity months found', `${cc.hits} of ${cc.hits + cc.misses}`, `${cc.false_alarms} false alarms (raw MODIS found ${cr.hits})`);
   kp('Small regions error', `${pct(sg[meth].mdape)} / ${pct(sp[meth].mdape)}`, `${fmtInt(sg.regions)} 1° areas / the ${sp.regions} fire areas`);
   if (full) {
-    const fr = report.frp_test;
-    kp('FRP test', fr.validated ? 'Passed' : 'Not supported', `ratio variation: FRP ${fmt(fr.pooled_cv_frp_ratio, 2)} vs counts ${fmt(fr.pooled_cv_count_ratio, 2)}, so the calendar uses counts`);
-    kp('NOAA-20 → S-NPP', `×${fmt(report.noaa20_to_snpp.global, 2)}`, `live data since S-NPP stopped (2 Nov 2026), measured on ${fmtInt(report.noaa20_to_snpp.months_used)} country-months`);
+    kp('Local factor for small areas', v.decision.adopt_local_factor ? 'Adopted' : 'Not adopted', v.decision.adopt_local_factor ? 'each small area gets its own factor, pulled toward the country value' : 'small areas use the country factor');
+    const ca = report.colour_agreement;
+    kp('Calendar colors agree', `${fmt(ca.same_colour_pct, 0)}%`, `same anomaly color from harmonized MODIS as from real VIIRS (${fmtInt(ca.months)} country-months; raw MODIS ${fmt(ca.without_harmonization_pct, 0)}%)`);
   }
+}
+
+// Validation page: the detail tables (high-activity months, small regions, fire areas one by one)
+export function renderValidationDetails(report, meta) {
+  const v = report.validation;
+  if (!v) return;
+  const ch = report.chosen_model;
+  const cc = v.confusion_countries.harmonized, cr = v.confusion_countries.raw_modis;
+  const sp = v.small_regions.presets, sg = v.small_regions.grid_1deg;
+  const put = (sel, ...nodes) => { const n = $(sel); if (n) { n.innerHTML = ''; n.append(...nodes); } };
+  const conf = (c) => [fmtInt(c.hits), fmtInt(c.misses), fmtInt(c.false_alarms), pct(c.hit_rate), pct(c.false_alarm_ratio)];
+  put('#conf-country', table(['', 'Detected (hits)', 'Missed', 'False alarms', 'Hit rate', 'Share of flags wrong'],
+    [['Raw MODIS', ...conf(cr)], [`Harmonized (${ch})`, ...conf(cc)]]),
+    el('p', { class: 'fine', text: `Country-months in ${v.test_years.join(', ')} that real VIIRS called "Higher" or "Much higher" than usual, compared with what each record said.` }));
+
+  const row = (label, s, m) => [label, fmt(s[m].mae, 1), pct(s[m].mdape), pct(s[m].bias, 1), `${s[m].confusion.hits}/${s[m].confusion.hits + s[m].confusion.misses}`, fmtInt(s[m].confusion.false_alarms)];
+  put('#small-table', table(['Areas · method', 'Error (MAE)', 'Typical % error', 'Bias', 'High months found', 'False alarms'], [
+    row(`Fire areas (${sp.regions}) · country factor`, sp, 'baseline'), row(`Fire areas (${sp.regions}) · local factor`, sp, 'local'),
+    row(`1° areas (${sg.regions}) · country factor`, sg, 'baseline'), row(`1° areas (${sg.regions}) · local factor`, sg, 'local'),
+  ]));
+  const dt = $('#decision-text'); if (dt) dt.textContent = `${v.decision.text} Rule: ${v.decision.rule}`;
+
+  const label = Object.fromEntries(meta.areas.map((a) => [a.id, a.label]));
+  const pr = Object.entries(sp.per_region).map(([id, r]) => [label[id] || id, fmtInt(r.actual_total), pct(r.baseline.mdape), pct(r.local.mdape), fmt(r.baseline.mae, 1), fmt(r.local.mae, 1)]);
+  put('#preset-table', table(['Fire area', 'VIIRS hotspots (test years)', '% error · country factor', '% error · local factor', 'MAE · country', 'MAE · local'], pr),
+    el('p', { class: 'fine', text: 'Small areas are where harmonization is hardest: few hotspots, so every month is noisy. Errors here are larger than for countries.' }));
 }
 
 export function renderLimits(report, meta) {

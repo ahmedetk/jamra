@@ -1,16 +1,19 @@
 // Service worker: makes Jamra installable and usable offline (bad Wi-Fi demo).
-// Pages, code and live files: network first (always fresh), cached copy if offline or slow (> 4 s).
+// Pages and live files: network first (always fresh), cached copy only when offline. Code files carry the build id
+// in their URL (?v=), so a page and its code always come from the same build.
 // History data, map library and map tiles: cache first, refreshed in the background.
 // Written with the help of an AI coding assistant (Claude Code by Anthropic).
-const VERSION = 'jamra-v14';
+const BID = '202611140509';   // build id, written by scripts/build_pages.py on every build
+const VERSION = 'jamra-' + BID;
+// code files carry the build id (?v=), exactly as the pages request them, so pages and code always match
+const CODE = ['css/app.css', 'js/app.js', 'js/util.js', 'js/data.js', 'js/stats.js', 'js/colors.js', 'js/charts.js', 'js/calendar.js',
+  'js/map.js', 'js/live.js', 'js/summary.js', 'js/pages.js', 'js/globe3d.js'].map((u) => `${u}?v=${BID}`);
 const CORE = [
   './', 'index.html', 'calendar/', 'alerts/', 'live/', 'validation/', 'about/',
-  'css/app.css', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/favicon-32.png',
+  'manifest.webmanifest', 'icons/icon-192.png', 'icons/favicon-32.png',
   'fonts/inter-latin-400-normal.woff2', 'fonts/inter-latin-600-normal.woff2', 'fonts/inter-latin-700-normal.woff2', 'fonts/inter-latin-500-normal.woff2', 'fonts/playfair-display-latin-700-normal.woff2', 'icons/wordmark-dark.png',
-  'js/app.js', 'js/util.js', 'js/data.js', 'js/stats.js', 'js/colors.js', 'js/charts.js', 'js/calendar.js', 'js/map.js', 'js/live.js',
-  'js/summary.js', 'js/pages.js', 'js/globe3d.js', 'img/earth-light.webp',
-  'data/meta.json', 'data/model_report.json', 'data/site.json',
-  'vendor/maplibre-gl.js', 'vendor/maplibre-gl.css',
+  'img/earth-light.webp', 'data/meta.json', 'data/model_report.json', 'data/site.json',
+  'vendor/maplibre-gl.js', 'vendor/maplibre-gl.css', ...CODE,
 ];
 
 self.addEventListener('install', (e) => {
@@ -26,14 +29,10 @@ function stripQuery(req) { const u = new URL(req.url); u.search = ''; return new
 function networkFirst(req, key) {
   return new Promise((resolve) => {
     let done = false;
-    const fallback = () => caches.match(key).then((hit) => { if (!done && hit) { done = true; resolve(hit); } });
-    const timer = setTimeout(fallback, 4000);
-    fetch(req).then((r) => {
-      clearTimeout(timer);
+    fetch(req, { cache: 'no-cache' }).then((r) => {
       if (r.ok) { const copy = r.clone(); caches.open(VERSION).then((c) => c.put(key, copy)); }
       if (!done) { done = true; resolve(r); }
     }).catch(() => {
-      clearTimeout(timer);
       caches.match(key).then((hit) => { if (!done) { done = true; resolve(hit || Response.error()); } });
     });
   });
