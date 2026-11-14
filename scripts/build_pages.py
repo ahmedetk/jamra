@@ -126,9 +126,10 @@ CHIPS = {k: "".join(f'<button type="button" class="chip" data-area="{a["id"]}" a
                     for a in _META["areas"] if a["kind"] == k) for k in ("preset", "country")}
 INFO_PLACEHOLDER = ('<table class="info-table"><tbody><tr><th scope="row">Area</th><td>Loading…</td></tr><tr><th scope="row">Type</th><td>Fire area or country</td></tr>'
                     '<tr><th scope="row">Conversion</th><td>1 MODIS ≈ … VIIRS</td></tr><tr><th scope="row">Uncertainty</th><td>±…% per month</td></tr></tbody></table>')
-TEAM = [("Ahmed Etkaidek", "Lead developer & designer: built and launched the Jamra web app (front end, NASA FIRMS API connection, live 3-hourly updates, GitHub Pages deployment) and designed the site and brand."), ("Shahd Farraj", "Problem and users"),
-        ("Aya Salman", "Science: method and validation"), ("Ahmad Akhras", "Calendar and live demo"),
-        ("Tala Yousef", "User experience and communication")]
+TEAM = [("Ahmed Etkaidek", "Lead developer & designer: built and launched the Jamra web app (front end, NASA FIRMS API connection, live 3-hourly updates, GitHub Pages deployment) and designed the site and brand."), ("Shahd Farraj", "Team lead: managed the team and the plan, found and prepared the NASA FIRMS data, and leads the presentation."),
+        ("Ahmad Akhras", "Idea, debugging and presentation: helped create the Jamra idea, debugged and tested the web app as assistant developer, and co-presents the pitch."),
+        ("Aya Salman", "Research and validation: researched the MODIS/VIIRS science and references, checked Jamra's numbers against NASA data, and prepared answers for the judges."),
+        ("Tala Yousef", "Video and user experience: made the demo video with English subtitles, tested the site as a first-time user, and gave design feedback.")]
 TEAM_HTML = "".join(f'<div class="member"><b>{n}</b><span>{r}</span></div>' for n, r in TEAM)
 
 AREA_PICKER = """

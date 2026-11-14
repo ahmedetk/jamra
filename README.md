@@ -53,10 +53,10 @@ contributors. NASA does not endorse this project.
 
 ## Team
 - **Ahmed Etkaidek**: Lead developer & designer: built and launched the Jamra web app (front end, NASA FIRMS API connection, live 3-hourly updates, GitHub Pages deployment) and designed the site and brand.
-- **Shahd Farraj**: Problem and users
-- **Aya Salman**: Science: method and validation
-- **Ahmad Akhras**: Calendar and live demo
-- **Tala Yousef**: User experience and communication
+- **Shahd Farraj**: Team lead: managed the team and the plan, found and prepared the NASA FIRMS data, and leads the presentation.
+- **Ahmad Akhras**: Idea, debugging and presentation: helped create the Jamra idea, debugged and tested the web app as assistant developer, and co-presents the pitch.
+- **Aya Salman**: Research and validation: researched the MODIS/VIIRS science and references, checked Jamra's numbers against NASA data, and prepared answers for the judges.
+- **Tala Yousef**: Video and user experience: made the demo video with English subtitles, tested the site as a first-time user, and gave design feedback.
 
 ## Use of Super Intelligence (SI/AI)
 The code was written with an SI/AI coding assistant (Claude Code by Anthropic), directed by Ahmed Etkaidek, who designed the site, set up the NASA FIRMS API, GitHub Actions and deployment, and tested every release. The team chose the scientific method and verified all results. Our demo video was made with AI tools, and its voice-over is AI-generated (ElevenLabs).
