@@ -206,34 +206,13 @@ BODY = {
     <p class="img-credit">Map: Natural Earth · Hotspots: NASA FIRMS</p>
   </section>
 
-  <section id="problem">
-    <div class="wrap">
-      <div class="card">
-        <div class="chart-head">
-          <h2 id="problem-title">VIIRS records <span data-k-global>6.2×</span> as many hotspots as MODIS in the same months</h2>
-        </div>
-        <div class="chart-controls row">
-          <label class="sr" for="hero-area">Area</label>
-          <select id="hero-area" aria-label="Area for the chart"></select>
-          <div class="seg" role="group" aria-label="Record type">
-            <button type="button" class="seg-btn" data-hero="raw" aria-pressed="true">Raw (stitched)</button>
-            <button type="button" class="seg-btn" data-hero="harm" aria-pressed="false">Harmonized</button>
-          </div>
-        </div>
-        <h3 id="hero-title" class="h4">Yearly hotspots</h3>
-        <div id="hero-chart" class="chart" role="img" aria-label="Yearly hotspot chart"></div>
-        <p id="hero-caption" class="caption"></p>
-      </div>
-    </div>
-  </section>
-
   <section id="works">
     <div class="wrap">
       <a class="works card" data-nav href="validation/">
         <span class="works-k">Does it work?</span>
-        <span class="works-n" id="big-err">87% → 40%</span>
-        <span class="works-t" id="big-err-text">Typical monthly error, raw MODIS → harmonized, on test years the model never saw.</span>
-        <span class="go">See the validation """ + icon("arrow") + """</span>
+        <span class="works-num"><b id="big-err">87% → 40%</b><small>monthly error, raw → harmonized</small></span>
+        <span class="works-num"><b id="big-hits">82 of 121</b><small>high-fire months found</small></span>
+        <span class="go">Validation """ + icon("arrow") + """</span>
       </a>
     </div>
   </section>
@@ -344,39 +323,19 @@ BODY = {
 "validation": """
   <section id="validation">
     <div class="wrap stack">
-      <div class="card split" id="split-text"></div>
+      <div class="card split" id="split-text"><h2 class="h3">How we tested</h2><p>We built the model on development years and kept the last four years hidden as a final test. Every number below comes only from those held-out test years.</p></div>
       <div class="kpi-grid" id="test-kpis"></div>
-      <div class="grid-2">
-        <div class="card"><h2 class="h4">High-activity months in the test years (countries)</h2><div id="conf-country" class="scroll-x"></div></div>
-        <div class="card"><h2 class="h4">Small regions: local factor vs country factor (test years)</h2><div id="small-table" class="scroll-x"></div><p class="fine" id="decision-text"></p></div>
-      </div>
-      <div class="card"><h2 class="h4">Fire areas one by one (test years)</h2><div id="preset-table" class="scroll-x"></div></div>
-      <div class="grid-2">
-        <div class="card"><h2 class="h4">Error by method (test years)</h2><div id="err-bars" class="chart"></div><p class="caption" id="err-cap"></p></div>
-        <div class="card"><h2 class="h4">Predicted vs actual (cross-validation)</h2><div id="scatter" class="chart"></div><p class="caption" id="scatter-cap"></p></div>
-      </div>
-      <div class="kpi-grid" id="val-kpis"></div>
-      <div class="grid-2">
-        <div class="card"><h2 class="h4">Is the VIIRS / MODIS ratio stable over time?</h2><div id="drift" class="chart"></div><p class="caption" id="drift-cap"></p></div>
-        <div class="card"><h2 class="h4">Error by country (cross-validation)</h2><div id="struggle" class="scroll-x"></div></div>
-      </div>
     </div>
   </section>
   <section id="how">
     <div class="wrap stack">
       <h2>How it works</h2>
       <ol class="steps">
-        <li class="card"><span class="num">1</span><h3>Overlap years</h3><p>From 2012 both sensors watched the same fires. MODIS on Aqua and VIIRS on S-NPP pass at the same time of day (about 1:30 pm and 1:30 am).</p></li>
-        <li class="card"><span class="num">2</span><h3>Conversion factor</h3><p>For each country and calendar month we measure VIIRS hotspots per MODIS hotspot. A small area gets its own factor, pulled toward the country value when it has few detections: k = (V + λ·k<sub>country</sub>) / (M + λ).</p></li>
-        <li class="card"><span class="num">3</span><h3>Old record on the new scale</h3><p>MODIS months before 2012 become <em>VIIRS-equivalent hotspots</em> with an error range. Each month is then compared with the same month in other years.</p></li>
+        <li class="card"><span class="num">1</span><h3>Overlap years</h3><p>From 2012 both sensors watched the same fires: MODIS on Aqua and VIIRS on S-NPP pass at the same time of day.</p></li>
+        <li class="card"><span class="num">2</span><h3>Conversion factor</h3><p>For each country and calendar month we measure VIIRS hotspots per MODIS hotspot; small areas lean on the country value: k = (V + λ·k<sub>country</sub>) / (M + λ).</p></li>
+        <li class="card"><span class="num">3</span><h3>Old record on the new scale</h3><p>MODIS months before 2012 become VIIRS-equivalent hotspots with an error range, then each month is compared with its usual.</p></li>
       </ol>
-      <div class="card why"><h3>Methods compared</h3><div id="why-table" class="scroll-x"></div></div>
-      <div class="card arch">
-        <h3>Data flow and the 2003 start</h3>
-        <p>History (2003 → last month) comes from NASA FIRMS yearly archive files and the FIRMS API, rebuilt automatically every month. The newest days come from the FIRMS API every 3 hours. <span class="term" data-term="api">Why not fetch 20 years on every click?</span></p>
-        <p>The record starts in 2003 because we use MODIS on Aqua only: Aqua's first full year is 2003, and it crosses at the same afternoon time as VIIRS, so the two sensors see the same fires at the same hour. Adding Terra (from 2000/2001) is a next step.</p>
-        <p>S-NPP stopped on 2 Nov 2026. Live data come from NOAA-20 (same VIIRS instrument), converted to the S-NPP scale with a measured factor (×<span data-k-jn>0.97</span>).</p>
-      </div>
+      <p class="fine">Why 2003? We use MODIS on Aqua only: its first full year is 2003 and it crosses at the same afternoon time as VIIRS. Live data come from NOAA-20 since S-NPP stopped (2 Nov 2026), × <span data-k-jn>0.97</span>.</p>
     </div>
   </section>
   <section id="limits">
@@ -384,14 +343,10 @@ BODY = {
       <h2>Limits</h2>
       <div class="kpi-grid" id="unc-kpis"></div>
       <ul class="limits card">
-        <li><strong>Hotspots are not fires</strong> and not burned area. One big fire makes many hotspots.</li>
-        <li><strong>Clouds and smoke hide fires.</strong> Small or short fires are missed, MODIS more than VIIRS.</li>
-        <li><strong>Values before 2012 are estimates</strong> from MODIS on the VIIRS scale, shown with an error range. Small areas have wider ranges.</li>
-        <li><strong>Outages and orbit drift.</strong> Old satellites drift in orbit; the VIIRS/MODIS ratio is checked year by year.</li>
-        <li><strong>S-NPP stopped on 2 Nov 2026.</strong> Live data come from NOAA-20 (same VIIRS instrument), converted to the S-NPP scale with a measured factor.</li>
-        <li><strong>Near-real-time and standard data differ slightly.</strong> Recent months use near-real-time data until NASA's standard data replace them.</li>
-        <li><strong>Not every hotspot is a wildfire.</strong> Farm burning, gas flares, industry and, in conflict areas, explosions or burning buildings can create hotspots. The static-source filter can make mistakes.</li>
-        <li><strong>Coverage:</strong> Portugal, Spain, Greece, Türkiye, Cyprus, Lebanon, Jordan and Palestine (outlined on the map).</li>
+        <li><strong>Hotspots are not fires</strong> and not burned area; clouds and smoke hide fires.</li>
+        <li><strong>Values before 2012 are estimates</strong> from MODIS, shown with an error range (wider for small areas).</li>
+        <li><strong>Not every hotspot is a wildfire:</strong> farm burning, gas flares, industry and, in conflict areas, explosions.</li>
+        <li><strong>Harmonized history covers</strong> Portugal, Spain, Greece, Türkiye, Cyprus, Lebanon, Jordan and Palestine; elsewhere, live data only.</li>
         <li><strong>Latency is hours. This is not an emergency service.</strong></li>
       </ul>
     </div>
@@ -403,6 +358,10 @@ BODY = {
       <h2>Team Astro Byte</h2>
       <div class="team" id="team-grid">""" + TEAM_HTML + """</div>
       <p class="fine">NASA Space Apps Challenge 2026 · local event by NOVA · Challenge: Harmonization of MODIS and VIIRS Hot Spots.</p>
+
+      <h2>How we validated</h2>
+      <div class="kpi-grid" id="about-val"></div>
+      <p class="fine">Test years 2022–2025 were held out from model building. Details: <a data-nav href="validation/">Validation</a>.</p>
 
       <h2>Data acknowledgment</h2>
       <p class="ack">We acknowledge the use of data and/or imagery from NASA's Fire Information for Resource Management System (FIRMS) (<a href="https://earthdata.nasa.gov/firms">https://earthdata.nasa.gov/firms</a>), part of NASA's Land, Atmosphere Near real-time Capability for Earth observations (LANCE) (<a href="https://earthdata.nasa.gov/lance">https://earthdata.nasa.gov/lance</a>) and NASA's Earth Science Data and Information System (ESDIS).</p>

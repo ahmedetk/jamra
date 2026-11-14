@@ -39,6 +39,11 @@ Site checks (JavaScript errors, downloads, phone layout): `npm i puppeteer-core`
 `FIRMS_MAP_KEY` lives only in GitHub → Settings → Secrets and variables → Actions (and as a Worker
 secret). Locally it is read from `../secrets.txt`, outside the repository. Never commit keys.
 
+## Why counts and not FRP
+We tested whether summed fire radiative power (FRP) is more stable between VIIRS and MODIS than hotspot counts.
+It is not: the year-to-year variation of the VIIRS/MODIS ratio is 0.57 for FRP vs 0.40 for counts, and FRP was
+more stable in only 1 of 5 countries (data/processed/model_report.json, frp_test). So the calendar uses counts.
+
 ## Data and credits
 We acknowledge the use of data and/or imagery from NASA's Fire Information for Resource Management
 System (FIRMS) (https://earthdata.nasa.gov/firms), part of NASA's Land, Atmosphere Near real-time

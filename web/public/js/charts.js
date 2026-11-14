@@ -88,7 +88,7 @@ export function heroChart(container, { years, raw, harm, modisAqua, viirs, modis
   else line(modisConverted, INK, '6 4');
   container.append(mode === 'raw'
     ? legend([['box', LIGHT, 'MODIS Aqua (until 2011)'], ['box', ORANGE, 'VIIRS S-NPP (from 2012)'], ['dash', INK, 'MODIS Aqua, same years (for comparison)']])
-    : legend([['hatch', LIGHT, 'estimated from MODIS'], ['box', ORANGE, 'observed by VIIRS'], ['dash', INK, 'MODIS converted (overlap years)']]), root);
+    : legend([['hatch', LIGHT, 'estimated from MODIS'], ['box', ORANGE, 'observed by VIIRS'], ['dash', INK, 'Validation: harmonized MODIS vs VIIRS, 2012–2025']]), root);
 }
 
 /** Bars for one calendar month across years, with median line and 25–75% band. */

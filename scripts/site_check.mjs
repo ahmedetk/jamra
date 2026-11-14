@@ -73,6 +73,44 @@ for (const [w, h, mobile, tag] of [[1440, 900, false, 'desktop 1440'], [390, 844
     await p.close();
   }
 }
+// ---- feature checks (desktop)
+console.log('\n== features');
+{
+  const { p } = await open('calendar/', 1440, 900, false);
+  const f = await p.evaluate(async () => {
+    const r = {};
+    r.toYear = document.querySelector('#to-year').value;
+    r.palettes = [...document.querySelectorAll('#palette option')].map((o) => o.value).join(',');
+    r.kpis = document.querySelectorAll('#kpi-grid .kpi').length;
+    r.kpiTitles = [...document.querySelectorAll('#kpi-grid .k')].map((k) => k.textContent).join(' | ');
+    r.season = document.querySelectorAll('#season svg circle').length;
+    const total = () => document.querySelectorAll('#kpi-grid .kpi')[4]?.querySelector('.v')?.textContent;
+    r.totalOn = total();
+    document.querySelector('#static-filter').click(); await new Promise((x) => setTimeout(x, 800));
+    r.totalOff = total();
+    document.querySelector('#static-filter').click(); await new Promise((x) => setTimeout(x, 400));
+    document.querySelector('[data-res=week]').click(); await new Promise((x) => setTimeout(x, 1200));
+    r.weekCells = document.querySelectorAll('#cal .cell').length;
+    document.querySelector('[data-res=month]').click();
+    document.querySelector('[data-hero=harm]').click(); await new Promise((x) => setTimeout(x, 600));
+    r.validationLabel = /Validation: harmonized MODIS vs VIIRS, 2012–2025/.test(document.querySelector('#yearly').textContent);
+    return r;
+  });
+  console.log(JSON.stringify(f, null, 1));
+  if (f.toYear !== '2026') fail('default To year is ' + f.toYear);
+  if (!/ember/.test(f.palettes) || !/viridis/.test(f.palettes) || !/cividis/.test(f.palettes) || !/ylorrd/.test(f.palettes)) fail('palette options ' + f.palettes);
+  if (f.kpis < 4) fail('KPI cards ' + f.kpis);
+  if (!(f.season > 5)) fail('season chart has no dots');
+  if (f.totalOn === f.totalOff) fail('gas-flare filter did not change the total');
+  if (!(f.weekCells > 500)) fail('weeks view cells ' + f.weekCells);
+  if (!f.validationLabel) fail('validation label missing on the yearly chart');
+  await p.close();
+  const o = await open('calendar/?bbox=-100,30,-99,31', 1440, 900, false);
+  const out = await o.p.evaluate(() => ({ cls: document.body.classList.contains('outside-coverage'), msg: document.querySelector('.outside')?.textContent || '', calVisible: !!document.querySelector('#calendar')?.offsetParent }));
+  console.log('outside area:', JSON.stringify(out));
+  if (!out.cls || !/Harmonized history covers PT, ES, GR, TR, CY, LB, JO, PS\. Outside these, live data only/.test(out.msg) || out.calVisible) fail('outside-coverage message / hidden calendar');
+  await o.p.close();
+}
 await browser.close();
 console.log(failed ? `\n${failed} problem(s)` : '\nAll site checks passed.');
 process.exit(failed ? 1 : 0);

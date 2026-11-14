@@ -1,12 +1,12 @@
 // Jamra main app. Written with the help of an AI coding assistant (Claude Code by Anthropic), following Team Astro Byte's design.
 import { $, $$, el, svg, fmt, fmtInt, pct, MONTHS, MONTHS_LONG, store, downloadBlob, toCSV, debounce, circleRing, boxRing, ordinal, pointInRing, ringBBox, haversineKm } from './util.js';
 import { BASE, getJSON, loadArea, customArea, monthlyValues, monthLabel, monthIndex } from './data.js';
-import { heroChart, monthBars, scatter, errorBars, driftChart } from './charts.js';
+import { heroChart, monthBars } from './charts.js';
 import { renderCalendar, CAT_TEXT } from './calendar.js';
 import { initMap, showArea, showLive, startDraw, clearDraw, webglOK, softwareGL, flyToGlobe } from './map.js';
 import { loadLive, loadStatus, renderBadge, renderAlerts, renderStatusPanel, areaWarning, fetchLive, renderTable, downloadLiveCSV, LEVEL_LABEL, liveState, periodText } from './live.js';
 import { downloadSummary } from './summary.js';
-import { renderValidation, renderLimits } from './pages.js';
+import { renderKeyNumbers, renderLimits } from './pages.js';
 import { baseline, percentileRank, category, CAT_LABEL, seasonStart, theilSen, mannKendall } from './stats.js';
 
 const TEAM = [
@@ -29,7 +29,7 @@ const TERMS = {
 };
 
 const state = {
-  areaId: 'greece', custom: null, from: 2003, to: 2025, sel: null, mode: 'abs', res: 'month',
+  areaId: 'greece', custom: null, from: 2003, to: null, sel: null, mode: 'abs', res: 'month',
   palette: 'ember', staticFilter: true, hero: 'raw', liveWin: 1,
 };
 let meta, report, site, live, status, area, monthly, years;
@@ -52,7 +52,7 @@ const tip = {
 // ---------------------------------------------------------------- state <-> URL
 function readURL() {
   const p = new URLSearchParams(location.search);
-  const saved = store.get('jamra-state-v4', {});
+  const saved = store.get('jamra-state-v5', {});
   Object.assign(state, saved);
   if (p.get('area')) { state.areaId = p.get('area'); state.custom = null; }
   if (p.get('from')) state.from = +p.get('from');
@@ -85,8 +85,9 @@ const writeURL = debounce(() => {
   const own = PAGE === 'home' ? new URLSearchParams([...p].filter(([k]) => ['area', 'from', 'to', 'poly'].includes(k))) : p;
   history.replaceState(null, '', `${location.pathname}?${own}`);
   updateNavLinks(p);
-  const { custom, ...rest } = state;
-  store.set('jamra-state-v4', { ...rest, custom: null });
+  // remember display preferences only; the area, years and month live in the link (a plain visit opens through the current year)
+  const { custom, from, to, sel, openDetail, areaId, ...rest } = state;
+  store.set('jamra-state-v5', rest);
 }, 200);
 
 function updateNavLinks(p) {
@@ -119,9 +120,11 @@ async function boot() {
   if (site.repo && has('#repo-link')) $('#repo-link').href = site.repo;
   const lastYear = +meta.data_through.slice(0, 4) - (meta.data_through.slice(5, 7) === '12' ? 0 : 1);
   years = []; for (let y = +meta.start.slice(0, 4); y <= +meta.data_through.slice(0, 4); y++) years.push(y);
-  state.from = Math.max(years[0], Math.min(state.from, lastYear));
-  state.to = Math.min(lastYear, Math.max(state.to || lastYear, state.from));
+  const dataYear = +meta.data_through.slice(0, 4);   // the current year, through the latest month
+  state.from = Math.max(years[0], Math.min(state.from, dataYear));
+  state.to = Math.min(dataYear, Math.max(state.to || dataYear, state.from));
   state.lastFullYear = lastYear;
+  state.dataYear = dataYear;
   if (!meta.areas.some((a) => a.id === state.areaId)) state.areaId = 'greece';
   updateNavLinks();
   buildPickers();
@@ -136,8 +139,7 @@ async function boot() {
       io.observe($('#map'));
     } else if (document.readyState === 'complete') start(); else addEventListener('load', start, { once: true });
   }
-  if (PAGE === 'home') { if (!new URLSearchParams(location.search).get('area')) { state.areaId = 'greece'; state.custom = null; } }
-  if (['home', 'calendar', 'live'].includes(PAGE)) await selectArea(state.custom ? null : state.areaId, state.custom);
+  if (['calendar', 'live'].includes(PAGE)) await selectArea(state.custom ? null : state.areaId, state.custom);
   await refreshLive();
   setInterval(refreshLive, 10 * 60 * 1000);
   if (PAGE === 'home') homeExtras();
@@ -159,7 +161,7 @@ function homeExtras() {
   if (v && has('#big-err')) {
     const tc = v.test_countries, cc = v.confusion_countries.harmonized;
     $('#big-err').textContent = `${pct(tc.M0.mdape)} → ${pct(tc[report.chosen_model].mdape)}`;
-    $('#big-err-text').textContent = `Typical monthly error, raw MODIS → harmonized, on test years ${v.test_years[0]}–${v.test_years[v.test_years.length - 1]} that the model never saw. High-activity months found: ${cc.hits} of ${cc.hits + cc.misses}.`;
+    $('#big-hits').textContent = `${cc.hits} of ${cc.hits + cc.misses}`;
   }
   // the 3D Earth: real Blue Marble texture, real FIRMS hotspots; drag to turn it
   if (!has('#globe') || !webglOK() || softwareGL() || (navigator.connection && navigator.connection.saveData)) return;
@@ -275,7 +277,7 @@ function activateTab(t) {
 }
 
 function buildControls() {
-  const fill = (sel, val) => { sel.innerHTML = ''; years.filter((y) => y <= state.lastFullYear).forEach((y) => sel.append(el('option', { value: y, text: y, selected: y === val }))); };
+  const fill = (sel, val) => { sel.innerHTML = ''; years.filter((y) => y <= state.dataYear).forEach((y) => sel.append(el('option', { value: y, text: y, selected: y === val }))); };
   if (has('#from-year')) { fill($('#from-year'), state.from); fill($('#to-year'), state.to); }
   on('#from-year', 'change', (e) => { state.from = Math.min(+e.target.value, state.to); e.target.value = state.from; update(); });
   on('#to-year', 'change', (e) => { state.to = Math.max(+e.target.value, state.from); e.target.value = state.to; update(); });
@@ -425,6 +427,7 @@ function renderAreaInfo() {
   box.append(el('table', { class: 'info-table' }, el('tbody', {},
     row('Area', name), row('Type', kind), row('Conversion', `1 MODIS ≈ ${fmt(f.k, 2)} VIIRS`), row('Uncertainty', `±${Math.round((areaUnc() || 0) * 100)}% per month`))));
   if (['Palestine', 'Lebanon'].includes(area.country)) box.append(el('p', { class: 'msg', text: 'Conflict area 2023–2025: some hotspots may not be fires.' }));
+  document.body.classList.remove('outside-coverage');
   if (area.kind === 'custom') coverageNote(box);
 }
 
@@ -446,8 +449,10 @@ async function coverageNote(box) {
   });
   const msg = inside
     ? 'No hotspots were recorded here in 2003–2025.'
-    : 'This area is outside our archive: Portugal, Spain, Greece, Türkiye, Cyprus, Lebanon, Jordan and Palestine (dashed outline on the map).';
+    : 'Harmonized history covers PT, ES, GR, TR, CY, LB, JO, PS. Outside these, live data only.';
+  if (!inside) document.body.classList.add('outside-coverage');
   const note = el('div', { class: 'outside', role: 'status' }, el('b', { text: msg }));
+  if (!inside && PAGE === 'calendar') note.append(' ', el('a', { href: `${BASE}live/`, 'data-nav': '', text: 'Open Live Data for this area' }));
   if (!inside && best) note.append(el('br'), el('button', { type: 'button', class: 'btn small', text: `Show the nearest covered area: ${best.a.label}`, onclick: () => selectArea(best.a.id) }));
   box.append(note);
 }
@@ -726,8 +731,8 @@ async function downloadCalendarPNG() {
 // ---------------------------------------------------------------- static report sections
 function renderStatic() {
   if (has('#team-grid') && !$('#team-grid').children.length) renderTeam();
-  if (has('#why-table')) renderWhy();
-  if (has('#val-kpis')) renderValidationPage();
+  if (has('#test-kpis')) renderKeyNumbers(report, $('#test-kpis'), { full: true, split: $('#split-text') });
+  if (has('#about-val')) renderKeyNumbers(report, $('#about-val'), { full: false });
   if (has('#unc-kpis')) renderLimits(report, meta);
 }
 
@@ -736,64 +741,6 @@ function renderTeam() {
   const tg = $('#team-grid');
   TEAM.forEach(([n, r]) => tg.append(el('div', { class: 'member' }, el('b', { text: n }), el('span', { text: r }))));
 }
-
-function renderWhy() {
-  const cv = report.cv;
-  const order = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5'];
-  const t = el('table', {}, el('thead', {}, el('tr', {}, ...['Approach', 'Monthly error (MAE)', 'Typical % error', 'Test years: % error', 'Total bias', 'Verdict'].map((h) => el('th', { scope: 'col', text: h })))));
-  const tb = el('tbody');
-  const verdict = {
-    M0: 'Shows the problem: VIIRS-era counts look much higher.', M1: 'Simple, but ignores country differences.', M2: 'Simple and fair per country.',
-    M3: 'Adds seasons; leans on the country value when a month has few fires.', M4: 'Curved fit; can drift at the extremes.', M5: 'Matches distributions; needs many years.',
-  };
-  order.forEach((m) => {
-    const r = cv[m].monthly;
-    tb.append(el('tr', { class: m === report.chosen_model ? 'chosen' : '' },
-      el('td', { text: `${m}: ${report.model_labels[m]}${m === report.chosen_model ? ' ✓ chosen' : ''}` }),
-      el('td', { text: fmt(r.mae, 1) }), el('td', { text: pct(r.mdape) }), el('td', { text: pct(report.validation?.test_countries?.[m]?.mdape) }), el('td', { text: pct(r.bias, 1) }), el('td', { text: verdict[m] })));
-  });
-  tb.append(el('tr', {}, el('td', { text: 'Use VIIRS only' }), el('td', { text: '–' }), el('td', { text: '–' }), el('td', { text: '–' }), el('td', { text: '–' }), el('td', { text: 'Honest but throws away 2003–2011, nine years of history (including Greece 2007).' })));
-  t.append(tb);
-  $('#why-table').append(t, el('p', { class: 'fine', text: report.choice_reason + ' Monthly error and typical % error: leave-one-year-out cross-validation on ' + report.calibration.years.join(', ') + '. Test years: model fitted on ' + (report.validation?.dev_years || []).join(', ') + ' only, scored on ' + (report.validation?.test_years || []).join(', ') + '.' }));
-
-}
-
-function renderValidationPage() {
-  const order = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5'];
-  const cv = report.cv;
-  renderValidation(report, meta, tip);
-  scatter($('#scatter'), { points: report.scatter, tip });
-  $('#scatter-cap').textContent = 'Dark dots: harmonized MODIS. Light grey: raw MODIS. Dashed line: perfect agreement. Each dot is one country-month in a hidden year.';
-  const tc = report.validation.test_countries;
-  errorBars($('#err-bars'), {
-    rows: order.map((m) => ({ id: m, label: `${m} ${({ M0: 'raw MODIS', M1: 'one ratio', M2: 'per country', M3: 'country × month', M4: 'log-log', M5: 'quantile map' })[m]}`, value: tc[m].mdape, text: pct(tc[m].mdape) })),
-    chosen: report.chosen_model, metricLabel: 'Typical % error on test years',
-  });
-  $('#err-cap').textContent = `Typical (median) % error per country-month in the test years ${report.validation.test_years.join(', ')} (months with at least 10 VIIRS hotspots). Raw MODIS: ${pct(tc.M0.mdape)} → harmonized (${report.chosen_model}): ${pct(tc[report.chosen_model].mdape)}.`;
-  const vk = $('#val-kpis');
-  const ca = report.colour_agreement;
-  const kp = (k, v, d) => vk.append(el('div', { class: 'kpi' }, el('div', { class: 'k', text: k }), el('div', { class: 'v', text: v }), el('div', { class: 'd', text: d })));
-  kp('Calendar colours agree', `${fmt(ca.same_colour_pct, 0)}%`, `Same anomaly colour from harmonized MODIS as from real VIIRS (${fmtInt(ca.months)} country-months). Raw MODIS: ${fmt(ca.without_harmonization_pct, 0)}%.`);
-  kp('Uncertainty', `±${Math.round(report.uncertainty.monthly_rel * 100)}%`, `on a country-month · ±${Math.round(report.uncertainty.annual_rel * 100)}% on a year · ±${Math.round(report.uncertainty.small_regions_rel * 100)}% for small areas (test years)`);
-  const fr = report.frp_test;
-  kp('FRP test', fr.validated ? 'Passed' : 'Not supported', `Is summed fire heat (FRP) more stable between sensors than counts? Variation of the ratio: FRP ${fmt(fr.pooled_cv_frp_ratio, 2)} vs counts ${fmt(fr.pooled_cv_count_ratio, 2)}. ${fr.validated ? 'FRP could be offered.' : 'So the calendar uses counts.'}`);
-  const jn = report.noaa20_to_snpp;
-  kp('NOAA-20 → S-NPP scale', `×${fmt(jn.global, 2)}`, `Live counts come from NOAA-20 since S-NPP stopped (2 Nov 2026) and are multiplied by this factor to stay on the S-NPP scale. Measured on ${fmtInt(jn.months_used)} country-months, 2018–2025.`);
-  const ref = median(report.drift.filter((d) => d.ratio_N_over_A && d.months >= 10).map((d) => d.ratio_N_over_A));
-  driftChart($('#drift'), { drift: report.drift, ref, tol: 0.15, tip });
-  $('#drift-cap').textContent = `Each dot = one year's VIIRS S-NPP ÷ MODIS Aqua hotspots (8 countries). ${report.calibration.rule} The headline ${meta.viirs_vs_modis_ratio.toFixed(1)}× pools all hotspots of the calibration years instead of taking the median year. Filled dots = years used to calibrate. MODIS satellites have been drifting in orbit in recent years, so the ratio can shift; we check it every year.`;
-  // where it struggles: per-country error
-  const per = {};
-  report.scatter.forEach((p) => { if (p.V >= 10) { (per[p.c] = per[p.c] || []).push(Math.abs(p.P - p.V) / p.V); } });
-  const rows = Object.entries(per).map(([c, e]) => [c, median(e), e.length]).sort((a, b) => b[1] - a[1]);
-  const st = $('#struggle');
-  st.append(el('p', { text: 'Typical monthly error by country (months with 10+ VIIRS hotspots). Small countries have few fires, so errors are larger there.' }));
-  st.append(el('table', { class: 'table' }, el('thead', {}, el('tr', {}, el('th', { text: 'Country' }), el('th', { text: 'Typical error' }), el('th', { text: 'Months' }))),
-    el('tbody', {}, ...rows.map(([c, e, n]) => el('tr', {}, el('td', { text: c === 'Turkey' ? 'Türkiye' : c }), el('td', { text: pct(e) }), el('td', { text: n }))))));
-  if (report.outages.length) st.append(el('p', { class: 'fine', text: `Outage months detected and excluded from calibration: ${report.outages.map((o) => `${o.month} (${o.sensor === 'N' ? 'S-NPP' : o.sensor === 'A' ? 'Aqua' : 'NOAA-20'})`).join(', ')}.` }));
-}
-
-function median(xs) { const s = [...xs].sort((a, b) => a - b); const n = s.length; return n ? (n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2) : null; }
 
 // test hook (used by our automated checks): renders the summary without downloading
 window.__jamraSummaryTest = async () => { const m = await import('./summary.js'); const cv = m.drawSummary(summaryCtx()); const url = cv.toDataURL('image/png'); window.__jamraSummaryURL = url; return [cv.width, cv.height, url.length]; };

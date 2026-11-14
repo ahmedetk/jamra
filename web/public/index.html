@@ -67,34 +67,13 @@
     <p class="img-credit">Map: Natural Earth · Hotspots: NASA FIRMS</p>
   </section>
 
-  <section id="problem">
-    <div class="wrap">
-      <div class="card">
-        <div class="chart-head">
-          <h2 id="problem-title">VIIRS records <span data-k-global>6.2×</span> as many hotspots as MODIS in the same months</h2>
-        </div>
-        <div class="chart-controls row">
-          <label class="sr" for="hero-area">Area</label>
-          <select id="hero-area" aria-label="Area for the chart"></select>
-          <div class="seg" role="group" aria-label="Record type">
-            <button type="button" class="seg-btn" data-hero="raw" aria-pressed="true">Raw (stitched)</button>
-            <button type="button" class="seg-btn" data-hero="harm" aria-pressed="false">Harmonized</button>
-          </div>
-        </div>
-        <h3 id="hero-title" class="h4">Yearly hotspots</h3>
-        <div id="hero-chart" class="chart" role="img" aria-label="Yearly hotspot chart"></div>
-        <p id="hero-caption" class="caption"></p>
-      </div>
-    </div>
-  </section>
-
   <section id="works">
     <div class="wrap">
       <a class="works card" data-nav href="validation/">
         <span class="works-k">Does it work?</span>
-        <span class="works-n" id="big-err">87% → 40%</span>
-        <span class="works-t" id="big-err-text">Typical monthly error, raw MODIS → harmonized, on test years the model never saw.</span>
-        <span class="go">See the validation <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+        <span class="works-num"><b id="big-err">87% → 40%</b><small>monthly error, raw → harmonized</small></span>
+        <span class="works-num"><b id="big-hits">82 of 121</b><small>high-fire months found</small></span>
+        <span class="go">Validation <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
       </a>
     </div>
   </section>
