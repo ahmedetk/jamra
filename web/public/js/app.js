@@ -746,6 +746,15 @@ function renderTeam() {
   TEAM.forEach(([n, r]) => tg.append(el('div', { class: 'member' }, el('b', { text: n }), el('span', { text: r }))));
 }
 
+// draw a heavy chart only when it scrolls near the screen (fast first load on phones; space is reserved, no layout shift)
+function whenVisible(sel, fn) {
+  const n = $(sel);
+  if (!n) return;
+  if (!('IntersectionObserver' in window)) { fn(); return; }
+  const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); fn(); } }, { rootMargin: '300px' });
+  io.observe(n);
+}
+
 function renderWhy() {
   const cv = report.cv;
   const order = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5'];
@@ -771,13 +780,13 @@ function renderValidationPage() {
   const order = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5'];
   const cv = report.cv;
   renderValidationDetails(report, meta);
-  scatter($('#scatter'), { points: report.scatter, tip });
+  whenVisible('#scatter', () => scatter($('#scatter'), { points: report.scatter, tip }));
   $('#scatter-cap').textContent = 'Dark dots: harmonized MODIS. Light gray: raw MODIS. Dashed line: perfect agreement. Each dot is one country-month in a hidden year.';
   const tc = report.validation.test_countries;
-  errorBars($('#err-bars'), {
+  whenVisible('#err-bars', () => errorBars($('#err-bars'), {
     rows: order.map((m) => ({ id: m, label: `${m} ${({ M0: 'raw MODIS', M1: 'one ratio', M2: 'per country', M3: 'country × month', M4: 'log-log', M5: 'quantile map' })[m]}`, value: tc[m].mdape, text: pct(tc[m].mdape) })),
     chosen: report.chosen_model, metricLabel: 'Typical % error on test years',
-  });
+  }));
   $('#err-cap').textContent = `Typical (median) % error per country-month in the test years ${report.validation.test_years.join(', ')} (months with at least 10 VIIRS hotspots). Raw MODIS: ${pct(tc.M0.mdape)} → harmonized (${report.chosen_model}): ${pct(tc[report.chosen_model].mdape)}.`;
   const vk = $('#val-kpis');
   const ca = report.colour_agreement;
@@ -788,7 +797,7 @@ function renderValidationPage() {
   const jn = report.noaa20_to_snpp;
   kp('NOAA-20 → S-NPP scale', `×${fmt(jn.global, 2)}`, `Live counts come from NOAA-20 since S-NPP stopped (2 Nov 2026) and are multiplied by this factor to stay on the S-NPP scale. Measured on ${fmtInt(jn.months_used)} country-months, 2018–2025.`);
   const ref = median(report.drift.filter((d) => d.ratio_N_over_A && d.months >= 10).map((d) => d.ratio_N_over_A));
-  driftChart($('#drift'), { drift: report.drift, ref, tol: 0.15, tip });
+  whenVisible('#drift', () => driftChart($('#drift'), { drift: report.drift, ref, tol: 0.15, tip }));
   $('#drift-cap').textContent = `Each dot = one year's VIIRS S-NPP ÷ MODIS Aqua hotspots (8 countries). ${report.calibration.rule} The headline ${meta.viirs_vs_modis_ratio.toFixed(1)}× pools all hotspots of the calibration years instead of taking the median year. Filled dots = years used to calibrate. MODIS satellites have been drifting in orbit in recent years, so the ratio can shift; we check it every year.`;
   // where it struggles: per-country error
   const per = {};

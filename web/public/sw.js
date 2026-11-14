@@ -3,7 +3,7 @@
 // in their URL (?v=), so a page and its code always come from the same build.
 // History data, map library and map tiles: cache first, refreshed in the background.
 // Written with the help of an AI coding assistant (Claude Code by Anthropic).
-const BID = '202611140509';   // build id, written by scripts/build_pages.py on every build
+const BID = '202611140529';   // build id, written by scripts/build_pages.py on every build
 const VERSION = 'jamra-' + BID;
 // code files carry the build id (?v=), exactly as the pages request them, so pages and code always match
 const CODE = ['css/app.css', 'js/app.js', 'js/util.js', 'js/data.js', 'js/stats.js', 'js/colors.js', 'js/charts.js', 'js/calendar.js',
