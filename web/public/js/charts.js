@@ -3,7 +3,7 @@
 import { svg, fmt, fmtInt, MONTHS_LONG } from './util.js';
 import { quantile } from './stats.js';
 
-const INK = '#0B1D51', MUTED = '#475569', LINE = '#E2E8F0', EMBER = '#FF6A2B', BLUE = '#1F4FD8', GREY = '#94A3B8', SKY = '#3FA9F5';
+const INK = '#2B2F36', MUTED = '#5C626B', LINE = '#E1E3E7', EMBER = '#D9733A', BLUE = '#4A6785', GREY = '#8A9099', SKY = '#A9BCCD';
 
 export function niceTicks(max, count = 5) {
   if (!(max > 0)) return [0, 1];

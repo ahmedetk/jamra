@@ -1,6 +1,6 @@
 """Make the Jamra logo files, PWA icons, favicon and og-image (rendered with Edge headless).
 
-Logo: a flat ember flame with one orbit ring. Two versions: white ring on blue, navy ring on white.
+Logo: a flat ember flame with one orbit ring. Two versions: white ring on charcoal, charcoal ring on white.
 Usage: python scripts/make_brand.py
 Written with the help of an SI coding assistant (Claude Code).
 """
@@ -37,7 +37,7 @@ def render(name, html, w, h):
 def icon_page(size, inset, radius):
     m = int(size * (1 - 2 * inset))
     return f"""<html><body style="margin:0;width:{size}px;height:{size}px;overflow:hidden">
-<div style="width:{size}px;height:{size}px;border-radius:{radius}px;background:#111827;display:grid;place-items:center">
+<div style="width:{size}px;height:{size}px;border-radius:{radius}px;background:#2B2F36;display:grid;place-items:center">
 {mark_svg('#FFFFFF', m)}</div></body></html>"""
 
 
@@ -45,11 +45,11 @@ def main():
     ICONS.mkdir(parents=True, exist_ok=True)
     # scalable files
     (ICONS / "logo-on-blue.svg").write_text(
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="10" fill="#0B1D51"/>'
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="10" fill="#2B2F36"/>'
         + mark_svg("#FFFFFF", 48).split(">", 1)[1].replace("</svg>", "") + "</svg>", encoding="utf-8")
     (ICONS / "logo-on-white.svg").write_text(
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">'
-        + mark_svg("#0B1D51", 48).split(">", 1)[1].replace("</svg>", "") + "</svg>", encoding="utf-8")
+        + mark_svg("#2B2F36", 48).split(">", 1)[1].replace("</svg>", "") + "</svg>", encoding="utf-8")
     (ICONS / "icon.svg").write_text((ICONS / "logo-on-blue.svg").read_text(encoding="utf-8"), encoding="utf-8")
     render("icon-192.png", icon_page(192, 0.1, 40), 192, 192)
     render("icon-512.png", icon_page(512, 0.1, 108), 512, 512)
@@ -58,14 +58,14 @@ def main():
     og = f"""<html><head><style>
 @font-face {{ font-family: J; src: url('{FONT}/plus-jakarta-sans-latin-800-normal.woff2'); font-weight: 800; }}
 @font-face {{ font-family: I; src: url('{FONT}/inter-latin-400-normal.woff2'); }}
-</style></head><body style="margin:0;width:1200px;height:630px;overflow:hidden;background:#0B0F1A;color:#fff;font-family:I,sans-serif;position:relative">
+</style></head><body style="margin:0;width:1200px;height:630px;overflow:hidden;background:linear-gradient(120deg,#1F2328,#2B2F36);color:#fff;font-family:I,sans-serif;position:relative">
 <div style="position:absolute;left:80px;top:80px;display:flex;align-items:center;gap:18px;font:800 54px J">{mark_svg('#FFFFFF', 80)}Jamra</div>
 <div style="position:absolute;left:80px;top:220px;width:700px;font:800 54px/1.12 J">Did fires really increase — or did our satellites get sharper eyes?</div>
-<img src="EARTH" style="position:absolute;right:-120px;top:40px;width:560px;height:560px"><div style="position:absolute;left:80px;top:480px;font-size:26px;color:#CBD5E1">20+ years of NASA MODIS + VIIRS fire data in one fair calendar · Data: NASA FIRMS</div>
+<img src="EARTH" style="position:absolute;right:-120px;top:40px;width:560px;height:560px"><div style="position:absolute;left:80px;top:480px;font-size:26px;color:#D1D5DB">20+ years of NASA MODIS + VIIRS fire data in one fair calendar · Data: NASA FIRMS</div>
 </body></html>"""
     og = og.replace("EARTH", (PUB / "img" / "earth-blue-marble.png").as_uri())
     render("og-image.png", og, 1200, 630)
-    for nm, ring in (("logo-white-256.png", "#FFFFFF"), ("logo-navy-256.png", "#0B1D51")):
+    for nm, ring in (("logo-white-256.png", "#FFFFFF"), ("logo-navy-256.png", "#2B2F36")):
         render(nm, f'<html><body style="margin:0;background:transparent;width:256px;height:256px">{mark_svg(ring, 256)}</body></html>', 256, 256)
 
 

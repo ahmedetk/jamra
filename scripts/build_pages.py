@@ -13,8 +13,8 @@ def logo(ring="#FFFFFF", size=34):
     """Flat Jamra mark: an ember flame with one orbit ring."""
     return (f'<svg viewBox="0 0 48 48" width="{size}" height="{size}" aria-hidden="true">'
             f'<ellipse cx="24" cy="28" rx="21" ry="8.5" transform="rotate(-20 24 28)" fill="none" stroke="{ring}" stroke-width="2.6" opacity=".9"/>'
-            '<path d="M24 5c2.6 6.6 10.5 10.6 10.5 20.4A10.5 10.5 0 0 1 13.5 25.4c0-5.6 2.8-8.6 4.7-11.4 1 3.6 2.6 5.4 4.8 5.6-1.6-5.6 0-10.6 1-14.6z" fill="#FF6A2B"/>'
-            '<path d="M24 20.5c1.4 3 4.8 4.7 4.8 8.6a4.8 4.8 0 0 1-9.6 0c0-2.2 1.2-3.6 2-4.6.5 1.4 1.2 2.2 2 2.2-.6-2.4.2-4.4.8-6.2z" fill="#FFD3B8"/>'
+            '<path d="M24 5c2.6 6.6 10.5 10.6 10.5 20.4A10.5 10.5 0 0 1 13.5 25.4c0-5.6 2.8-8.6 4.7-11.4 1 3.6 2.6 5.4 4.8 5.6-1.6-5.6 0-10.6 1-14.6z" fill="#F28C4B"/>'
+            '<path d="M24 20.5c1.4 3 4.8 4.7 4.8 8.6a4.8 4.8 0 0 1-9.6 0c0-2.2 1.2-3.6 2-4.6.5 1.4 1.2 2.2 2 2.2-.6-2.4.2-4.4.8-6.2z" fill="#FDE6D6"/>'
             '</svg>')
 
 
@@ -377,7 +377,7 @@ def page(slug, label, title):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 <meta name="description" content="Jamra harmonizes 20+ years of NASA MODIS and VIIRS active-fire hotspots into one fair burning activity calendar, with live early warning from NASA FIRMS.">
-<meta name="theme-color" content="#111827">
+<meta name="theme-color" content="#2B2F36">
 <meta property="og:title" content="Jamra · one fair fire record from two satellites">
 <meta property="og:description" content="20+ years of NASA MODIS and VIIRS fire data in one fair calendar, with live early warning.">
 <meta property="og:image" content="https://ahmedetk.github.io/jamra/icons/og-image.png">

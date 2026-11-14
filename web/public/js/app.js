@@ -623,9 +623,9 @@ function renderSeason() {
   const s = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Season start month by year' });
   const x = (y) => mL + ((y - ys[0]) / Math.max(1, ys[ys.length - 1] - ys[0])) * (W - mL - 20);
   const yy = (m) => 10 + ((m - 1) / 11) * (H - 30);
-  [1, 4, 7, 10].forEach((m) => { s.append(svg('text', { x: 4, y: yy(m) + 4, 'font-size': 11, fill: '#5f6b80' }, document.createTextNode(MONTHS[m - 1]))); s.append(svg('line', { x1: mL, x2: W - 20, y1: yy(m), y2: yy(m), stroke: '#eef0f4' })); });
-  sy.forEach((y, i) => s.append(svg('circle', { cx: x(y), cy: yy(starts[i]), r: 5, fill: y < 2012 ? '#3FA9F5' : '#1F4FD8' })));
-  sy.filter((y, i) => i % 3 === 0).forEach((y) => s.append(svg('text', { x: x(y), y: H - 4, 'text-anchor': 'middle', 'font-size': 11, fill: '#5f6b80' }, document.createTextNode(String(y)))));
+  [1, 4, 7, 10].forEach((m) => { s.append(svg('text', { x: 4, y: yy(m) + 4, 'font-size': 11, fill: '#5C626B' }, document.createTextNode(MONTHS[m - 1]))); s.append(svg('line', { x1: mL, x2: W - 20, y1: yy(m), y2: yy(m), stroke: '#eef0f4' })); });
+  sy.forEach((y, i) => s.append(svg('circle', { cx: x(y), cy: yy(starts[i]), r: 5, fill: y < 2012 ? '#A9BCCD' : '#4A6785' })));
+  sy.filter((y, i) => i % 3 === 0).forEach((y) => s.append(svg('text', { x: x(y), y: H - 4, 'text-anchor': 'middle', 'font-size': 11, fill: '#5C626B' }, document.createTextNode(String(y)))));
   box.append(s);
 }
 
@@ -657,7 +657,7 @@ async function downloadCalendarPNG() {
   const pad = 40;
   const wrapper = svg('svg', { xmlns: 'http://www.w3.org/2000/svg', width: w + 20, height: h + pad + 10 });
   wrapper.append(svg('rect', { width: '100%', height: '100%', fill: '#ffffff' }));
-  wrapper.append(svg('text', { x: 10, y: 24, 'font-size': 15, 'font-family': 'Segoe UI, Arial, sans-serif', fill: '#14213d' }, document.createTextNode(title)));
+  wrapper.append(svg('text', { x: 10, y: 24, 'font-size': 15, 'font-family': 'Segoe UI, Arial, sans-serif', fill: '#1F2328' }, document.createTextNode(title)));
   clone.setAttribute('x', 10); clone.setAttribute('y', pad);
   clone.querySelectorAll('text').forEach((t) => { t.setAttribute('font-family', 'Segoe UI, Arial, sans-serif'); if (!t.getAttribute('font-size')) t.setAttribute('font-size', 11); if (!t.getAttribute('fill')) t.setAttribute('fill', '#3d4a63'); });
   wrapper.append(clone);
@@ -771,7 +771,7 @@ if (new URLSearchParams(location.search).get('guide') === '1') {
         const n = document.querySelector(sel);
         if (!n) return;
         const r = n.getBoundingClientRect();
-        n.style.outline = '3px dashed #d9480f';
+        n.style.outline = '3px dashed #D9733A';
         n.style.outlineOffset = '2px';
         const b = el('div', { class: 'guide-badge', text: String(i + 1) });
         b.style.left = `${Math.max(2, r.left + scrollX - 14)}px`;

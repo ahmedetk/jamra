@@ -23,15 +23,16 @@ ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web" / "public" / "data"
 N = json.loads((ROOT / "data" / "processed" / "slide_numbers.json").read_text(encoding="utf-8"))
 
-NAVY = RGBColor(0x11, 0x18, 0x27)   # charcoal
-INK2 = RGBColor(0x3D, 0x4A, 0x63)
-MUTED = RGBColor(0x5F, 0x6B, 0x80)
-EMBER = RGBColor(0xFF, 0x7A, 0x33)  # soft orange
+NAVY = RGBColor(0x2B, 0x2F, 0x36)   # charcoal #2B2F36
+INK2 = RGBColor(0x3A, 0x3F, 0x47)
+MUTED = RGBColor(0x5C, 0x62, 0x6B)
+EMBER = RGBColor(0xD9, 0x73, 0x3A)  # darker soft orange (passes 3:1 for large text on white)
+ORANGE = RGBColor(0xF2, 0x8C, 0x4B)  # soft orange #F28C4B for fills
 BG = RGBColor(0xFF, 0xFF, 0xFF)
 WHITE = RGBColor(0xFF, 0xFF, 0xFF)
-GREY = RGBColor(0xAD, 0xB5, 0xBD)
-BLUE = RGBColor(0x1F, 0x4F, 0xD8)
-LINE = RGBColor(0xD9, 0xDE, 0xE7)
+GREY = RGBColor(0x8A, 0x90, 0x99)
+BLUE = RGBColor(0x4A, 0x67, 0x85)   # slate blue
+LINE = RGBColor(0xE1, 0xE3, 0xE7)
 FONT = "Arial"
 SOURCE = "Data: NASA FIRMS (MODIS C6.1 Aqua, VIIRS 375 m S-NPP / NOAA-20), standard processing 2003–2025. Analysis: Jamra."
 used = {}  # numbers that appear on slides -> checked by scripts/check_numbers.py
@@ -174,23 +175,23 @@ def build(url, out_path, screenshot=None):
                  "and the real disasters, like 2007, 2021 and 2023, stand out. In the next minutes we show how we built it, "
                  "how well it works, and how it warns people live."))
     # dark title slide with the real Earth (NASA Blue Marble via GIBS)
-    s.background.fill.solid(); s.background.fill.fore_color.rgb = RGBColor(0x07, 0x0A, 0x12)
+    s.background.fill.solid(); s.background.fill.fore_color.rgb = RGBColor(0x1F, 0x23, 0x28)
     for shp in list(s.shapes):
         if shp.has_text_frame and shp.text_frame.text.startswith("Jamra: one fair"):
             for para in shp.text_frame.paragraphs:
                 for r in para.runs: r.font.color.rgb = WHITE
         elif shp.has_text_frame and ("Team Astro Byte ·" in shp.text_frame.text or shp.text_frame.text.strip() == "1"):
             for para in shp.text_frame.paragraphs:
-                for r in para.runs: r.font.color.rgb = RGBColor(0x94, 0xA3, 0xB8)
+                for r in para.runs: r.font.color.rgb = RGBColor(0xA3, 0xA9, 0xB2)
     earth = ROOT / "web" / "public" / "img" / "earth-blue-marble.png"
     if earth.exists():
         s.shapes.add_picture(str(earth), Inches(7.6), Inches(1.0), width=Inches(6.3))
-        tb(s, 10.2, 7.05, 2.0, 0.3, "Imagery: NASA GIBS / Blue Marble", size=8, color=RGBColor(0x94, 0xA3, 0xB8))
+        tb(s, 10.2, 7.05, 2.0, 0.3, "Imagery: NASA GIBS / Blue Marble", size=8, color=RGBColor(0xA3, 0xA9, 0xB2))
     logo = ROOT / "web" / "public" / "icons" / "logo-white-256.png"
     if logo.exists():
         s.shapes.add_picture(str(logo), Inches(0.55), Inches(1.55), width=Inches(0.62))
     tb(s, 1.25, 1.6, 4, 0.6, "Jamra", size=28, bold=True, color=WHITE)
-    LIGHT = RGBColor(0xCB, 0xD5, 0xE1)
+    LIGHT = RGBColor(0xD1, 0xD5, 0xDB)
     tb(s, 0.55, 2.4, 6.6, 0.5, "Challenge: Harmonization of MODIS and VIIRS Hot Spots", size=16, color=LIGHT)
     tb(s, 0.55, 2.95, 6.6, 1.6, [
         [("Team Astro Byte", {"bold": True, "size": 16, "color": WHITE})],
@@ -199,9 +200,9 @@ def build(url, out_path, screenshot=None):
     ])
     tb(s, 0.55, 4.45, 6.6, 1.2, [
         [("Raw record: ", {"bold": True, "color": EMBER, "size": 15}), (u("g_raw", f"{gj['raw_ratio']}×") + " more hotspots after 2012 in Greece.", {"size": 15, "color": WHITE})],
-        [("Harmonized: ", {"bold": True, "size": 15, "color": RGBColor(0x93, 0xC5, 0xFD)}), (u("g_harm", f"{gj['harm_ratio']}×") + ". The fake rise disappears.", {"size": 15, "color": WHITE})],
+        [("Harmonized: ", {"bold": True, "size": 15, "color": RGBColor(0xA9, 0xBC, 0xCD)}), (u("g_harm", f"{gj['harm_ratio']}×") + ". The fake rise disappears.", {"size": 15, "color": WHITE})],
     ])
-    tb(s, 0.55, 6.25, 7.0, 0.6, [[("Built for the NASA Space Apps Challenge 2026 · Local event by NOVA · Data: NASA FIRMS · Not an official NASA product", {"size": 10, "color": RGBColor(0x94, 0xA3, 0xB8)})]])
+    tb(s, 0.55, 6.25, 7.0, 0.6, [[("Built for the NASA Space Apps Challenge 2026 · Local event by NOVA · Data: NASA FIRMS · Not an official NASA product", {"size": 10, "color": RGBColor(0xA3, 0xA9, 0xB2)})]])
 
     # ------------------------------------------------------------------ 2 problem
     s = base(prs, 2, "Joining MODIS and VIIRS raw creates a fake rise in fires after 2012, and the old satellites are retiring",
@@ -262,7 +263,7 @@ def build(url, out_path, screenshot=None):
                  f"{N['k_jn']:.2f}."), source=True)
     # pixel illustration
     tb(s, 0.55, 1.75, 4.6, 0.4, "Same 1 km × 1 km patch of ground", size=14, bold=True)
-    rect(s, 0.8, 2.25, 2.0, 2.0, RGBColor(0x7B, 0x8D, 0xB5))
+    rect(s, 0.8, 2.25, 2.0, 2.0, RGBColor(0xA9, 0xBC, 0xCD))
     tb(s, 0.8, 4.3, 2.0, 0.6, "MODIS: 1 pixel (1 km)", size=12, align=PP_ALIGN.CENTER)
     side = 2.0 / 2.667
     for i in range(3):
@@ -277,10 +278,10 @@ def build(url, out_path, screenshot=None):
     tb(s, 5.8, 1.75, 7.0, 0.4, "Who watched when", size=14, bold=True)
     x0, x1, yr0, yr1 = 7.3, 12.8, 2000, 2027
     X = lambda yv: x0 + (yv - yr0) / (yr1 - yr0) * (x1 - x0)
-    bars = [("MODIS Terra (~10:30)", 2000.0, 2026.9, GREY), ("MODIS Aqua (~13:30)", 2002.5, 2026.9, RGBColor(0x7B, 0x8D, 0xB5)),
-            ("VIIRS S-NPP (~13:30)", 2012.05, 2026.84, NAVY), ("VIIRS NOAA-20", 2018.25, 2026.9, RGBColor(0x3B, 0x5B, 0xDB)),
-            ("VIIRS NOAA-21", 2024.05, 2026.9, RGBColor(0x74, 0x8F, 0xFC))]
-    rect(s, X(2012), 2.25, X(2026) - X(2012), 2.95, RGBColor(0xFD, 0xE4, 0xD6))
+    bars = [("MODIS Terra (~10:30)", 2000.0, 2026.9, GREY), ("MODIS Aqua (~13:30)", 2002.5, 2026.9, RGBColor(0xA9, 0xBC, 0xCD)),
+            ("VIIRS S-NPP (~13:30)", 2012.05, 2026.84, NAVY), ("VIIRS NOAA-20", 2018.25, 2026.9, RGBColor(0x4A, 0x67, 0x85)),
+            ("VIIRS NOAA-21", 2024.05, 2026.9, RGBColor(0x7F, 0x98, 0xB0))]
+    rect(s, X(2012), 2.25, X(2026) - X(2012), 2.95, RGBColor(0xFD, 0xE6, 0xD6))
     tb(s, X(2012), 5.2, X(2026) - X(2012), 0.35, "overlap: our calibration lab", size=11, color=EMBER, align=PP_ALIGN.CENTER)
     for i, (name, a, b, col) in enumerate(bars):
         yy = 2.35 + i * 0.55

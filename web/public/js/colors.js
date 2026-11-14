@@ -23,14 +23,19 @@ export function rampCSS(name) {
   return `linear-gradient(90deg, ${stops.join(', ')})`;
 }
 
-// Diverging blue <-> orange (colourblind-safe), matching Jamra's sky blue and ember.
+// Diverging slate-blue <-> neutral gray <-> orange (colourblind-safe): lower / typical / higher.
 export const CAT_COLOR = {
-  much_lower: '#1D4E9E', lower: '#8CBDEB', typical: '#F1F3F7', higher: '#FDB07F', much_higher: '#D9480F',
+  much_lower: '#3E5C76', lower: '#A9BCCD', typical: '#E5E7EB', higher: '#F7B990', much_higher: '#D9733A',
 };
 
+// pick dark or white text by real WCAG contrast
+function lum(hex) {
+  return hex2rgb(hex).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; })
+    .reduce((a, v, i) => a + v * [0.2126, 0.7152, 0.0722][i], 0);
+}
 export function textOn(hex) {
-  const [r, g, b] = hex2rgb(hex);
-  return (0.299 * r + 0.587 * g + 0.114 * b) > 150 ? '#14213d' : '#ffffff';
+  const L = lum(hex), dark = (L + 0.05) / (lum('#1F2328') + 0.05), white = 1.05 / (L + 0.05);
+  return dark >= white ? '#1F2328' : '#ffffff';
 }
 
 // log scale helper for skewed counts

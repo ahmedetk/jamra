@@ -2,7 +2,7 @@
 // Pages, code and live files: network first (always fresh), cached copy if offline or slow (> 4 s).
 // History data, map library and map tiles: cache first, refreshed in the background.
 // Written with the help of an SI coding assistant (Claude Code).
-const VERSION = 'jamra-v8';
+const VERSION = 'jamra-v9';
 const CORE = [
   './', 'index.html', 'calendar/', 'alerts/', 'live/', 'how-it-works/', 'validation/', 'limits/', 'credits/',
   'css/app.css', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/favicon-32.png',

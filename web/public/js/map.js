@@ -13,25 +13,25 @@ const EN = ['coalesce', ['get', 'name:en'], ['get', 'name_en']]; // English-only
 const FADE = (from, to) => ['interpolate', ['linear'], ['zoom'], 6.2, from, 7.4, to];
 export function earthStyle({ labels = true } = {}) {
   const layers = [
-    { id: 'space', type: 'background', paint: { 'background-color': '#05070D' } },
+    { id: 'space', type: 'background', paint: { 'background-color': '#1F2328' } },
     { id: 'imagery', type: 'raster', source: 'gibs', paint: { 'raster-opacity': FADE(1, 0), 'raster-fade-duration': 300 } },
-    { id: 'v-land', type: 'background', paint: { 'background-color': '#EEF0EA', 'background-opacity': FADE(0, 1) } },
-    { id: 'v-water', type: 'fill', source: 'omt', 'source-layer': 'water', minzoom: 5.5, paint: { 'fill-color': '#B7CCDD', 'fill-opacity': FADE(0, 1) } },
-    { id: 'v-park', type: 'fill', source: 'omt', 'source-layer': 'park', minzoom: 6, paint: { 'fill-color': '#DCE6D3', 'fill-opacity': FADE(0, 0.8) } },
+    { id: 'v-land', type: 'background', paint: { 'background-color': '#2B2F36', 'background-opacity': FADE(0, 1) } },
+    { id: 'v-water', type: 'fill', source: 'omt', 'source-layer': 'water', minzoom: 5.5, paint: { 'fill-color': '#1A1D21', 'fill-opacity': FADE(0, 1) } },
+    { id: 'v-park', type: 'fill', source: 'omt', 'source-layer': 'park', minzoom: 6, paint: { 'fill-color': '#30363A', 'fill-opacity': FADE(0, 0.8) } },
     { id: 'v-roads', type: 'line', source: 'omt', 'source-layer': 'transportation', minzoom: 7,
       filter: ['in', ['get', 'class'], ['literal', ['motorway', 'trunk', 'primary', 'secondary']]],
-      paint: { 'line-color': '#FFFFFF', 'line-width': ['interpolate', ['linear'], ['zoom'], 7, 0.6, 12, 2.4], 'line-opacity': FADE(0, 1) } },
+      paint: { 'line-color': '#41464E', 'line-width': ['interpolate', ['linear'], ['zoom'], 7, 0.6, 12, 2.4], 'line-opacity': FADE(0, 1) } },
     { id: 'admin-region', type: 'line', source: 'omt', 'source-layer': 'boundary', minzoom: 6,
       filter: ['all', ['==', ['get', 'admin_level'], 4], ['!=', ['get', 'maritime'], 1]],
-      paint: { 'line-color': '#9AA3AE', 'line-width': 0.5, 'line-dasharray': [3, 2] } },
+      paint: { 'line-color': '#8A9099', 'line-width': 0.4, 'line-opacity': 0.6, 'line-dasharray': [3, 2] } },
     { id: 'admin-country', type: 'line', source: 'omt', 'source-layer': 'boundary', minzoom: 3.5,
       filter: ['all', ['<=', ['get', 'admin_level'], 2], ['!=', ['get', 'maritime'], 1]],
-      paint: { 'line-color': ['interpolate', ['linear'], ['zoom'], 6.2, 'rgba(255,255,255,0.45)', 7.4, '#8D96A3'], 'line-width': 0.8 } },
+      paint: { 'line-color': '#8A9099', 'line-width': 0.7, 'line-opacity': 0.8 } },
   ];
   if (labels) {
     const text = (size) => ({
-      'text-color': ['interpolate', ['linear'], ['zoom'], 6.2, '#F8FAFC', 7.4, '#1F2937'],
-      'text-halo-color': ['interpolate', ['linear'], ['zoom'], 6.2, 'rgba(15,23,42,0.85)', 7.4, 'rgba(255,255,255,0.95)'],
+      'text-color': '#E5E7EB',
+      'text-halo-color': 'rgba(31,35,40,0.9)',
       'text-halo-width': 1.3,
     });
     layers.push(
@@ -45,7 +45,7 @@ export function earthStyle({ labels = true } = {}) {
   return {
     version: 8, glyphs: GLYPHS, projection: { type: 'globe' },
     sky: {
-      'sky-color': '#05070D', 'horizon-color': '#9CC3F2', 'fog-color': '#DCE9F7',
+      'sky-color': '#1F2328', 'horizon-color': '#9CC3F2', 'fog-color': '#DCE9F7',
       'sky-horizon-blend': 0.5, 'horizon-fog-blend': 0.6, 'fog-ground-blend': 0.9,
       'atmosphere-blend': ['interpolate', ['linear'], ['zoom'], 0, 0.85, 5, 0.6, 7, 0],
     },
@@ -60,8 +60,9 @@ export function earthStyle({ labels = true } = {}) {
 const HOT_RADIUS = ['interpolate', ['linear'], ['zoom'],
   1, 1.6, 4, 2.4, 7, ['+', 2.5, ['*', 0.12, ['sqrt', ['to-number', ['get', 'frp'], 1]]]],
   11, ['+', 3.5, ['*', 0.25, ['sqrt', ['to-number', ['get', 'frp'], 1]]]]];
-const HOT_PAINT = { 'circle-radius': HOT_RADIUS, 'circle-color': '#FF7A33', 'circle-stroke-color': 'rgba(120,40,10,0.35)', 'circle-stroke-width': 0.6 };
-const SOFT_ORANGE = '#FDBA74';
+const HOT_PAINT = { 'circle-radius': HOT_RADIUS, 'circle-color': '#F28C4B', 'circle-stroke-color': 'rgba(31,35,40,0.55)', 'circle-stroke-width': 0.6 };
+const SOFT_ORANGE = '#F28C4B';   // area outline / selection (soft orange, no yellow)
+const NEW_HOT = '#FBC6A0';       // hotspots from the last 24 h: lighter orange
 
 let map = null, ready = null, drawMode = null, drawPts = [], onDrawDone = null;
 const empty = { type: 'FeatureCollection', features: [] };
@@ -98,7 +99,7 @@ export function initMap(container, { onFallback } = {}) {
     map.addSource('live', { type: 'geojson', data: empty });
     map.addLayer({
       id: 'live-pts', type: 'circle', source: 'live',
-      paint: { ...HOT_PAINT, 'circle-opacity': ['case', ['<', ['get', 'age'], 1], 1, 0.75] },
+      paint: { ...HOT_PAINT, 'circle-color': ['case', ['<', ['get', 'age'], 1], NEW_HOT, '#F28C4B'], 'circle-opacity': ['case', ['<', ['get', 'age'], 1], 1, 0.85] },
     });
     map.addSource('draw', { type: 'geojson', data: empty });
     map.addLayer({ id: 'draw-line', type: 'line', source: 'draw', paint: { 'line-color': SOFT_ORANGE, 'line-width': 1.6, 'line-dasharray': [2, 1] } });
