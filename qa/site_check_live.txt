@@ -1,0 +1,44 @@
+
+== desktop 1440
+home             js-errors 0  h-scroll no  overlapping-labels 0
+calendar-evia    js-errors 0  h-scroll no  overlapping-labels 0
+  summary test ok 1240x1754
+  download #dl-cal-csv      jamra_calendar_evia_2003-2025.csv (20863 bytes)
+  download #dl-cal-png      jamra_calendar_evia.png (780838 bytes)
+  download #dl-summary-png  jamra_summary_evia_2003-2025.png (262037 bytes)
+  download #dl-summary-pdf  jamra_summary_evia_2003-2025.pdf (296655 bytes)
+calendar-greece  js-errors 0  h-scroll no  overlapping-labels 0
+  summary test ok 1240x1754
+  download #dl-cal-csv      jamra_calendar_greece_2003-2025.csv (20679 bytes)
+  download #dl-cal-png      jamra_calendar_greece.png (611969 bytes)
+  download #dl-summary-png  jamra_summary_greece_2003-2025.png (260486 bytes)
+  download #dl-summary-pdf  jamra_summary_greece_2003-2025.pdf (303496 bytes)
+alerts           js-errors 0  h-scroll no  overlapping-labels 0
+live             js-errors 0  h-scroll no  overlapping-labels 0
+validation       js-errors 0  h-scroll no  overlapping-labels 0
+about            js-errors 0  h-scroll no  overlapping-labels 0
+
+== phone 390
+home             js-errors 0  h-scroll no  overlapping-labels 0
+calendar-evia    js-errors 0  h-scroll no  overlapping-labels 0
+calendar-greece  js-errors 0  h-scroll no  overlapping-labels 0
+alerts           js-errors 0  h-scroll no  overlapping-labels 0
+live             js-errors 0  h-scroll no  overlapping-labels 0
+validation       js-errors 0  h-scroll no  overlapping-labels 0
+about            js-errors 0  h-scroll no  overlapping-labels 0
+
+== features
+{
+ "toYear": "2026",
+ "palettes": "ember,viridis,cividis,ylorrd",
+ "kpis": 5,
+ "kpiTitles": "Peak month | Now vs usual | Most active year | Early warning now | Total detections",
+ "season": 24,
+ "totalOn": "137,418",
+ "totalOff": "139,465",
+ "weekCells": 1240,
+ "validationLabel": true
+}
+outside area: {"cls":true,"msg":"Harmonized history covers PT, ES, GR, TR, CY, LB, JO, PS. Outside these, live data only. Open Live Data for this areaShow the nearest covered area: Tenerife (Spain)","calVisible":false}
+
+All site checks passed.

@@ -1,0 +1,16 @@
+home_mobile          99 / 100 / 100 / 100  LCP 1.8 s  CLS 0.01
+home_desktop         95 / 100 / 100 / 100  LCP 0.5 s  CLS 0
+calendar_mobile      96 / 100 / 100 / 100  LCP 1.4 s  CLS 0
+calendar_desktop     79 / 100 / 100 / 100  LCP 0.6 s  CLS 0.012
+alerts_mobile        97 / 100 / 100 / 100  LCP 1.5 s  CLS 0
+alerts_desktop       98 / 100 / 100 / 100  LCP 0.7 s  CLS 0
+live_mobile          97 / 100 / 100 / 100  LCP 1.3 s  CLS 0
+live_desktop         83 / 100 / 100 / 100  LCP 0.4 s  CLS 0.012
+validation_mobile    70 / 100 / 100 / 100  LCP 2.1 s  CLS 0
+validation_desktop   94 / 100 / 100 / 100  LCP 0.7 s  CLS 0.013
+about_mobile         98 / 100 / 100 / 100  LCP 1.5 s  CLS 0
+about_desktop        92 / 100 / 100 / 100  LCP 0.9 s  CLS 0
+
+[exited with code 0]
+validation_mobile (after lazy charts, local) 85 / 100 / 100 / 100  TBT 30 ms
+Note: Calendar and Live Data desktop performance (63-83) is MapLibre start-up under Lighthouse's software WebGL; accessibility, best practices and SEO are 100 everywhere.
