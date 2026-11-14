@@ -23,19 +23,20 @@ ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web" / "public" / "data"
 N = json.loads((ROOT / "data" / "processed" / "slide_numbers.json").read_text(encoding="utf-8"))
 
-NAVY = RGBColor(0x11, 0x18, 0x27)   # near-black text #111827 (Design v3, light theme)
-INK2 = RGBColor(0x37, 0x41, 0x51)
-MUTED = RGBColor(0x4B, 0x55, 0x63)
-EMBER = RGBColor(0xC9, 0x6A, 0x28)  # the calm orange, darker shade for text/lines on white (used sparingly)
-ORANGE = RGBColor(0xE8, 0x83, 0x3A)  # the calm orange #E8833A for fills
-BG = RGBColor(0xFF, 0xFF, 0xFF)
-OFF = RGBColor(0xF7, 0xF7, 0xF5)
-WHITE = RGBColor(0xFF, 0xFF, 0xFF)
-GREY = RGBColor(0x9C, 0xA3, 0xAF)
-BLUE = RGBColor(0x5B, 0x7D, 0xB1)   # slate blue
-LIGHTBLUE = RGBColor(0xB9, 0xC7, 0xDE)
-LINE = RGBColor(0xE5, 0xE7, 0xEB)
-FONT = "Segoe UI"   # Inter is not installed on most Windows PCs; Segoe UI is the closest system font (the logo is an image in Inter)
+NAVY = RGBColor(0x2B, 0x2B, 0x2B)   # charcoal text #2B2B2B (Design v4)
+INK2 = RGBColor(0x3A, 0x39, 0x36)
+MUTED = RGBColor(0x6B, 0x6A, 0x66)
+EMBER = RGBColor(0xC2, 0x3A, 0x10)  # deep ember for text/lines on light backgrounds
+ORANGE = RGBColor(0xF4, 0x51, 0x1E)  # vivid ember orange #F4511E for fills
+BG = RGBColor(0xF7, 0xF6, 0xF2)     # warm surface (no pure white)
+OFF = RGBColor(0xEF, 0xEE, 0xE9)    # warm page grey
+WHITE = RGBColor(0xF7, 0xF6, 0xF2)  # "white" boxes use the warm surface too
+GREY = RGBColor(0xC9, 0xC5, 0xBC)
+BLUE = RGBColor(0x4E, 0x77, 0xA6)   # deeper blue (lower than usual / harmonized)
+LIGHTBLUE = RGBColor(0xB7, 0xCA, 0xDB)
+LINE = RGBColor(0xD6, 0xD3, 0xCB)
+FONT = "Segoe UI"      # body: the closest system font to Inter on Windows
+SERIF = "Bodoni MT"    # titles: high-contrast serif shipped with Microsoft Office, closest to Playfair Display (the web font)
 SOURCE = "Data: NASA FIRMS (MODIS C6.1 Aqua, VIIRS 375 m S-NPP / NOAA-20), standard processing 2003–2025. Analysis: Jamra."
 used = {}  # numbers that appear on slides -> checked by scripts/check_numbers.py
 
@@ -91,10 +92,10 @@ def base(prs, n, headline, notes, speaker, source=True):
     s.background.fill.fore_color.rgb = BG
     logo = ROOT / 'web' / 'public' / 'icons' / 'wordmark-dark.png'
     if logo.exists() and n != 1:
-        s.shapes.add_picture(str(logo), Inches(11.75), Inches(0.36), height=Inches(0.36))
+        s.shapes.add_picture(str(logo), Inches(11.7), Inches(0.32), height=Inches(0.42))
     if n != 1:
         rect(s, 0.55, 1.5, 12.23, 0.012, LINE)
-    tb(s, 0.55, 0.3, 12.2 if n == 1 else 11.0, 1.2, headline, size=27 if len(headline) < 105 else 22, bold=True)
+    tb(s, 0.55, 0.3, 12.2 if n == 1 else 10.9, 1.2, headline, size=29 if len(headline) < 105 else 24, bold=True, font=SERIF)
     tb(s, 0.55, 7.05, 8.5, 0.3, "Team Astro Byte · NASA Space Apps Challenge 2026 · Harmonization of MODIS and VIIRS Hot Spots", size=9, color=MUTED)
     tb(s, 12.3, 7.05, 0.5, 0.3, str(n), size=10, color=MUTED, align=PP_ALIGN.RIGHT)
     if source:
@@ -178,16 +179,16 @@ def build(url, out_path, screenshot=None):
                  "and the real disasters, like 2007, 2021 and 2023, stand out. In the next minutes we show how we built it, "
                  "how well it works, and how it warns people live."))
     # title slide: light text side, and the only dark area is real space with the Earth (NASA Blue Marble)
-    panel = ROOT / "slides" / "assets" / "space_earth.png"
+    panel = ROOT / "slides" / "assets" / "globe_panel.png"
     if panel.exists():
         s.shapes.add_picture(str(panel), Inches(7.35), Inches(0), height=Inches(7.5))
-        tb(s, 7.5, 7.08, 5.7, 0.3, "Earth: NASA GIBS / Blue Marble · Stars: Yale Bright Star Catalogue (NASA HEASARC)", size=8, color=RGBColor(0x9C, 0xA3, 0xAF))
+        tb(s, 10.3, 7.08, 2.9, 0.3, "Map: Natural Earth · Hotspots: NASA FIRMS", size=8, color=MUTED)
     for shp in list(s.shapes):
         if shp.has_text_frame and shp.text_frame.text.startswith("One fair fire record"):
-            shp.left, shp.top, shp.width = Inches(0.6), Inches(1.75), Inches(6.4)
+            shp.left, shp.top, shp.width = Inches(0.6), Inches(1.8), Inches(6.5)
     wm = ROOT / "web" / "public" / "icons" / "wordmark-dark.png"
     if wm.exists():
-        s.shapes.add_picture(str(wm), Inches(0.6), Inches(0.6), height=Inches(0.85))
+        s.shapes.add_picture(str(wm), Inches(0.6), Inches(0.55), height=Inches(1.0))
     tb(s, 0.6, 3.3, 6.4, 0.5, "Challenge: Harmonization of MODIS and VIIRS Hot Spots", size=15, color=MUTED)
     tb(s, 0.6, 3.85, 6.4, 1.2, [
         [("Team Astro Byte", {"bold": True, "size": 16})],
@@ -213,8 +214,8 @@ def build(url, out_path, screenshot=None):
                  "land and forest managers, and scientists. Through them, village councils, municipalities and farmers benefit too. "
                  "And it is urgent: MODIS is near the end of its life, and NASA stopped the S-NPP VIIRS data stream on 2 November 2026, "
                  "so a fair, continuous record is needed now."))
-    rect(s, 0.55, 1.65, 4.6, 4.3, WHITE, line=LINE, shape=MSO_SHAPE.ROUNDED_RECTANGLE, radius=0.06)
-    tb(s, 0.75, 1.85, 4.2, 1.6, u("k_global", f"{N['k_global']}×"), size=88, bold=True, color=NAVY, align=PP_ALIGN.CENTER)
+    rect(s, 0.55, 1.65, 4.6, 4.3, WHITE, line=LINE)
+    tb(s, 0.75, 1.85, 4.2, 1.6, u("k_global", f"{N['k_global']}×"), size=92, bold=True, color=NAVY, align=PP_ALIGN.CENTER, font=SERIF)
     tb(s, 0.75, 3.55, 4.2, 2.2, [
         [("more hotspots seen by VIIRS than MODIS for the same fires", {"size": 17, "bold": True})],
         [("VIIRS S-NPP ÷ MODIS Aqua, all hotspots, 8 countries, calibration years 2012–2025", {"size": 12, "color": MUTED})],
@@ -227,7 +228,7 @@ def build(url, out_path, screenshot=None):
     gf = s.shapes.add_chart(XL_CHART_TYPE.COLUMN_CLUSTERED, Inches(5.5), Inches(1.6), Inches(4.2), Inches(4.4), cd)
     ch = gf.chart
     style_chart(ch, size=11)
-    ch.series[0].format.fill.solid(); ch.series[0].format.fill.fore_color.rgb = INK2
+    ch.series[0].format.fill.solid(); ch.series[0].format.fill.fore_color.rgb = MUTED
     ch.series[1].format.fill.solid(); ch.series[1].format.fill.fore_color.rgb = BLUE
     pl = ch.plots[0]
     pl.has_data_labels = True
@@ -239,11 +240,11 @@ def build(url, out_path, screenshot=None):
     ch.value_axis.has_major_gridlines = False
     u("p_raw", f"{pj['raw_ratio']}"); u("p_harm", f"{pj['harm_ratio']}")
     # users
-    tb(s, 10.0, 1.6, 2.9, 0.4, "Who we serve", size=15, bold=True)
+    tb(s, 10.0, 1.55, 2.9, 0.45, "Who we serve", size=18, bold=True, font=SERIF)
     tb(s, 10.0, 5.95, 3.0, 0.7, "Also benefit: village councils, municipalities, farmers (via local authorities)", size=10, color=MUTED)
     for i, who in enumerate(["Emergency managers & early warning", "Firefighting teams", "Land & forest managers", "Scientists & researchers"]):
         yy = 2.1 + i * 0.95
-        c = rect(s, 10.0, yy, 0.62, 0.62, OFF, line=LINE, shape=MSO_SHAPE.OVAL)
+        c = rect(s, 10.0, yy, 0.62, 0.62, OFF, line=LINE)
         c.text_frame.text = who[0]
         c.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
         r = c.text_frame.paragraphs[0].runs[0]; r.font.size = Pt(16); r.font.bold = True; r.font.color.rgb = NAVY; r.font.name = FONT
@@ -306,7 +307,7 @@ def build(url, out_path, screenshot=None):
              ("3  Compare with usual", "Each month vs the same month in other years: median, 25–75%, percentile.")]
     for i, (h, t) in enumerate(steps):
         xx = 0.55 + i * 4.2
-        rect(s, xx, 1.75, 3.85, 2.55, WHITE, line=LINE, shape=MSO_SHAPE.ROUNDED_RECTANGLE, radius=0.06)
+        rect(s, xx, 1.75, 3.85, 2.55, WHITE, line=LINE)
         tb(s, xx + 0.2, 1.9, 3.5, 0.5, h, size=17, bold=True, color=NAVY)
         tb(s, xx + 0.2, 2.5, 3.5, 1.7, t, size=14, color=INK2)
         if i < 2:
@@ -319,7 +320,7 @@ def build(url, out_path, screenshot=None):
             ("Early-warning check", "month-to-date vs past"), ("Jamra web app", "calendar · alerts · CSV")]
     for i, (h, t) in enumerate(arch):
         xx = 0.55 + i * 2.5
-        rect(s, xx, 5.05, 2.2, 1.05, OFF if i in (0, 2) else WHITE, line=NAVY if i in (0, 2) else LINE, shape=MSO_SHAPE.ROUNDED_RECTANGLE, radius=0.12)
+        rect(s, xx, 5.05, 2.2, 1.05, OFF if i in (0, 2) else WHITE, line=NAVY if i in (0, 2) else LINE)
         tb(s, xx + 0.08, 5.12, 2.05, 0.45, h, size=12, bold=True, color=NAVY, align=PP_ALIGN.CENTER)
         tb(s, xx + 0.08, 5.52, 2.05, 0.45, t, size=10.5, color=INK2, align=PP_ALIGN.CENTER)
         if i < 4:
@@ -344,7 +345,7 @@ def build(url, out_path, screenshot=None):
     vals = a["harm"]
     import math
     mx = math.log1p(max(v for v in vals if v is not None))
-    vir = ["440154", "482878", "3e4989", "31688e", "26828e", "1f9e89", "35b779", "6ece58", "b5de2b", "fde725"]
+    vir = ["F3F1EB", "F5DCCD", "F7C2A6", "F7A07A", "F67A4C", "F4511E", "C23A10", "8A2A0B"]  # the site's Ember scale
 
     def col(v):
         t = math.log1p(v) / mx * (len(vir) - 1)
@@ -363,12 +364,12 @@ def build(url, out_path, screenshot=None):
             v = vals[(yv - 2003) * 12 + m]
             cell = rect(s, gx + m * cw, gy + r * chh, cw - 0.02, chh - 0.02, col(v) if v is not None else LINE)
             if yv < 2012:  # estimated from MODIS: thin light border, like the hatch on the site
-                cell.line.color.rgb = RGBColor(0xFF, 0xFF, 0xFF); cell.line.width = Pt(0.75)
+                cell.line.color.rgb = RGBColor(0x8E, 0x8B, 0x84); cell.line.width = Pt(0.5)
             if yv == 2007 and m == 7:
-                cell.line.color.rgb = NAVY; cell.line.width = Pt(2.75)
-    tb(s, gx - 0.5, gy + 23 * chh + 0.05, 4.9, 0.5, "Evia (Greece), hotspots per month 2003–2025, VIIRS-equivalent, log colour scale. Rows before 2012 are estimated from MODIS.", size=8, color=MUTED)
+                cell.line.color.rgb = NAVY; cell.line.width = Pt(3)
+    tb(s, gx - 0.5, gy + 23 * chh + 0.05, 4.9, 0.5, "Evia (Greece), hotspots per month 2003–2025, VIIRS-equivalent, log colour scale (Ember). Rows before 2012 are estimated from MODIS (thin outline).", size=8, color=MUTED)
     tb(s, 5.5, 1.75, 4.8, 1.5, [
-        [(u("ev07", f"August 2007, Evia: ≈ {fmt(ev['value'])} hotspots"), {"bold": True, "size": 16})],
+        [(u("ev07", f"August 2007, Evia: ≈ {fmt(ev['value'])} hotspots"), {"bold": True, "size": 17})],
         [(u("ev07x", f"{ev['times_typical']}× a typical August"), {"size": 15}), (f" (usual {ev['typical']})", {"size": 13, "color": INK2})],
         [("Tag in the app: estimated from MODIS · ±" + u("unc", f"{N['unc_small_pct']}%"), {"size": 13, "color": NAVY, "bold": True})],
     ])
@@ -419,10 +420,10 @@ def build(url, out_path, screenshot=None):
             (u("small", f"{T['small_preset_pct']}%"), f"error in small fire areas ({T['small_grid_pct']}% in {T['grid_regions']} 1° areas) · local factor {'adopted' if T['local_adopted'] else 'not adopted'}")]
     for i, (big, small) in enumerate(kpis):
         yy = 1.75 + i * 1.05
-        rect(s, 7.1, yy, 5.7, 0.92, WHITE, line=LINE, shape=MSO_SHAPE.ROUNDED_RECTANGLE, radius=0.1)
-        tb(s, 7.25, yy + 0.12, 2.3, 0.7, big, size=21, bold=True, color=NAVY)
+        rect(s, 7.1, yy, 5.7, 0.92, WHITE, line=LINE)
+        tb(s, 7.25, yy + 0.08, 2.3, 0.75, big, size=24, bold=True, color=NAVY, font=SERIF)
         tb(s, 9.6, yy + 0.12, 3.15, 0.8, small, size=11, color=INK2)
-    tb(s, 7.1, 4.95, 5.7, 0.4, "Honest limits", size=15, bold=True)
+    tb(s, 7.1, 4.95, 5.7, 0.4, "Honest limits", size=17, bold=True, font=SERIF)
     tb(s, 7.1, 5.35, 5.7, 1.4, [[("• Hotspots are not fires or burned area; clouds hide fires.", {"size": 12})],
                                 [("• Small areas: few hotspots → wider error (shown as ±).", {"size": 12})],
                                 [("• FRP was not more stable than counts, so we use counts.", {"size": 12})]])
@@ -443,15 +444,15 @@ def build(url, out_path, screenshot=None):
     for i, (nme, role) in enumerate(team):
         xx = 0.55 + (i % 3) * 2.75
         yy = 1.75 + (i // 3) * 1.15
-        rect(s, xx, yy, 2.55, 0.98, WHITE, line=LINE, shape=MSO_SHAPE.ROUNDED_RECTANGLE, radius=0.1)
-        tb(s, xx + 0.12, yy + 0.08, 2.35, 0.4, nme, size=13, bold=True)
+        rect(s, xx, yy, 2.55, 0.98, WHITE, line=LINE)
+        tb(s, xx + 0.12, yy + 0.06, 2.35, 0.42, nme, size=15, bold=True, font=SERIF)
         tb(s, xx + 0.12, yy + 0.46, 2.35, 0.5, role, size=10.5, color=INK2)
     tb(s, 0.55, 3.95, 8.2, 0.4, "Shared: idea and method, testing with real users, pitch rehearsal.", size=10.5, color=MUTED)
-    tb(s, 0.55, 4.25, 8.2, 0.4, "Next steps", size=15, bold=True)
+    tb(s, 0.55, 4.2, 8.2, 0.45, "Next steps", size=18, bold=True, font=SERIF)
     road = [("More regions", "global coarse grid"), ("Arabic interface", "right-to-left"), ("Telegram + SMS", "alerts"), ("Terra + Aqua", u("ta", f"{N['terra_aqua_mdape_pct']}% vs {N['cv_aqua_mdape_pct']}% error") + ", to 2001")]
     for i, (h, t) in enumerate(road):
         xx = 0.55 + i * 2.06
-        rect(s, xx, 4.65, 1.9, 0.95, OFF, line=LINE, shape=MSO_SHAPE.ROUNDED_RECTANGLE, radius=0.12)
+        rect(s, xx, 4.65, 1.9, 0.95, OFF, line=LINE)
         tb(s, xx + 0.06, 4.7, 1.78, 0.4, h, size=12, bold=True, color=NAVY, align=PP_ALIGN.CENTER)
         tb(s, xx + 0.06, 5.08, 1.78, 0.45, t, size=10, color=INK2, align=PP_ALIGN.CENTER)
     s.shapes.add_picture(qr_png(url), Inches(9.9), Inches(1.75), width=Inches(2.3))

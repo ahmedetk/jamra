@@ -3,8 +3,7 @@
 Since Design v3 the website is only the working tool. Everything that explains it (how it works, the
 validation results, the limits and the full usage guide) lives in this guide.
 All numbers are read from web/public/data/model_report.json, meta.json and the area files.
-Screenshots: scripts/guide_shots.py (headless, cropped by section) plus real-browser shots for the map
-(shots/calendar_top.jpg, shots/live.png) and the phone view (shots/mobile_*.png).
+Screenshots: scripts/guide_shots.mjs (Edge + puppeteer-core, cropped to page elements, phone views included).
 Usage: python report/build_guide.py
 Written with the help of an SI coding assistant (Claude Code); text reviewed by Team Astro Byte.
 """
@@ -23,10 +22,10 @@ WEB = ROOT / "web" / "public" / "data"
 ICONS = ROOT / "web" / "public" / "icons"
 EDGE = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 SITE = "https://ahmedetk.github.io/jamra/"
-SHOT_FILES = {  # key: (file in shots/, max width)
-    "home": ("g_home.png", 1280), "cal_top": ("calendar_top.jpg", 1280), "cal_chart": ("g_cal_chart.png", 1280),
+SHOT_FILES = {  # key: (file in shots/, max width) - made by scripts/guide_shots.mjs
+    "home": ("g_home.png", 1280), "cal_top": ("g_cal_top.png", 1280), "cal_chart": ("g_cal_chart.png", 1280),
     "harm": ("g_harm.png", 1280), "cal_main": ("g_cal_main.png", 1280), "cal_detail": ("g_cal_detail.png", 1280),
-    "anomaly": ("g_anomaly.png", 1280), "alerts": ("g_alerts.png", 1280), "live": ("live.png", 1280),
+    "anomaly": ("g_anomaly.png", 1280), "alerts": ("g_alerts.png", 1280), "live": ("g_live.png", 1280),
     "about": ("g_about.png", 1280), "mobile_home": ("mobile_home.png", 520), "mobile_detail": ("mobile_detail.png", 520),
 }
 
@@ -46,7 +45,7 @@ def prep_images():
         im.save(IMG / f"{key}.jpg", quality=86)
         out[key] = f"{key}.jpg"
     shutil.copy(ICONS / "wordmark-dark.png", IMG / "wordmark.png")
-    shutil.copy(ROOT / "web" / "public" / "img" / "earth-blue-marble.webp", IMG / "earth.webp")
+    shutil.copy(ROOT / "web" / "public" / "img" / "earth-light.png", IMG / "earth.png")
     return out
 
 
@@ -113,47 +112,49 @@ def main():
     html = f"""<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">
 <title>دليل استخدام جمرة · jamra User Guide (Arabic)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 <style>
 @page {{ size: A4; margin: 16mm 14mm 18mm; }}
 * {{ box-sizing: border-box; }}
-body {{ font-family: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif; color: #111827; font-size: 11.5pt; line-height: 1.75; margin: 0; }}
+body {{ font-family: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif; color: #2B2B2B; font-size: 11.5pt; line-height: 1.75; margin: 0; background: #F7F6F2; }}
 h1 {{ font-size: 26pt; margin: 0 0 6mm; }}
-h2 {{ font-size: 17pt; color: #111827; border-bottom: 3px solid #E8833A; padding-bottom: 2mm; margin: 0 0 4mm; }}
+h2 {{ font-size: 17pt; color: #2B2B2B; border-bottom: 2px solid #F4511E; padding-bottom: 2mm; margin: 0 0 4mm; }}
 h3 {{ font-size: 13pt; margin: 5mm 0 2mm; }}
 section {{ page-break-before: always; }} section.cover {{ page-break-before: auto; }}
-.cover {{ height: 255mm; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }}
-.cover .s {{ font-size: 15pt; color: #4B5563; }}
+.cover {{ height: 255mm; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background: linear-gradient(180deg, #F7F6F2, #EFEEE9); border: 1px solid #D6D3CB; }}
+.cover .s {{ font-size: 15pt; color: #6B6A66; }}
+.swatch {{ display: inline-block; width: 12mm; height: 6mm; margin: 0 1mm; border: 1px solid #D6D3CB; vertical-align: middle; }}
 .en {{ direction: ltr; unicode-bidi: isolate; font-family: "Segoe UI", Arial, sans-serif; }}
-figure {{ margin: 3mm 0; page-break-inside: avoid; }} figure img {{ width: 100%; border: 1px solid #E5E7EB; border-radius: 4px; }}
+figure {{ margin: 3mm 0; page-break-inside: avoid; }} figure img {{ width: 100%; border: 1px solid #D6D3CB; }}
 figure.phone {{ width: 60mm; display: inline-block; margin-left: 6mm; vertical-align: top; }}
-figcaption {{ font-size: 9.5pt; color: #4B5563; }}
+figcaption {{ font-size: 9.5pt; color: #6B6A66; }}
 table {{ width: 100%; border-collapse: collapse; font-size: 10pt; margin: 2mm 0 4mm; page-break-inside: auto; }}
-th, td {{ border: 1px solid #E5E7EB; padding: 1.6mm 2mm; vertical-align: top; text-align: right; }}
-th {{ background: #F7F7F5; }} tr {{ page-break-inside: avoid; }}
-tr.chosen td {{ background: #FCE7D6; font-weight: 600; }}
-td.n {{ width: 8mm; text-align: center; font-weight: 700; color: #111827; background: #E8833A; }}
+th, td {{ border: 1px solid #D6D3CB; padding: 1.6mm 2mm; vertical-align: top; text-align: right; }}
+th {{ background: #EFEEE9; }} tr {{ page-break-inside: avoid; }}
+tr.chosen td {{ background: #FCE3D8; font-weight: 600; }}
+td.n {{ width: 8mm; text-align: center; font-weight: 700; color: #FFFFFF; background: #C23A10; }}
 td.nm {{ width: 36mm; font-weight: 600; }}
-.box {{ background: #F7F7F5; border-right: 4px solid #111827; padding: 3mm 4mm; margin: 3mm 0; }}
+.box {{ background: #EFEEE9; border-right: 3px solid #F4511E; padding: 3mm 4mm; margin: 3mm 0; }}
 .kpis {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 3mm; }}
-.kpi {{ border: 1px solid #E5E7EB; border-radius: 6px; padding: 3mm; }} .kpi b {{ display: block; font-size: 16pt; color: #111827; }}
-.small {{ font-size: 9.5pt; color: #4B5563; }}
+.kpi {{ border: 1px solid #D6D3CB; padding: 3mm; }} .kpi b {{ display: block; font-size: 16pt; color: #2B2B2B; }}
+.small {{ font-size: 9.5pt; color: #6B6A66; }}
 .formula {{ direction: ltr; text-align: center; font-family: "Cambria Math", "Segoe UI", serif; font-size: 14pt; margin: 3mm 0; }}
 ol li, ul li {{ margin-bottom: 1.5mm; }}
 .map {{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 2mm; text-align: center; }}
-.map div {{ border: 2px solid #111827; border-radius: 6px; padding: 2mm; font-weight: 600; }}
-.map div.h {{ background: #111827; color: #fff; }}
+.map div {{ border: 1px solid #2B2B2B; padding: 2mm; font-weight: 600; }}
+.map div.h {{ background: #2B2B2B; color: #F7F6F2; }}
 </style></head><body>
 
 <section class="cover">
-  <img src="img/earth.webp" alt="" style="width:64mm;height:64mm;margin:0 auto 8mm">
-  <img src="img/wordmark.png" alt="jamra" style="width:70mm;margin:0 auto 4mm">
+  <img src="img/earth.png" alt="" style="width:64mm;height:64mm;margin:0 auto 8mm">
+  <img src="img/wordmark.png" alt="jamra" style="width:74mm;margin:0 auto 4mm">
   <p class="s">تقويم موحَّد لنشاط الحرائق من قمرَي <span class="en">MODIS</span> و<span class="en">VIIRS</span> مع إنذار مبكر مباشر</p>
   <h1 style="margin-top:10mm">دليل استخدام جمرة</h1>
   <p>الطريقة · نتائج التحقق · الحدود · شرح كل صفحة</p>
   <p class="s">فريق <span class="en">Astro Byte</span> · <span class="en">NASA Space Apps Challenge 2026</span></p>
   <p>شهد فرّاج · أحمد اتكيدك · آية سلمان · أحمد الأخرس · تالا يوسف</p>
-  <p class="small">مبني لتحدّي <span class="en">NASA Space Apps Challenge 2026</span> · ليس منتجًا رسميًا لناسا · ليس خدمة طوارئ · صورة الأرض: <span class="en">NASA GIBS / Blue Marble</span></p>
+  <p class="small">الألوان: <span class="swatch" style="background:#EFEEE9"></span><span class="swatch" style="background:#F7F6F2"></span><span class="swatch" style="background:#B7CADB"></span><span class="swatch" style="background:#4E77A6"></span><span class="swatch" style="background:#F4511E"></span><span class="swatch" style="background:#2B2B2B"></span></p>
+  <p class="small">مبني لتحدّي <span class="en">NASA Space Apps Challenge 2026</span> · ليس منتجًا رسميًا لناسا · ليس خدمة طوارئ · الخريطة: <span class="en">Natural Earth</span> و<span class="en">OpenStreetMap</span></p>
   <p class="small">الموقع: <span class="en">{SITE}</span> · البيانات حتى <span class="en">{through}</span> · كل الأرقام في هذا الدليل محسوبة من بياناتنا</p>
 </section>
 
@@ -179,7 +180,7 @@ ol li, ul li {{ margin-bottom: 1.5mm; }}
   <p><b>مستفيدون غير مباشرين:</b> المجالس القروية والبلديات والمزارعون، عبر السلطات المحلية والدفاع المدني الذين يستخدمون جمرة.</p>
 
   <h2 style="margin-top:8mm">3. خريطة الموقع</h2>
-  <p>الموقع أداة عمل فقط، من خمس صفحات. شريط التنقل الأبيض نفسه في أعلى كل صفحة، والصفحة الحالية تحتها خط برتقالي. الضغط على شعار <span class="en">jamra</span> يعيدك إلى الرئيسية. المنطقة والفترة والشهر المختارة تنتقل معك بين الصفحات عبر الرابط.</p>
+  <p>الموقع أداة عمل فقط، من خمس صفحات، بلوحة ألوان واحدة: رمادي دافئ فاتح مثل أرض خريطتنا، أزرق هادئ مثل مائها، وبرتقالي «الجمرة» للأزرار الأساسية والبؤر والمنطقة المختارة و«أعلى من المعتاد». العناوين بخط <span class="en">Playfair Display</span> والبيانات بخط <span class="en">Inter</span>. شريط التنقل نفسه في أعلى كل صفحة، والصفحة الحالية تحتها خط برتقالي. الضغط على شعار <span class="en">jamra</span> يعيدك إلى الرئيسية. المنطقة والفترة والشهر المختارة تنتقل معك بين الصفحات عبر الرابط.</p>
   <div class="map">
     <div class="h">Home<br><span class="en">/jamra/</span></div><div>Calendar<br><span class="en">/calendar/</span></div><div>Alerts<br><span class="en">/alerts/</span></div><div>Live Data<br><span class="en">/live/</span></div><div>About<br><span class="en">/about/</span></div>
   </div>
@@ -189,14 +190,14 @@ ol li, ul li {{ margin-bottom: 1.5mm; }}
 <section>
   <h2>4. صفحة بصفحة</h2>
   <h3>4.1 الرئيسية (<span class="en">Home</span>)</h3>
-  <p>كرة أرضية حقيقية (صور <span class="en">NASA Blue Marble</span>) في فضاء حقيقي، عليها نقاط برتقالية صغيرة هي بؤر آخر 7 أيام من ناسا. عنوان واحد وزرّان كبيران.</p>
+  <p>نصف كرة أرضية كبير يطلع من أسفل اليمين مثل الأفق، بألوان خريطتنا نفسها (أرض رمادية دافئة، ماء أزرق هادئ، حدود رفيعة)، عليه نقاط برتقالية صغيرة هي بؤر آخر 7 أيام من ناسا. عنوان واحد وزرّان مختلفان.</p>
   {fig("home", "الصفحة الرئيسية على الكمبيوتر مع أرقام العناصر.")}
   {callouts([
     ("شريط التنقل", "Home · Calendar · Alerts · Live Data، ورابط صغير About."),
     ("شارة الحالة", "«Live · updated …» أو «Delayed» أو «Outdated»: مدى حداثة بيانات ناسا."),
     ("الكرة الأرضية", "اسحبها بالفأرة أو بالإصبع لتدويرها؛ تتوقف عند اللمس وتعود للدوران البطيء بعد 5 ثوانٍ تقريبًا."),
-    ("Open the Calendar", "يفتح صفحة التقويم."),
-    ("Try Evia 2007", "يفتح التقويم على إيفيا وشهر آب 2007 مع التفاصيل: مثال قيمة مقدَّرة من MODIS ونطاق خطئها."),
+    ("Open the Calendar", "الزر الأساسي: يفتح صفحة التقويم."),
+    ("See Live Alerts", "يفتح صفحة التنبيهات. (مثال إيفيا 2007 صار في صفحة التقويم.)"),
     ("شريحة البيانات المباشرة", "عدد البؤر في آخر 7 أيام · Data: NASA FIRMS."),
   ])}
   {fig("mobile_home", "الرئيسية على هاتف بعرض 390 بكسل.", "phone")}
@@ -205,18 +206,20 @@ ol li, ul li {{ margin-bottom: 1.5mm; }}
 <section>
   <h3>4.2 التقويم (<span class="en">Calendar</span>)</h3>
   <p>تاريخ الحرائق لأي منطقة: أي الأشهر والسنوات أكثر نشاطًا، ومقارنة كل شهر بالمعتاد.</p>
-  {fig("cal_top", "أعلى صفحة التقويم: اختيار المنطقة والخريطة (عند التقريب تتحول الخريطة من صورة الأرض إلى خريطة تفاصيل فاتحة).")}
+  {fig("cal_top", "أعلى صفحة التقويم: عمود المنطقة المرتّب والخريطة بالنمط الفاتح نفسه في كل مستويات التكبير.")}
   {callouts([
-    ("Fire areas", "مناطق جاهزة مشهورة بالحرائق (إيفيا، أتيكا، وسط البرتغال…)."),
+    ("Example: Evia, August 2007", "رابط صغير بجانب عنوان «Area» يحمّل مثال العرض: إيفيا، آب 2007، مع التفاصيل مفتوحة."),
+    ("Fire areas", "شبكة أزرار مستطيلة متساوية: اسم المنطقة وتحته الدولة. المختارة لها حافة برتقالية ولون برتقالي فاتح."),
     ("Countries", "الدول الثماني في منطقة التغطية."),
     ("Draw", "ارسم مضلّعًا أو دائرة على الخريطة لأي منطقة تهمّك."),
     ("Lat / Lon", "أدخل نقطة ونصف قطر، أو حدود مربع."),
-    ("الخريطة", "المنطقة المختارة بخط برتقالي وأحدث البؤر؛ تطير الخريطة إلى المنطقة في نحو 3 ثوانٍ."),
-    ("Recent hotspots", "بؤر آخر 24 ساعة (أفتح لونًا) أو 7 أيام أو إخفاؤها."),
-    ("بطاقة المنطقة", "معامل التحويل للمنطقة ونطاق الخطأ لشهر واحد."),
+    ("جدول المنطقة", "المنطقة، النوع، معامل التحويل (1 MODIS ≈ … VIIRS)، ونطاق الخطأ لشهر واحد."),
+    ("الخريطة", "المنطقة المختارة بخط برتقالي وأحدث البؤر؛ تطير الخريطة إلى المنطقة في نحو 3 ثوانٍ، والنمط لا يتغير عند التكبير."),
+    ("Back to globe", "يعيد الخريطة إلى منظر الكرة الأرضية."),
+    ("Recent hotspots", "بؤر آخر 24 ساعة (برتقالي كامل) أو 7 أيام (أفتح) أو إخفاؤها."),
   ])}
-  {fig("cal_chart", "الرسم السنوي (رقم 8) بوضع Raw: MODIS حتى 2011 ثم VIIRS، فتظهر القفزة الوهمية.")}
-  {callouts([("Raw / Harmonized", "يبدّل الرسم السنوي بين السجل الخام والسجل المُواءَم بمقياس VIIRS.")], start=8)}
+  {fig("cal_chart", "الرسم السنوي (رقم 10) بوضع Raw: MODIS حتى 2011 ثم VIIRS، فتظهر القفزة الوهمية.")}
+  {callouts([("Raw / Harmonized", "يبدّل الرسم السنوي بين السجل الخام والسجل المُواءَم بمقياس VIIRS.")], start=10)}
 </section>
 
 <section>
@@ -225,18 +228,18 @@ ol li, ul li {{ margin-bottom: 1.5mm; }}
     ("From / To", "السنوات التي يُحسب منها «المعتاد»."),
     ("Hide gas flares / industry", "يحذف خلايا فيها حرارة ثابتة طوال السنة تقريبًا (شعلات غاز، مصانع)."),
     ("البطاقات", "شهر الذروة، الآن مقابل المعتاد، أنشط سنة، الإنذار المبكر الآن، إجمالي الرصد."),
-    ("Compared with usual", "يلوّن الخلايا: أزرق رمادي أقل من المعتاد، رمادي عادي، برتقالي أعلى؛ مع رموز ▲ ▼ ونص في المفتاح."),
+    ("Compared with usual", "يلوّن الخلايا: أزرق أقل من المعتاد، رمادي دافئ عادي، برتقالي أعلى؛ مع رموز ▲ ▼ ونص في المفتاح."),
     ("Weeks", "52 أسبوعًا بدل 12 شهرًا (للدول ومناطق الحرائق)."),
-    ("Colours", "لوحة الألوان (Viridis، Cividis، YlOrRd)، كلها مناسبة لعمى الألوان."),
+    ("Colours", "لوحة الألوان: Ember (الافتراضية، من الرمادي الدافئ إلى البرتقالي)، أو Viridis أو Cividis أو YlOrRd؛ كلها مناسبة لعمى الألوان."),
     ("التقويم", "صفوف = سنوات، أعمدة = أشهر. الخلايا المخطَّطة مقدَّرة من MODIS، والمصمتة مرصودة من VIIRS."),
     ("CSV / PNG", "جدول القيم الشهرية مع المصدر ونطاق الخطأ، أو صورة للتقويم."),
     ("Summary PNG / PDF", "صفحة ملخص واحدة: المنطقة، الفترة، الشهر مقابل الوسيط، تقويم صغير، المصدر، والاعتراف ببيانات FIRMS."),
-  ], start=9)}
+  ], start=11)}
 </section>
 
 <section>
-  {fig("cal_detail", "تفاصيل الشهر (رقم 18): إيفيا، آب 2007، مع وسم «estimated from MODIS · ±44%».")}
-  <p><b>تفاصيل الشهر (18):</b> اضغط أي خلية لترى جملة واضحة، والقيمة ووسم مصدرها (<span class="en">observed · VIIRS</span> أو <span class="en">estimated from MODIS · ±X%</span>)، ونطاق الخطأ، والقيمة الخام، والمعتاد (الوسيط) و«النصف الأوسط» من السنوات، والرتبة المئوية، ورسمًا لنفس الشهر في كل السنوات. يمكن التنقل بين الخلايا بأسهم لوحة المفاتيح والضغط على <span class="en">Enter</span>.</p>
+  {fig("cal_detail", "تفاصيل الشهر (رقم 20): إيفيا، آب 2007، مع وسم «estimated from MODIS · ±44%».")}
+  <p><b>تفاصيل الشهر (20):</b> اضغط أي خلية لترى جملة واضحة، والقيمة ووسم مصدرها (<span class="en">observed · VIIRS</span> أو <span class="en">estimated from MODIS · ±X%</span>)، ونطاق الخطأ، والقيمة الخام، والمعتاد (الوسيط) و«النصف الأوسط» من السنوات، والرتبة المئوية، ورسمًا لنفس الشهر في كل السنوات. يمكن التنقل بين الخلايا بأسهم لوحة المفاتيح والضغط على <span class="en">Enter</span>.</p>
   <div class="box">مثال حقيقي: آب 2007 في إيفيا ≈ <b>{ev_v:,}</b> بؤرة (من {ev_lo:,} إلى {ev_hi:,})، أي نحو <b>{ev_x}</b> ضعف آب المعتاد ({ev_med:,.0f}). القيمة <b>مقدَّرة من MODIS بمقياس VIIRS</b> بنطاق خطأ ±{round(u["small_regions_rel"] * 100)}%.</div>
   {fig("mobile_detail", "التفاصيل على الهاتف.", "phone")}
 </section>
@@ -369,7 +372,7 @@ ol li, ul li {{ margin-bottom: 1.5mm; }}
   <ol>
     <li>افتح صفحة <b>Calendar</b> (اليونان). في الرسم السنوي اضغط <b>Raw</b>: قفزة كبيرة بعد 2012.</li>
     <li>اضغط <b>Harmonized</b>: القفزة الوهمية تختفي.</li>
-    <li>اختر <b>Evia (Greece)</b> من Fire areas، ثم اضغط خلية <b>آب 2007</b> (أو زر «Try Evia 2007» في الرئيسية).</li>
+    <li>اضغط الرابط <b>Example: Evia, August 2007</b> بجانب عنوان «Area» (أو اختر Evia من Fire areas ثم خلية آب 2007).</li>
     <li>في التفاصيل: ≈ {ev_v:,} بؤرة، نحو {ev_x} ضعف آب المعتاد؛ قارنها بآب في السنوات الأخرى في الرسم.</li>
     <li>لاحظ الوسم <b>estimated from MODIS · ±{round(u["small_regions_rel"] * 100)}%</b>.</li>
     <li>نتيجة الاختبار المستقل (الشريحة 6): الخطأ الشهري {pct(tc["M0"]["mdape"])} ← {pct(tc[ch]["mdape"])}، واكتشاف {cc["hits"]} من {cc["hits"] + cc["misses"]} شهرًا عالي النشاط.</li>
@@ -419,10 +422,9 @@ ol li, ul li {{ margin-bottom: 1.5mm; }}
     <li>Schroeder, W., Oliva, P., Giglio, L., &amp; Csiszar, I. A. (2014). The New VIIRS 375 m active fire detection data product. Remote Sensing of Environment, 143, 85–96.</li>
     <li>Davies, D. K., Ilavajhala, S., Wong, M. M., &amp; Justice, C. O. (2009). Fire Information for Resource Management System. IEEE TGRS, 47(1), 72–79.</li>
     <li>NASA Earthdata (2026). Transitioning from Suomi NPP VIIRS &amp; OMPS: What FIRMS Users Need to Know.</li>
-    <li>Hoffleit, D., &amp; Warren, W. H. (1991). The Bright Star Catalogue, 5th Revised Ed. (via NASA HEASARC).</li>
   </ul>
   <h3>الصور والبرمجيات والخرائط</h3>
-  <p>صورة الأرض: <span class="en">NASA GIBS / Blue Marble</span> · النجوم: <span class="en">Yale Bright Star Catalogue (NASA HEASARC)</span> · <span class="en">three.js (MIT)</span> · <span class="en">MapLibre GL JS (BSD-3)</span> · <span class="en">OpenFreeMap</span> · <span class="en">© OpenStreetMap contributors</span> · خط <span class="en">Inter (SIL OFL)</span> · لوحات Viridis و Cividis و ColorBrewer. لا نستخدم شعارات ناسا، وناسا لا تتبنّى هذا المشروع.</p>
+  <p>كرة الصفحة الرئيسية: <span class="en">Natural Earth</span> (ملكية عامة) · خريطة التقويم: <span class="en">© OpenStreetMap contributors · OpenMapTiles · OpenFreeMap</span> · <span class="en">three.js (MIT)</span> · <span class="en">MapLibre GL JS (BSD-3)</span> · الخطوط <span class="en">Playfair Display</span> و<span class="en">Inter</span> (<span class="en">SIL OFL</span>) · لوحات Viridis و Cividis و ColorBrewer. لا نستخدم شعارات ناسا، وناسا لا تتبنّى هذا المشروع.</p>
   <h3>الإفصاح عن استخدام الذكاء الفائق (<span class="en">SI</span>)</h3>
   <div class="box">استخدمنا مساعد برمجة بالذكاء الفائق (<span class="en">Claude Code</span> من <span class="en">Anthropic</span>) لكتابة كود معالجة البيانات والموقع والنظام المباشر والشرائح وهذا الدليل، وفق تصميمنا وقراراتنا. الفريق اختار الطريقة، وتحقق من النتائج مقابل بيانات ناسا FIRMS، وتأكد من كل مرجع، وكتب العرض وتدرّب عليه.</div>
   <p class="small">الكود مفتوح المصدر (MIT): <span class="en">https://github.com/ahmedetk/jamra</span></p>
