@@ -1,5 +1,5 @@
 {
- "generated_utc": "2026-11-14T10:02:38+00:00",
+ "generated_utc": "2026-11-14T13:13:14+00:00",
  "source": "NASA FIRMS API (VIIRS_NOAA20_NRT)",
  "alerts": [
   {
@@ -33,10 +33,10 @@
    "month": "2026-11",
    "from_day": 1,
    "through_day": 14,
-   "hotspots_month_to_date": 48.6,
+   "hotspots_month_to_date": 51.6,
    "usual": 8,
    "percentile": 82.6,
-   "text": "Lebanon: ELEVATED. 2026-11 days 1-14: 49 hotspots vs usual 8 (higher than 83% of past years)."
+   "text": "Lebanon: ELEVATED. 2026-11 days 1-14: 52 hotspots vs usual 8 (higher than 83% of past years)."
   }
  ],
  "disclaimer": "Not an emergency service. Satellite data have hours of delay."
