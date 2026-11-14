@@ -1,4 +1,4 @@
-"""Unit tests for the Jamra pipeline. Written with an SI coding assistant (Claude Code)."""
+"""Unit tests for the Jamra pipeline. Written with an AI coding assistant (Claude Code by Anthropic)."""
 import pytest
 
 from jamra import anomaly, harmonize

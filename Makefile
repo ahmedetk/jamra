@@ -1,4 +1,4 @@
-# Written with the help of an SI coding assistant (Claude Code).
+# Written with the help of an AI coding assistant (Claude Code by Anthropic).
 PY ?= python
 export PYTHONPATH := pipeline
 
@@ -13,12 +13,10 @@ live:
 test:
 	$(PY) -m pytest -q
 
-slides:
-	$(PY) scripts/story_numbers.py
-	$(PY) slides/build_slides.py
-	$(PY) scripts/check_numbers.py
+pages:
+	$(PY) scripts/build_pages.py
 
 serve:
 	$(PY) -m http.server 8000 --directory web/public
 
-.PHONY: data live test slides serve
+.PHONY: data live test pages serve

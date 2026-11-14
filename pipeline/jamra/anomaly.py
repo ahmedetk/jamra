@@ -1,7 +1,7 @@
 """Anomaly categories, early-warning levels, season start and trend tests.
 
 The same rules are implemented in the website (web/js/stats.js) so numbers on
-screen match the pipeline. Code written with an SI coding assistant (Claude Code).
+screen match the pipeline. Code written with an AI coding assistant (Claude Code by Anthropic).
 """
 from __future__ import annotations
 

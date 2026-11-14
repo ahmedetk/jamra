@@ -1,6 +1,6 @@
 // One-page summary (PNG and PDF) for the selected area and period, drawn on a canvas.
 // The PDF is a single A4 page holding the summary image (JPEG), written without any library.
-// Written with the help of an SI coding assistant (Claude Code).
+// Written with the help of an AI coding assistant (Claude Code by Anthropic).
 import { downloadBlob, MONTHS, MONTHS_LONG, fmtInt } from './util.js';
 import { baseline, percentileRank, category } from './stats.js';
 import { ramp, CAT_COLOR, logScale } from './colors.js';
@@ -73,7 +73,7 @@ export function drawSummary(c) {
   // small calendar
   y += 50;
   const cw = 80, chh = Math.min(30, Math.floor(620 / years.length)), x0 = 150;
-  const all = []; years.forEach((yy) => MONTHS.forEach((_, m) => { const t = val(yy, m); if (t !== null) all.push(t); }));
+  const all = []; years.forEach((yy) => MONTHS.forEach((_, m) => { const t = val(yy, m); if (t !== null && t !== undefined && Number.isFinite(t)) all.push(t); })); // future months are undefined
   const sc = logScale(Math.max(...all, 1));
   ctx.font = F(17); ctx.fillStyle = MUTED;
   MONTHS.forEach((mn, m) => ctx.fillText(mn, x0 + m * cw + 22, y));
@@ -95,7 +95,7 @@ export function drawSummary(c) {
   });
   y += years.length * chh + 34;
   ctx.fillStyle = INK2; ctx.font = F(18);
-  ctx.fillText(`Colours: ${state.mode === 'anomaly' ? 'compared with the usual (blue lower, red higher)' : 'hotspots per month, log scale'}. Hatched = estimated from MODIS on the VIIRS scale; solid = observed by VIIRS.`, 70, y);
+  ctx.fillText(`Colours: ${state.mode === 'anomaly' ? 'compared with the usual (blue lower, orange higher)' : 'hotspots per month, log scale'}. Hatched = estimated from MODIS on the VIIRS scale; solid = observed by VIIRS.`, 70, y);
 
   // footer
   y = H - 210; ctx.fillStyle = MUTED; ctx.font = F(17);

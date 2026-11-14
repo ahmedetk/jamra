@@ -1,7 +1,7 @@
 """Compute every number used in the slides from pipeline outputs (single source of truth).
 
 Writes data/processed/slide_numbers.json. scripts/check_numbers.py verifies that
-the slides contain exactly these numbers. Written with an SI coding assistant (Claude Code).
+the slides contain exactly these numbers. Written with an AI coding assistant (Claude Code by Anthropic).
 """
 import json
 import sys

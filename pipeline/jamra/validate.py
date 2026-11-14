@@ -14,7 +14,7 @@ High-activity months
   * "Higher" or "Much higher" than usual, harmonized MODIS vs actual VIIRS: hits,
     misses, false alarms.
 
-Code written with the help of an SI coding assistant (Claude Code).
+Code written with the help of an AI coding assistant (Claude Code by Anthropic).
 """
 from __future__ import annotations
 

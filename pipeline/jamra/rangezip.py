@@ -5,7 +5,7 @@ NASA FIRMS publishes one large ZIP per sensor and year ("all countries",
 whole archive we read the ZIP table of contents (central directory) and then
 fetch only the bytes of the country files we need.
 
-Note: code written with the help of an SI coding assistant (Claude Code).
+Note: code written with the help of an AI coding assistant (Claude Code by Anthropic).
 """
 from __future__ import annotations
 

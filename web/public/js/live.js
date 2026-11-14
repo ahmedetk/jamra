@@ -1,5 +1,5 @@
 // Live system in the browser: status badge, Alert Center, on-demand NASA FIRMS data.
-// Written with the help of an SI coding assistant (Claude Code).
+// Written with the help of an AI coding assistant (Claude Code by Anthropic).
 import { $, el, fmt, fmtInt, parseCSV, pointInRing, ringBBox, toCSV, downloadBlob } from './util.js';
 import { getJSON } from './data.js';
 import { warningLevel } from './stats.js';
@@ -167,7 +167,10 @@ export async function fetchLive(area, days, site, live, opts = {}) {
   lastRows = rows;
   const t = new Date(when);
   stamp.innerHTML = '';
-  stamp.append(`${fmtInt(rows.length)} hotspots in the last ${days} day${days > 1 ? 's' : ''}. Fetched from ${source} at ${t.toISOString().slice(11, 16)} UTC, ${t.toISOString().slice(0, 10)}.`);
+  const viaProxy = !!(site && site.proxy) && source !== live?.source;
+  stamp.append(viaProxy
+    ? `${fmtInt(rows.length)} hotspots in the last ${days} day${days > 1 ? 's' : ''}, fetched now from ${source} (${t.toISOString().slice(11, 16)} UTC).`
+    : `${fmtInt(rows.length)} hotspots in the last ${days} day${days > 1 ? 's' : ''}. Latest NASA FIRMS data (VIIRS NOAA-20), refreshed from the NASA FIRMS API every 3 hours; this copy was fetched at ${t.toISOString().slice(11, 16)} UTC on ${t.toISOString().slice(0, 10)}.`);
   renderTable(rows);
   $('#dl-live-csv').disabled = !rows.length;
   return rows;
@@ -201,7 +204,7 @@ export function renderTable(rows) {
   thead.append(tr);
   tbody.innerHTML = '';
   if (!rows.length) {
-    tbody.append(el('tr', {}, el('td', { class: 'empty', colspan: COLS.length, text: 'Choose an area, then press "Get data from NASA FIRMS".' })));
+    tbody.append(el('tr', {}, el('td', { class: 'empty', colspan: COLS.length, text: 'Choose an area, then press "Show latest NASA FIRMS data".' })));
     return;
   }
   const sorted = [...rows].sort((a, b) => (a[sortKey] > b[sortKey] ? 1 : a[sortKey] < b[sortKey] ? -1 : 0) * sortDir);

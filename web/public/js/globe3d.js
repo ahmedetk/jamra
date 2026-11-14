@@ -3,7 +3,7 @@
 // and small vivid orange dots for real NASA FIRMS hotspots (last 7 days). Drag (mouse or touch) to turn it,
 // with inertia; slow auto-rotation when idle, paused on interaction and resumed gently after ~5 s.
 // Respects prefers-reduced-motion (no auto-rotation, no inertia).
-// Written with the help of an SI coding assistant (Claude Code).
+// Written with the help of an AI coding assistant (Claude Code by Anthropic).
 import * as THREE from '../vendor/three.module.min.js';
 import { BASE } from './data.js';
 

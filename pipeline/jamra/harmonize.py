@@ -11,7 +11,7 @@ Models (see the website's "Why not just...?" box):
   M4 log-log regression per country, with Duan smearing
   M5 empirical quantile mapping per country
 
-Code written with the help of an SI coding assistant (Claude Code).
+Code written with the help of an AI coding assistant (Claude Code by Anthropic).
 """
 from __future__ import annotations
 

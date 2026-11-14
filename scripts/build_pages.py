@@ -1,9 +1,9 @@
 """Generate the multi-page static site (one index.html per page folder) from shared parts.
 
-Pages: Home, Calendar, Alerts, Live Data, About (+ redirects from the removed information pages).
+Pages: Home, Calendar, Alerts, Live Data, Validation (with How it works and Limits), About (+ redirects from old links).
 All links are relative, so the site works under /jamra/ on GitHub Pages and on localhost.
 Usage: python scripts/build_pages.py
-Written with the help of an SI coding assistant (Claude Code), following Team Astro Byte's design.
+Written with the help of an AI coding assistant (Claude Code by Anthropic), following Team Astro Byte's design.
 """
 from pathlib import Path
 
@@ -90,6 +90,7 @@ TITLES = {
     "calendar": "Calendar",
     "alerts": "Alerts",
     "live": "Live Data",
+    "validation": "Validation",
     "about": "About",
 }
 
@@ -98,10 +99,11 @@ PAGES = [  # slug, nav label, <title>
     ("calendar", "Calendar", "Calendar · jamra"),
     ("alerts", "Alerts", "Alerts · jamra"),
     ("live", "Live Data", "Live Data · jamra"),
+    ("validation", "Validation", "Validation · jamra"),
     ("about", "About", "About · jamra"),
 ]
 # removed information pages: their content is in the Arabic user guide; old links land on About
-OLD_PAGES = {"how-it-works": "about/", "validation": "about/", "limits": "about/", "credits": "about/"}
+OLD_PAGES = {"how-it-works": ("validation/", "how"), "limits": ("validation/", "limits"), "credits": ("about/", "")}
 
 import json as _json
 _META = _json.loads((PUB / "data" / "meta.json").read_text(encoding="utf-8"))
@@ -121,10 +123,10 @@ CHIPS = {k: "".join(f'<button type="button" class="chip" data-area="{a["id"]}" a
                     for a in _META["areas"] if a["kind"] == k) for k in ("preset", "country")}
 INFO_PLACEHOLDER = ('<table class="info-table"><tbody><tr><th scope="row">Area</th><td>Loading…</td></tr><tr><th scope="row">Type</th><td>Fire area or country</td></tr>'
                     '<tr><th scope="row">Conversion</th><td>1 MODIS ≈ … VIIRS</td></tr><tr><th scope="row">Uncertainty</th><td>±…% per month</td></tr></tbody></table>')
-TEAM = [("Shahd Farraj", "Problem and users", "Slides 1–2"), ("Ahmed Etkaidek", "NASA data and live system", "Slide 3"),
-        ("Aya Salman", "Science: method and validation", "Slides 4 and 6"), ("Ahmad Akhras", "Calendar and live demo", "Slide 5"),
-        ("Tala Yousef", "UX, design and communication", "Slide 7")]
-TEAM_HTML = "".join(f'<div class="member"><b>{n}</b><span>{r}</span><p class="fine">{d}</p></div>' for n, r, d in TEAM)
+TEAM = [("Shahd Farraj", "Problem and users"), ("Ahmed Etkaidek", "Designer (website design and brand) · NASA data and live system"),
+        ("Aya Salman", "Science: method and validation"), ("Ahmad Akhras", "Calendar and live demo"),
+        ("Tala Yousef", "User experience and communication")]
+TEAM_HTML = "".join(f'<div class="member"><b>{n}</b><span>{r}</span></div>' for n, r in TEAM)
 
 AREA_PICKER = """
   <section id="area">
@@ -147,7 +149,7 @@ AREA_PICKER = """
           </div>
         </div>
         <div id="pane-coords" role="tabpanel" aria-labelledby="tab-coords" class="pane" hidden>
-          <form id="coords-form" class="form">
+          <form id="coords-form" class="form" novalidate>
             <fieldset><legend>Point and radius</legend>
               <label>Latitude <input name="lat" type="number" step="any" min="-90" max="90" placeholder="38.60" inputmode="decimal"></label>
               <label>Longitude <input name="lon" type="number" step="any" min="-180" max="180" placeholder="23.60" inputmode="decimal"></label>
@@ -190,7 +192,7 @@ BODY = {
 "": """
   <section class="hero" id="hero">
     <div class="globe-wrap" id="globe-wrap">
-      <img class="globe-still" id="globe-still" src="img/earth-light.webp" width="720" height="720" alt="Globe in the colours of our map, centred on the Mediterranean" fetchpriority="low">
+      <img class="globe-still" id="globe-still" src="img/earth-light.webp" width="720" height="720" alt="Globe in the colours of our map, centred on the Mediterranean" fetchpriority="high" decoding="async">
       <canvas id="globe" role="img" aria-label="Globe with recent fire hotspots from NASA FIRMS. Drag to turn it."></canvas>
     </div>
     <div class="wrap hero-in">
@@ -202,6 +204,38 @@ BODY = {
       <p class="live-chip" id="live-chip"><span class="dot" aria-hidden="true"></span><span class="txt">Loading live data · Data: NASA FIRMS</span></p>
     </div>
     <p class="img-credit">Map: Natural Earth · Hotspots: NASA FIRMS</p>
+  </section>
+
+  <section id="problem">
+    <div class="wrap">
+      <div class="card">
+        <div class="chart-head">
+          <h2 id="problem-title">VIIRS records <span data-k-global>6.2×</span> as many hotspots as MODIS in the same months</h2>
+        </div>
+        <div class="chart-controls row">
+          <label class="sr" for="hero-area">Area</label>
+          <select id="hero-area" aria-label="Area for the chart"></select>
+          <div class="seg" role="group" aria-label="Record type">
+            <button type="button" class="seg-btn" data-hero="raw" aria-pressed="true">Raw (stitched)</button>
+            <button type="button" class="seg-btn" data-hero="harm" aria-pressed="false">Harmonized</button>
+          </div>
+        </div>
+        <h3 id="hero-title" class="h4">Yearly hotspots</h3>
+        <div id="hero-chart" class="chart" role="img" aria-label="Yearly hotspot chart"></div>
+        <p id="hero-caption" class="caption"></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="works">
+    <div class="wrap">
+      <a class="works card" data-nav href="validation/">
+        <span class="works-k">Does it work?</span>
+        <span class="works-n" id="big-err">87% → 40%</span>
+        <span class="works-t" id="big-err-text">Typical monthly error, raw MODIS → harmonized, on test years the model never saw.</span>
+        <span class="go">See the validation """ + icon("arrow") + """</span>
+      </a>
+    </div>
   </section>
 
   <section id="tools">
@@ -238,6 +272,7 @@ BODY = {
           <label class="check"><input type="checkbox" id="static-filter" checked> Hide gas flares / industry</label>
         </div>
       </div>
+      <p class="fine start-note">Why 2003? We use MODIS on Aqua only: its first full year is 2003 and it passes at the same afternoon time as VIIRS, which makes the conversion fair. <a data-nav href="validation/#how">How it works</a></p>
       <div class="kpi-grid" id="kpi-grid"><div class="kpi"></div><div class="kpi"></div><div class="kpi"></div><div class="kpi"></div><div class="kpi"></div></div>
     </div>
   </section>
@@ -298,11 +333,67 @@ BODY = {
         <label>Last <select name="days">
           <option value="1">24 hours</option><option value="2">2 days</option><option value="3">3 days</option>
           <option value="5">5 days</option><option value="7" selected>7 days</option></select></label>
-        <button class="btn primary" type="submit">Get data from NASA FIRMS</button>
+        <button class="btn primary" type="submit">Show latest NASA FIRMS data</button>
         <button class="btn" type="button" id="dl-live-csv" disabled>Download CSV</button>
       </form>
-      <p id="live-stamp" class="msg" role="status">VIIRS NOAA-20 near real time · raw detections</p>
+      <p id="live-stamp" class="msg" role="status">VIIRS NOAA-20 near real time · raw detections · refreshed from the NASA FIRMS API every 3 hours</p>
       <div class="table-wrap card"><table id="live-table" class="table"><caption class="sr">Live hotspots</caption><thead></thead><tbody></tbody></table></div>
+    </div>
+  </section>""",
+
+"validation": """
+  <section id="validation">
+    <div class="wrap stack">
+      <div class="card split" id="split-text"></div>
+      <div class="kpi-grid" id="test-kpis"></div>
+      <div class="grid-2">
+        <div class="card"><h2 class="h4">High-activity months in the test years (countries)</h2><div id="conf-country" class="scroll-x"></div></div>
+        <div class="card"><h2 class="h4">Small regions: local factor vs country factor (test years)</h2><div id="small-table" class="scroll-x"></div><p class="fine" id="decision-text"></p></div>
+      </div>
+      <div class="card"><h2 class="h4">Fire areas one by one (test years)</h2><div id="preset-table" class="scroll-x"></div></div>
+      <div class="grid-2">
+        <div class="card"><h2 class="h4">Error by method (test years)</h2><div id="err-bars" class="chart"></div><p class="caption" id="err-cap"></p></div>
+        <div class="card"><h2 class="h4">Predicted vs actual (cross-validation)</h2><div id="scatter" class="chart"></div><p class="caption" id="scatter-cap"></p></div>
+      </div>
+      <div class="kpi-grid" id="val-kpis"></div>
+      <div class="grid-2">
+        <div class="card"><h2 class="h4">Is the VIIRS / MODIS ratio stable over time?</h2><div id="drift" class="chart"></div><p class="caption" id="drift-cap"></p></div>
+        <div class="card"><h2 class="h4">Error by country (cross-validation)</h2><div id="struggle" class="scroll-x"></div></div>
+      </div>
+    </div>
+  </section>
+  <section id="how">
+    <div class="wrap stack">
+      <h2>How it works</h2>
+      <ol class="steps">
+        <li class="card"><span class="num">1</span><h3>Overlap years</h3><p>From 2012 both sensors watched the same fires. MODIS on Aqua and VIIRS on S-NPP pass at the same time of day (about 1:30 pm and 1:30 am).</p></li>
+        <li class="card"><span class="num">2</span><h3>Conversion factor</h3><p>For each country and calendar month we measure VIIRS hotspots per MODIS hotspot. A small area gets its own factor, pulled toward the country value when it has few detections: k = (V + λ·k<sub>country</sub>) / (M + λ).</p></li>
+        <li class="card"><span class="num">3</span><h3>Old record on the new scale</h3><p>MODIS months before 2012 become <em>VIIRS-equivalent hotspots</em> with an error range. Each month is then compared with the same month in other years.</p></li>
+      </ol>
+      <div class="card why"><h3>Methods compared</h3><div id="why-table" class="scroll-x"></div></div>
+      <div class="card arch">
+        <h3>Data flow and the 2003 start</h3>
+        <p>History (2003 → last month) comes from NASA FIRMS yearly archive files and the FIRMS API, rebuilt automatically every month. The newest days come from the FIRMS API every 3 hours. <span class="term" data-term="api">Why not fetch 20 years on every click?</span></p>
+        <p>The record starts in 2003 because we use MODIS on Aqua only: Aqua's first full year is 2003, and it crosses at the same afternoon time as VIIRS, so the two sensors see the same fires at the same hour. Adding Terra (from 2000/2001) is a next step.</p>
+        <p>S-NPP stopped on 2 Nov 2026. Live data come from NOAA-20 (same VIIRS instrument), converted to the S-NPP scale with a measured factor (×<span data-k-jn>0.97</span>).</p>
+      </div>
+    </div>
+  </section>
+  <section id="limits">
+    <div class="wrap stack">
+      <h2>Limits</h2>
+      <div class="kpi-grid" id="unc-kpis"></div>
+      <ul class="limits card">
+        <li><strong>Hotspots are not fires</strong> and not burned area. One big fire makes many hotspots.</li>
+        <li><strong>Clouds and smoke hide fires.</strong> Small or short fires are missed, MODIS more than VIIRS.</li>
+        <li><strong>Values before 2012 are estimates</strong> from MODIS on the VIIRS scale, shown with an error range. Small areas have wider ranges.</li>
+        <li><strong>Outages and orbit drift.</strong> Old satellites drift in orbit; the VIIRS/MODIS ratio is checked year by year.</li>
+        <li><strong>S-NPP stopped on 2 Nov 2026.</strong> Live data come from NOAA-20 (same VIIRS instrument), converted to the S-NPP scale with a measured factor.</li>
+        <li><strong>Near-real-time and standard data differ slightly.</strong> Recent months use near-real-time data until NASA's standard data replace them.</li>
+        <li><strong>Not every hotspot is a wildfire.</strong> Farm burning, gas flares, industry and, in conflict areas, explosions or burning buildings can create hotspots. The static-source filter can make mistakes.</li>
+        <li><strong>Coverage:</strong> Portugal, Spain, Greece, Türkiye, Cyprus, Lebanon, Jordan and Palestine (outlined on the map).</li>
+        <li><strong>Latency is hours. This is not an emergency service.</strong></li>
+      </ul>
     </div>
   </section>""",
 
@@ -335,15 +426,16 @@ BODY = {
         <li>NASA Earthdata (2026). Transitioning from Suomi NPP VIIRS &amp; OMPS: What FIRMS Users Need to Know.</li>
       </ul>
 
-      <h2>Use of Super Intelligence (SI)</h2>
-      <p>We used an SI coding assistant (Claude Code by Anthropic) to write the code for the data pipeline, website, live system and slides, following our design and decisions. The team chose the method, checked results against NASA FIRMS data, verified every reference, and wrote and rehearsed the pitch.</p>
+      <h2>Use of artificial intelligence (AI)</h2>
+      <p>We used an AI coding assistant (Claude Code by Anthropic) to write the code for the data pipeline, the website and the live system, following our design and decisions. The team chose the method, checked results against NASA FIRMS data and verified every reference.</p>
+      <p>Our demo video was made with AI tools, and its voice-over is AI-generated (ElevenLabs).</p>
 
       <h2>Notices</h2>
       <ul class="notice-list">
         <li>Built for the NASA Space Apps Challenge 2026.</li>
         <li>Not an official NASA product. NASA does not endorse this project. No NASA logos are used.</li>
         <li>Not an emergency service. Satellite data arrive hours late; in an emergency call your local emergency number.</li>
-        <li>Method, validation and limits: see our user guide. Open source (MIT): <a id="repo-link" href="https://github.com/ahmedetk/jamra">github.com/ahmedetk/jamra</a></li>
+        <li>Method, test results and limits: <a data-nav href="validation/">Validation</a>. Open source (MIT): <a id="repo-link" href="https://github.com/ahmedetk/jamra">github.com/ahmedetk/jamra</a></li>
       </ul>
     </div>
   </section>""",
@@ -353,14 +445,14 @@ REDIRECT = """<script>
 // Old links (one-page #hashes, removed pages) open the right page and keep their parameters.
 (function () {
   var map = { calendar: 'calendar/', kpis: 'calendar/', area: 'calendar/', problem: 'calendar/', alerts: 'alerts/', live: 'live/',
-    how: 'about/', validation: 'about/', limits: 'about/', credits: 'about/', team: 'about/', works: 'about/' };
+    how: 'validation/#how', validation: 'validation/', limits: 'validation/#limits', works: 'validation/', credits: 'about/', team: 'about/' };
   var h = (location.hash || '').slice(1), q = location.search;
-  if (map[h]) { location.replace(map[h] + q); return; }
+  if (map[h]) { var t = map[h].split('#'); location.replace(t[0] + q + (t[1] ? '#' + t[1] : '')); return; }
   if (/[?&](month|mode|res|poly|pal|hero)=/.test(q)) location.replace('calendar/' + q);
 })();
 </script>"""
 
-HOME_PRELOAD = '<link rel="preload" as="image" href="img/earth-light.webp">'
+HOME_PRELOAD = '<link rel="preload" as="image" href="img/earth-light.webp" fetchpriority="high">'
 
 MENU_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>'
 
@@ -371,7 +463,7 @@ def page(slug, label, title):
         f'      <a href="{R}{s + "/" if s else ""}" data-nav{" class=\"about\"" if s == "about" else ""}{" aria-current=\"page\"" if s == slug else ""}>{lab}</a>'
         for s, lab, _ in PAGES)
     body = BODY[slug]
-    for p in ("calendar/", "alerts/", "live/", "about/"):
+    for p in ("calendar/", "alerts/", "live/", "validation/", "about/"):
         body = body.replace(f'href="{p}', f'href="{R}{p}')
     head = f'<div class="page-head"><div class="wrap"><h1>{TITLES[slug]}</h1></div></div>\n' if slug in TITLES else ""
     return f"""<!doctype html>
@@ -395,7 +487,7 @@ def page(slug, label, title):
 <link rel="icon" href="{R}icons/favicon-16.png" sizes="16x16" type="image/png">
 <link rel="apple-touch-icon" href="{R}icons/apple-touch-icon.png">
 <link rel="stylesheet" href="{R}css/app.css">
-<!-- Generated by scripts/build_pages.py. Code written with the help of an SI coding assistant (Claude Code by Anthropic). -->
+<!-- Generated by scripts/build_pages.py. Code written with the help of an AI coding assistant (Claude Code by Anthropic). -->
 </head>
 <body data-page="{slug or 'home'}">
 <a class="skip" href="#main">Skip to content</a>
@@ -425,7 +517,7 @@ def page(slug, label, title):
     </div>
     <ul>
       <li><a href="{R}calendar/" data-nav>Calendar</a></li><li><a href="{R}alerts/" data-nav>Alerts</a></li><li><a href="{R}live/" data-nav>Live Data</a></li>
-      <li><a href="{R}about/" data-nav>About</a></li><li><a href="https://github.com/ahmedetk/jamra">GitHub</a></li>
+      <li><a href="{R}validation/" data-nav>Validation</a></li><li><a href="{R}about/" data-nav>About</a></li><li><a href="https://github.com/ahmedetk/jamra">GitHub</a></li>
     </ul>
   </div>
 </footer>
@@ -435,13 +527,14 @@ def page(slug, label, title):
 """
 
 
-def stub(target):
-    """A removed page: send visitors (and old shared links, with their parameters) to the new page."""
+def stub(target, hash_=""):
+    """An old page: send visitors (and old shared links, with their parameters) to the new page and section."""
+    h = f"#{hash_}" if hash_ else ""
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>Moved · jamra</title>
 <meta name="robots" content="noindex">
-<script>location.replace('../{target}' + location.search + location.hash);</script>
-<meta http-equiv="refresh" content="0; url=../{target}">
+<script>location.replace('../{target}' + location.search + (location.hash || '{h}'));</script>
+<meta http-equiv="refresh" content="0; url=../{target}{h}">
 <link rel="canonical" href="../{target}">
 </head><body><p>This page moved: <a href="../{target}">open it here</a>.</p></body></html>
 """
@@ -453,10 +546,10 @@ def main():
         d.mkdir(parents=True, exist_ok=True)
         (d / "index.html").write_text(page(slug, label, title), encoding="utf-8")
         print("wrote", (d / "index.html").relative_to(PUB))
-    for old, target in OLD_PAGES.items():
+    for old, (target, hash_) in OLD_PAGES.items():
         d = PUB / old
         d.mkdir(parents=True, exist_ok=True)
-        (d / "index.html").write_text(stub(target), encoding="utf-8")
+        (d / "index.html").write_text(stub(target, hash_), encoding="utf-8")
         print("redirect", old, "->", target)
 
 

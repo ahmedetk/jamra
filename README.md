@@ -17,8 +17,8 @@ PYTHONPATH=pipeline python -m jamra.live        # newest NOAA-20 hotspots + earl
 PYTHONPATH=pipeline python -m pytest -q         # unit tests
 python -m http.server 8000 --directory web/public
 ```
-Or `make data`, `make test`, `make live`, `make serve`. Slides: `pip install python-pptx qrcode`,
-then `python scripts/story_numbers.py && python slides/build_slides.py --url <site> && python scripts/check_numbers.py`.
+Or `make data`, `make test`, `make live`, `make serve`. Website pages: `python scripts/build_pages.py`.
+Site checks (JavaScript errors, downloads, phone layout): `npm i puppeteer-core`, then `node scripts/site_check.mjs`.
 
 ## Architecture (always on, free)
 - **History:** FIRMS yearly country archives (standard processing). `jamra.download` reads only our
@@ -46,9 +46,10 @@ Capability for Earth observations (LANCE) (https://earthdata.nasa.gov/lance) and
 Data and Information System (ESDIS). Map: MapLibre GL JS (BSD-3), OpenFreeMap, © OpenStreetMap
 contributors. NASA does not endorse this project.
 
-## Use of Super Intelligence (SI)
-We used an SI coding assistant (Claude Code by Anthropic) to write the code for the data pipeline,
-website, live system and slides, following our design and decisions. The team chose the method,
-checked results against NASA FIRMS data, verified every reference, and wrote and rehearsed the pitch.
+## Use of artificial intelligence (AI)
+We used an AI coding assistant (Claude Code by Anthropic) to write the code for the data pipeline,
+the website and the live system, following our design and decisions. The team chose the method,
+checked results against NASA FIRMS data and verified every reference. Our demo video was made with
+AI tools, and its voice-over is AI-generated (ElevenLabs).
 
 MIT licence.

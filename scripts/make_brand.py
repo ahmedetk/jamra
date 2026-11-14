@@ -9,7 +9,7 @@ Files (web/public/icons/):
   icon-maskable-512.png                    just the j with the ember dot on a white rounded square
   og-image.png                             1200x630 share image (real star sky + Blue Marble Earth)
 Usage: python scripts/make_brand.py
-Written with the help of an SI coding assistant (Claude Code).
+Written with the help of an AI coding assistant (Claude Code by Anthropic).
 """
 import base64
 import subprocess

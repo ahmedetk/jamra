@@ -2,7 +2,7 @@
 
 Column names follow FIRMS: latitude, longitude, acq_date, acq_time, satellite,
 instrument, confidence (MODIS 0-100, VIIRS l/n/h), frp, daynight, type.
-Code written with the help of an SI coding assistant (Claude Code).
+Code written with the help of an AI coding assistant (Claude Code by Anthropic).
 """
 from __future__ import annotations
 

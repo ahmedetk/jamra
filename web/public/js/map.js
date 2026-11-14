@@ -1,5 +1,5 @@
 // Map: MapLibre GL (loaded lazily), area outline, live hotspots, polygon/circle drawing.
-// Written with the help of an SI coding assistant (Claude Code).
+// Written with the help of an AI coding assistant (Claude Code by Anthropic).
 import { circleRing, haversineKm, ringBBox } from './util.js';
 import { BASE } from './data.js';
 
@@ -94,6 +94,12 @@ export function initMap(container, { onFallback, loader } = {}) {
       const wait = () => ((map.isSourceLoaded('omt') && map.areTilesLoaded()) || performance.now() - t0 > 8000 ? (loader && loader.classList.add('done'), res()) : setTimeout(wait, 150));
       wait();
     });
+    // coverage of the archive: the 8 countries (thin dashed charcoal outline)
+    map.addSource('coverage', { type: 'geojson', data: BASE + 'data/coverage.json' });
+    map.addLayer({ id: 'coverage-line', type: 'line', source: 'coverage', paint: { 'line-color': '#2B2B2B', 'line-width': ['interpolate', ['linear'], ['zoom'], 1, 0.8, 8, 1.4], 'line-dasharray': [3, 2], 'line-opacity': 0.55 } });
+    // tiles blocked or offline: show a static image and a short message instead of an empty box
+    let tileErrors = 0;
+    map.on('error', (e) => { if (e && e.sourceId === 'omt' && ++tileErrors === 6 && !map.areTilesLoaded()) showMapFallback(container, true); });
     map.addSource('area', { type: 'geojson', data: empty });
     map.addLayer({ id: 'area-line', type: 'line', source: 'area', paint: { 'line-color': SOFT_ORANGE, 'line-width': 2.2 } });
     map.addSource('live', { type: 'geojson', data: empty });
@@ -117,7 +123,7 @@ export function initMap(container, { onFallback, loader } = {}) {
     return map;
   })().catch((err) => {
     console.warn('Map unavailable:', err.message);
-    container.innerHTML = '<div class="map-fallback">The map could not load (offline?). You can still pick fire areas, countries or enter coordinates.</div>';
+    showMapFallback(container);
     onFallback && onFallback(err);
     return null;
   });
@@ -231,6 +237,14 @@ export function softwareGL() {
     const ext = gl && gl.getExtension('WEBGL_debug_renderer_info');
     return !!ext && /swiftshader|llvmpipe|software|basic render/i.test(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL));
   } catch { return false; }
+}
+
+function showMapFallback(container, overlay = false) {
+  const box = document.createElement('div');
+  box.className = 'map-fallback';
+  if (overlay) Object.assign(box.style, { position: 'absolute', inset: '0', zIndex: '4', background: 'rgba(239,238,233,.94)' });
+  box.innerHTML = '<div><img src="' + BASE + 'img/earth-light.webp" alt="" width="320" height="320"><p>The map could not load (offline or blocked). You can still pick fire areas or countries, or enter coordinates.</p></div>';
+  if (overlay) container.append(box); else { container.innerHTML = ''; container.append(box); }
 }
 
 export function webglOK() {

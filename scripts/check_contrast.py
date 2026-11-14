@@ -2,7 +2,7 @@
 
 Text needs 4.5:1 (normal) or 3:1 (large / bold >= 18.66 px); UI parts and graphics need 3:1.
 Usage: python scripts/check_contrast.py   (exit code 1 if any pair fails)
-Written with the help of an SI coding assistant (Claude Code).
+Written with the help of an AI coding assistant (Claude Code by Anthropic).
 """
 import sys
 

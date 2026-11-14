@@ -1,5 +1,5 @@
 // Data loading and custom-area harmonization.
-// Written with the help of an SI coding assistant (Claude Code).
+// Written with the help of an AI coding assistant (Claude Code by Anthropic).
 import { pointInRing, ringBBox } from './util.js';
 
 // Site root (works under /jamra/ on GitHub Pages and on localhost): js/ sits one level below it.

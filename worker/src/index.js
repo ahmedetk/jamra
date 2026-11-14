@@ -1,7 +1,7 @@
 // Jamra live API proxy (Cloudflare Worker, free plan).
 // Hides the FIRMS MAP_KEY, caches answers for 15 minutes and limits request size,
 // so user queries stay far below the FIRMS limit of 5,000 transactions / 10 minutes.
-// Written with the help of an SI coding assistant (Claude Code).
+// Written with the help of an AI coding assistant (Claude Code by Anthropic).
 
 const FIRMS = 'https://firms.modaps.eosdis.nasa.gov/api/area/csv';
 const SOURCES = new Set(['VIIRS_NOAA20_NRT', 'VIIRS_NOAA21_NRT', 'MODIS_NRT']);

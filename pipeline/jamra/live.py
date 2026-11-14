@@ -10,7 +10,7 @@ Sources, in order:
   2. FIRMS public active-fire file J1_VIIRS_C2_Global_7d.csv (no key)
 
 Usage: python -m jamra.live [--public-only] [--regions Europe,Russia_Asia]
-Code written with the help of an SI coding assistant (Claude Code).
+Code written with the help of an AI coding assistant (Claude Code by Anthropic).
 """
 from __future__ import annotations
 

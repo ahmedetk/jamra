@@ -1,7 +1,7 @@
 // Screenshots for the Arabic user guide, cropped to real page elements (Edge + puppeteer-core).
 // Needs: npm i puppeteer-core (any folder; run with NODE_PATH or from that folder).
 // Usage: node scripts/guide_shots.mjs [base_url] [out_dir]
-// Defaults: the local preview server on port 8765, report/shots/. Written with the help of an SI coding assistant (Claude Code).
+// Defaults: the local preview server on port 8765, report/shots/. Written with the help of an AI coding assistant (Claude Code by Anthropic).
 import puppeteer from 'puppeteer-core';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

@@ -1,14 +1,14 @@
 // Service worker: makes Jamra installable and usable offline (bad Wi-Fi demo).
 // Pages, code and live files: network first (always fresh), cached copy if offline or slow (> 4 s).
 // History data, map library and map tiles: cache first, refreshed in the background.
-// Written with the help of an SI coding assistant (Claude Code).
-const VERSION = 'jamra-v13';
+// Written with the help of an AI coding assistant (Claude Code by Anthropic).
+const VERSION = 'jamra-v14';
 const CORE = [
-  './', 'index.html', 'calendar/', 'alerts/', 'live/', 'about/',
+  './', 'index.html', 'calendar/', 'alerts/', 'live/', 'validation/', 'about/',
   'css/app.css', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/favicon-32.png',
   'fonts/inter-latin-400-normal.woff2', 'fonts/inter-latin-600-normal.woff2', 'fonts/inter-latin-700-normal.woff2', 'fonts/inter-latin-500-normal.woff2', 'fonts/playfair-display-latin-700-normal.woff2', 'icons/wordmark-dark.png',
   'js/app.js', 'js/util.js', 'js/data.js', 'js/stats.js', 'js/colors.js', 'js/charts.js', 'js/calendar.js', 'js/map.js', 'js/live.js',
-  'js/summary.js', 'js/globe3d.js', 'img/earth-light.webp',
+  'js/summary.js', 'js/pages.js', 'js/globe3d.js', 'img/earth-light.webp',
   'data/meta.json', 'data/model_report.json', 'data/site.json',
   'vendor/maplibre-gl.js', 'vendor/maplibre-gl.css',
 ];

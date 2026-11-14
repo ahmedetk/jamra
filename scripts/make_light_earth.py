@@ -6,7 +6,7 @@ Outputs (web/public/img/):
   earth-light-4096.webp, earth-light-2048.webp   equirectangular textures for the three.js globe
   earth-light.webp / earth-light.png             a static orthographic globe (fallback, og-image, guide, slides)
 Usage: python scripts/make_light_earth.py
-Written with the help of an SI coding assistant (Claude Code).
+Written with the help of an AI coding assistant (Claude Code by Anthropic).
 """
 import json
 import math

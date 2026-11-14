@@ -1,5 +1,5 @@
 // Burning Activity Calendar (years x months, or years x 52 weeks).
-// Written with the help of an SI coding assistant (Claude Code).
+// Written with the help of an AI coding assistant (Claude Code by Anthropic).
 import { svg, el, fmt, fmtInt, MONTHS, MONTHS_LONG } from './util.js';
 import { ramp, rampCSS, CAT_COLOR, textOn, logScale } from './colors.js';
 import { category, percentileRank, baseline, CAT_LABEL, CAT_ORDER } from './stats.js';
@@ -16,8 +16,9 @@ export function renderCalendar(container, legend, grid, opts) {
   legend.innerHTML = '';
   const { years, cols } = grid;
   const width = Math.max(container.clientWidth || 800, 320);
-  const labelW = 56, top = 30;
-  const cw = Math.max(cols === 12 ? 24 : 9, Math.floor((width - labelW - 4) / cols));
+  const narrow = width < 560;
+  const labelW = narrow ? 44 : 56, top = 30;
+  const cw = Math.max(cols === 12 ? 18 : 5, Math.floor((width - labelW - 4) / cols));   // all 12 months always fit
   const ch = cols === 12 ? Math.max(24, Math.min(36, cw * 0.5)) : 18;
   const W = labelW + cw * cols + 4, H = top + ch * years.length + 4;
   const root = svg('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: 'none' });
@@ -49,8 +50,8 @@ export function renderCalendar(container, legend, grid, opts) {
 
   // headers
   for (let c = 0; c < cols; c++) {
-    if (cols === 12 || c % 4 === 0) {
-      root.append(svg('text', { x: labelW + c * cw + cw / 2, y: 18, 'text-anchor': 'middle' }, document.createTextNode(grid.label(c))));
+    if (cols === 12 || c % (narrow ? 9 : 4) === 0) {
+      root.append(svg('text', { x: labelW + c * cw + cw / 2, y: 18, 'text-anchor': 'middle' }, document.createTextNode(cols === 12 && cw < 40 ? 'JFMAMJJASOND'[c] : grid.label(c))));
     }
   }
   const cells = [];
@@ -70,7 +71,7 @@ export function renderCalendar(container, legend, grid, opts) {
       }
       const fillHex = d.fill.startsWith('#') ? d.fill : '#ffffff';
       if (opts.mode === 'anomaly' && d.cat && CAT_SYM[d.cat] && cw >= 14) {
-        g.append(svg('text', { x: x + cw / 2, y: yy + ch / 2 + 4, 'text-anchor': 'middle', 'font-size': cols === 12 ? 13 : 9, fill: textOn(fillHex), 'pointer-events': 'none' }, document.createTextNode(CAT_SYM[d.cat])));
+        g.append(svg('text', { x: x + cw / 2, y: yy + ch / 2 + 4, 'text-anchor': 'middle', 'font-size': cols === 12 ? (cw < 30 ? 11 : 13) : 9, fill: textOn(fillHex), 'pointer-events': 'none' }, document.createTextNode(CAT_SYM[d.cat])));
       } else if (opts.mode !== 'anomaly' && cols === 12 && cw >= 50 && d.v !== null) {
         g.append(svg('text', { x: x + cw / 2, y: yy + ch / 2 + 5, 'text-anchor': 'middle', 'font-size': 14, fill: textOn(fillHex), 'pointer-events': 'none' }, document.createTextNode(short(d.v))));
       }

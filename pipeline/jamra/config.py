@@ -1,4 +1,4 @@
-"""Load config.yaml and secrets. Code written with an SI coding assistant (Claude Code)."""
+"""Load config.yaml and secrets. Code written with an AI coding assistant (Claude Code by Anthropic)."""
 from __future__ import annotations
 
 import os

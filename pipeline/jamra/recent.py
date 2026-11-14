@@ -7,7 +7,7 @@ Uses standard-processing (SP) sources where FIRMS has them and near-real-time
 so `jamra.build` treats them like any other year.
 
 Usage: python -m jamra.recent [--year 2026] [--through 2026-10-31]
-Code written with the help of an SI coding assistant (Claude Code).
+Code written with the help of an AI coding assistant (Claude Code by Anthropic).
 """
 from __future__ import annotations
 

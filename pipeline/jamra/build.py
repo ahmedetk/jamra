@@ -6,7 +6,7 @@ harmonization (M0-M5, leave-one-year-out CV, choice) -> NOAA-20 -> S-NPP factor
 countries, presets and grid cells -> web data files + model_report.json.
 
 Usage: python -m jamra.build
-Code written with the help of an SI coding assistant (Claude Code).
+Code written with the help of an AI coding assistant (Claude Code by Anthropic).
 """
 from __future__ import annotations
 

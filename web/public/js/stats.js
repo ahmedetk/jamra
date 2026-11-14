@@ -1,5 +1,5 @@
 // Anomaly rules. Mirrors pipeline/jamra/anomaly.py so the site and the pipeline agree.
-// Written with the help of an SI coding assistant (Claude Code).
+// Written with the help of an AI coding assistant (Claude Code by Anthropic).
 
 export function quantile(values, q) {
   const xs = values.filter((v) => v !== null && v !== undefined).sort((a, b) => a - b);

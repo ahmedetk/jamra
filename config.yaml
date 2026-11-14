@@ -1,4 +1,4 @@
-# Jamra configuration. Code written with the help of an SI coding assistant (Claude Code).
+# Jamra configuration. Code written with the help of an AI coding assistant (Claude Code by Anthropic).
 product:
   name: Jamra            # Arabic "ember". Change here to rename the product everywhere.
   tagline: One fair fire record from two satellites, with live early warning

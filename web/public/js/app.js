@@ -1,19 +1,20 @@
-// Jamra main app. Written with the help of an SI coding assistant (Claude Code), following Team Astro Byte's design.
-import { $, $$, el, svg, fmt, fmtInt, pct, MONTHS, MONTHS_LONG, store, downloadBlob, toCSV, debounce, circleRing, boxRing, ordinal } from './util.js';
+// Jamra main app. Written with the help of an AI coding assistant (Claude Code by Anthropic), following Team Astro Byte's design.
+import { $, $$, el, svg, fmt, fmtInt, pct, MONTHS, MONTHS_LONG, store, downloadBlob, toCSV, debounce, circleRing, boxRing, ordinal, pointInRing, ringBBox, haversineKm } from './util.js';
 import { BASE, getJSON, loadArea, customArea, monthlyValues, monthLabel, monthIndex } from './data.js';
-import { heroChart, monthBars } from './charts.js';
+import { heroChart, monthBars, scatter, errorBars, driftChart } from './charts.js';
 import { renderCalendar, CAT_TEXT } from './calendar.js';
 import { initMap, showArea, showLive, startDraw, clearDraw, webglOK, softwareGL, flyToGlobe } from './map.js';
 import { loadLive, loadStatus, renderBadge, renderAlerts, renderStatusPanel, areaWarning, fetchLive, renderTable, downloadLiveCSV, LEVEL_LABEL, liveState, periodText } from './live.js';
 import { downloadSummary } from './summary.js';
+import { renderValidation, renderLimits } from './pages.js';
 import { baseline, percentileRank, category, CAT_LABEL, seasonStart, theilSen, mannKendall } from './stats.js';
 
 const TEAM = [
-  ['Shahd Farraj', 'Problem and users', 'Slides 1–2'],
-  ['Ahmed Etkaidek', 'NASA data and live system', 'Slide 3'],
-  ['Aya Salman', 'Science: method and validation', 'Slides 4 and 6'],
-  ['Ahmad Akhras', 'Calendar and live demo', 'Slide 5'],
-  ['Tala Yousef', 'UX, design and communication', 'Slide 7'],
+  ['Shahd Farraj', 'Problem and users'],
+  ['Ahmed Etkaidek', 'Designer (website design and brand) · NASA data and live system'],
+  ['Aya Salman', 'Science: method and validation'],
+  ['Ahmad Akhras', 'Calendar and live demo'],
+  ['Tala Yousef', 'User experience and communication'],
 ];
 
 const TERMS = {
@@ -135,7 +136,8 @@ async function boot() {
       io.observe($('#map'));
     } else if (document.readyState === 'complete') start(); else addEventListener('load', start, { once: true });
   }
-  if (['calendar', 'live'].includes(PAGE)) await selectArea(state.custom ? null : state.areaId, state.custom);
+  if (PAGE === 'home') { if (!new URLSearchParams(location.search).get('area')) { state.areaId = 'greece'; state.custom = null; } }
+  if (['home', 'calendar', 'live'].includes(PAGE)) await selectArea(state.custom ? null : state.areaId, state.custom);
   await refreshLive();
   setInterval(refreshLive, 10 * 60 * 1000);
   if (PAGE === 'home') homeExtras();
@@ -153,6 +155,12 @@ function renderLiveChip() {
 }
 
 function homeExtras() {
+  const v = report.validation;
+  if (v && has('#big-err')) {
+    const tc = v.test_countries, cc = v.confusion_countries.harmonized;
+    $('#big-err').textContent = `${pct(tc.M0.mdape)} → ${pct(tc[report.chosen_model].mdape)}`;
+    $('#big-err-text').textContent = `Typical monthly error, raw MODIS → harmonized, on test years ${v.test_years[0]}–${v.test_years[v.test_years.length - 1]} that the model never saw. High-activity months found: ${cc.hits} of ${cc.hits + cc.misses}.`;
+  }
   // the 3D Earth: real Blue Marble texture, real FIRMS hotspots; drag to turn it
   if (!has('#globe') || !webglOK() || softwareGL() || (navigator.connection && navigator.connection.saveData)) return;
   const go = () => import('./globe3d.js').then(({ initEarth }) => initEarth($('#globe'), {
@@ -195,6 +203,11 @@ function applyLiveLayer() {
 
 // ---------------------------------------------------------------- pickers
 function buildPickers() {
+  if (has('#hero-area')) {
+    const sel = $('#hero-area');
+    meta.areas.forEach((a) => sel.append(el('option', { value: a.id, text: a.label, selected: a.id === state.areaId })));
+    sel.addEventListener('change', () => selectArea(sel.value));
+  }
   if (!has('#preset-list')) return;
   const mk = (box, kind) => {
     // the chips are in the HTML already (no layout shift); create them only if missing
@@ -225,22 +238,36 @@ function buildPickers() {
   on('#draw-clear', 'click', () => { clearDraw(); selectArea('evia'); });
   on('#coords-form', 'submit', (e) => {
     e.preventDefault();
-    const f = new FormData(e.target);
-    const num = (k) => (f.get(k) === '' ? NaN : +f.get(k));
+    const form = e.target, f = new FormData(form);
+    const num = (k) => (String(f.get(k)).trim() === '' ? NaN : +f.get(k));
     const msg = $('#coords-msg');
+    const bad = (names, text) => {
+      form.querySelectorAll('input').forEach((i) => i.removeAttribute('aria-invalid'));
+      names.forEach((nm) => form.querySelector(`[name="${nm}"]`)?.setAttribute('aria-invalid', 'true'));
+      msg.textContent = text;
+    };
     const [lat, lon, r] = [num('lat'), num('lon'), num('r')];
     const [w, s, ea, n] = [num('w'), num('s'), num('e'), num('n')];
-    if ([w, s, ea, n].every(Number.isFinite)) {
-      if (w >= ea || s >= n || Math.abs(w) > 180 || Math.abs(ea) > 180 || Math.abs(s) > 90 || Math.abs(n) > 90) { msg.textContent = 'Check the box: West < East and South < North.'; return; }
-      msg.textContent = '';
+    const boxAny = ['w', 's', 'e', 'n'].some((k) => String(f.get(k)).trim() !== '');
+    if (boxAny) {
+      const missing = ['w', 's', 'e', 'n'].filter((k) => !Number.isFinite(num(k)));
+      if (missing.length) return bad(missing, 'Enter all four box edges: West, South, East and North.');
+      if ([w, ea].some((v) => Math.abs(v) > 180) || [s, n].some((v) => Math.abs(v) > 90)) return bad(['w', 's', 'e', 'n'], 'Longitudes must be between −180 and 180, latitudes between −90 and 90.');
+      if (w >= ea || s >= n) return bad(['w', 's', 'e', 'n'], 'Check the box: West must be smaller than East, and South smaller than North.');
+      bad([], '');
       selectArea(null, { ring: boxRing([w, s, ea, n]), label: `Box W${w} S${s} E${ea} N${n}` });
-    } else if ([lat, lon].every(Number.isFinite)) {
-      if (Math.abs(lat) > 90 || Math.abs(lon) > 180) { msg.textContent = 'Latitude must be −90..90 and longitude −180..180.'; return; }
-      const rr = Number.isFinite(r) && r > 0 ? Math.min(r, 300) : 25;
-      msg.textContent = '';
-      selectArea(null, { ring: circleRing(lat, lon, rr), label: `${rr} km around ${lat}, ${lon}` });
-    } else msg.textContent = 'Enter a point (latitude and longitude) or all four box edges.';
+      return;
+    }
+    const missing = ['lat', 'lon'].filter((k) => !Number.isFinite(num(k)));
+    if (missing.length) return bad(missing, 'Enter a latitude and a longitude (or all four box edges).');
+    if (Math.abs(lat) > 90) return bad(['lat'], 'Latitude must be between −90 and 90.');
+    if (Math.abs(lon) > 180) return bad(['lon'], 'Longitude must be between −180 and 180.');
+    if (Number.isFinite(r) && (r < 1 || r > 300)) return bad(['r'], 'Radius must be between 1 and 300 km.');
+    bad([], '');
+    const rr = Number.isFinite(r) ? r : 25;
+    selectArea(null, { ring: circleRing(lat, lon, rr), label: `${rr} km around ${lat}, ${lon}` });
   });
+
 }
 
 function activateTab(t) {
@@ -398,7 +425,31 @@ function renderAreaInfo() {
   box.append(el('table', { class: 'info-table' }, el('tbody', {},
     row('Area', name), row('Type', kind), row('Conversion', `1 MODIS ≈ ${fmt(f.k, 2)} VIIRS`), row('Uncertainty', `±${Math.round((areaUnc() || 0) * 100)}% per month`))));
   if (['Palestine', 'Lebanon'].includes(area.country)) box.append(el('p', { class: 'msg', text: 'Conflict area 2023–2025: some hotspots may not be fires.' }));
-  if (area.kind === 'custom' && area.cells === 0) box.append(el('p', { class: 'msg', text: 'No hotspots here in 2003–2025, or outside our 8 countries.' }));
+  if (area.kind === 'custom') coverageNote(box);
+}
+
+let coverage = null;
+async function coverageNote(box) {
+  try { coverage = coverage || await getJSON('data/coverage.json'); } catch { return; }
+  const ring = state.custom && state.custom.ring;
+  if (!ring) return;
+  const [w, s, e, n] = ringBBox(ring);
+  const pts = [...ring, [(w + e) / 2, (s + n) / 2]];
+  const inside = pts.some(([lon, lat]) => coverage.features.some((f) => f.geometry.coordinates.some((poly) => pointInRing(lon, lat, poly[0]))));
+  if (inside && area.cells > 0) return;
+  // nearest covered area (fire areas and countries), by distance between centres
+  const c = [(s + n) / 2, (w + e) / 2];
+  let best = null;
+  meta.areas.filter((a) => a.box).forEach((a) => {
+    const d = haversineKm(c[0], c[1], (a.box[1] + a.box[3]) / 2, (a.box[0] + a.box[2]) / 2);
+    if (!best || d < best.d) best = { a, d };
+  });
+  const msg = inside
+    ? 'No hotspots were recorded here in 2003–2025.'
+    : 'This area is outside our archive: Portugal, Spain, Greece, Türkiye, Cyprus, Lebanon, Jordan and Palestine (dashed outline on the map).';
+  const note = el('div', { class: 'outside', role: 'status' }, el('b', { text: msg }));
+  if (!inside && best) note.append(el('br'), el('button', { type: 'button', class: 'btn small', text: `Show the nearest covered area: ${best.a.label}`, onclick: () => selectArea(best.a.id) }));
+  box.append(note);
 }
 
 // ---------------------------------------------------------------- hero
@@ -417,8 +468,8 @@ function renderHero() {
   const rawJump = avg(rawY, post) / avg(rawY, pre), harmJump = avg(harmY, post) / avg(harmY, pre);
   const span = `${post[0]}–${post[post.length - 1]}`, spanPre = `${pre[0]}–${pre[pre.length - 1]}`;
   const cap = $('#hero-caption');
-  if (state.hero === 'raw') cap.textContent = Number.isFinite(rawJump) ? `Raw (MODIS, then VIIRS): ${span} = ${rawJump.toFixed(1)}× ${spanPre}` : '';
-  else cap.textContent = Number.isFinite(harmJump) ? `Harmonized (VIIRS scale): ${span} = ${harmJump.toFixed(1)}× ${spanPre} · hatched = estimated from MODIS` : '';
+  if (state.hero === 'raw') cap.textContent = Number.isFinite(rawJump) ? `Raw (stitched): the yearly average for ${span} is ${rawJump.toFixed(1)}× the average for ${spanPre}. Most of that jump is the sharper sensor, not more fire.` : '';
+  else cap.textContent = Number.isFinite(harmJump) ? `Harmonized: ${span} vs ${spanPre} is ${harmJump.toFixed(1)}×, so the fake rise is gone. Hatched bars are estimated from MODIS on the VIIRS scale.` : '';
 }
 
 // ---------------------------------------------------------------- KPIs
@@ -616,13 +667,13 @@ function renderSeason() {
   const medStart = Math.round(baseline(starts).median);
   const dir = slope < -0.05 ? `${Math.abs(slope).toFixed(1)} months earlier per decade` : slope > 0.05 ? `${slope.toFixed(1)} months later per decade` : 'no clear shift';
   box.append(el('p', { text: `Typical start: ${MONTHS_LONG[medStart - 1]} · trend ${state.from}–${state.to}: ${dir} (${mk.p < 0.05 ? `significant, p = ${mk.p.toFixed(3)}` : `not significant, p = ${mk.p.toFixed(2)}`})` }));
-  const W = 900, H = 140, mL = 44;
+  const W = Math.max(320, Math.round(box.clientWidth || 900)), H = W < 600 ? 190 : 160, mL = 48;
   const s = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Season start month by year' });
   const x = (y) => mL + ((y - ys[0]) / Math.max(1, ys[ys.length - 1] - ys[0])) * (W - mL - 20);
   const yy = (m) => 10 + ((m - 1) / 11) * (H - 30);
   [1, 4, 7, 10].forEach((m) => { s.append(svg('text', { x: 4, y: yy(m) + 4, 'font-size': 15, fill: '#6B6A66' }, document.createTextNode(MONTHS[m - 1]))); s.append(svg('line', { x1: mL, x2: W - 20, y1: yy(m), y2: yy(m), stroke: '#D6D3CB' })); });
-  sy.forEach((y, i) => s.append(svg('circle', { cx: x(y), cy: yy(starts[i]), r: 5, fill: y < 2012 ? '#B7CADB' : '#4E77A6' })));
-  sy.filter((y, i) => i % 3 === 0).forEach((y) => s.append(svg('text', { x: x(y), y: H - 4, 'text-anchor': 'middle', 'font-size': 15, fill: '#6B6A66' }, document.createTextNode(String(y)))));
+  sy.forEach((y, i) => s.append(svg('circle', { cx: x(y), cy: yy(starts[i]), r: W < 600 ? 6 : 5, fill: y < 2012 ? '#F9B898' : '#F4511E' })));
+  sy.filter((y, i) => i % (W < 600 ? 5 : 3) === 0).forEach((y) => s.append(svg('text', { x: x(y), y: H - 4, 'text-anchor': 'middle', 'font-size': 15, fill: '#6B6A66' }, document.createTextNode(String(y)))));
   box.append(s);
 }
 
@@ -675,13 +726,74 @@ async function downloadCalendarPNG() {
 // ---------------------------------------------------------------- static report sections
 function renderStatic() {
   if (has('#team-grid') && !$('#team-grid').children.length) renderTeam();
+  if (has('#why-table')) renderWhy();
+  if (has('#val-kpis')) renderValidationPage();
+  if (has('#unc-kpis')) renderLimits(report, meta);
 }
 
 function renderTeam() {
   // team
   const tg = $('#team-grid');
-  TEAM.forEach(([n, r, d]) => tg.append(el('div', { class: 'member' }, el('b', { text: n }), el('span', { text: r }), el('p', { class: 'fine', text: d }))));
+  TEAM.forEach(([n, r]) => tg.append(el('div', { class: 'member' }, el('b', { text: n }), el('span', { text: r }))));
 }
+
+function renderWhy() {
+  const cv = report.cv;
+  const order = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5'];
+  const t = el('table', {}, el('thead', {}, el('tr', {}, ...['Approach', 'Monthly error (MAE)', 'Typical % error', 'Test years: % error', 'Total bias', 'Verdict'].map((h) => el('th', { scope: 'col', text: h })))));
+  const tb = el('tbody');
+  const verdict = {
+    M0: 'Shows the problem: VIIRS-era counts look much higher.', M1: 'Simple, but ignores country differences.', M2: 'Simple and fair per country.',
+    M3: 'Adds seasons; leans on the country value when a month has few fires.', M4: 'Curved fit; can drift at the extremes.', M5: 'Matches distributions; needs many years.',
+  };
+  order.forEach((m) => {
+    const r = cv[m].monthly;
+    tb.append(el('tr', { class: m === report.chosen_model ? 'chosen' : '' },
+      el('td', { text: `${m}: ${report.model_labels[m]}${m === report.chosen_model ? ' ✓ chosen' : ''}` }),
+      el('td', { text: fmt(r.mae, 1) }), el('td', { text: pct(r.mdape) }), el('td', { text: pct(report.validation?.test_countries?.[m]?.mdape) }), el('td', { text: pct(r.bias, 1) }), el('td', { text: verdict[m] })));
+  });
+  tb.append(el('tr', {}, el('td', { text: 'Use VIIRS only' }), el('td', { text: '–' }), el('td', { text: '–' }), el('td', { text: '–' }), el('td', { text: '–' }), el('td', { text: 'Honest but throws away 2003–2011, nine years of history (including Greece 2007).' })));
+  t.append(tb);
+  $('#why-table').append(t, el('p', { class: 'fine', text: report.choice_reason + ' Monthly error and typical % error: leave-one-year-out cross-validation on ' + report.calibration.years.join(', ') + '. Test years: model fitted on ' + (report.validation?.dev_years || []).join(', ') + ' only, scored on ' + (report.validation?.test_years || []).join(', ') + '.' }));
+
+}
+
+function renderValidationPage() {
+  const order = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5'];
+  const cv = report.cv;
+  renderValidation(report, meta, tip);
+  scatter($('#scatter'), { points: report.scatter, tip });
+  $('#scatter-cap').textContent = 'Dark dots: harmonized MODIS. Light grey: raw MODIS. Dashed line: perfect agreement. Each dot is one country-month in a hidden year.';
+  const tc = report.validation.test_countries;
+  errorBars($('#err-bars'), {
+    rows: order.map((m) => ({ id: m, label: `${m} ${({ M0: 'raw MODIS', M1: 'one ratio', M2: 'per country', M3: 'country × month', M4: 'log-log', M5: 'quantile map' })[m]}`, value: tc[m].mdape, text: pct(tc[m].mdape) })),
+    chosen: report.chosen_model, metricLabel: 'Typical % error on test years',
+  });
+  $('#err-cap').textContent = `Typical (median) % error per country-month in the test years ${report.validation.test_years.join(', ')} (months with at least 10 VIIRS hotspots). Raw MODIS: ${pct(tc.M0.mdape)} → harmonized (${report.chosen_model}): ${pct(tc[report.chosen_model].mdape)}.`;
+  const vk = $('#val-kpis');
+  const ca = report.colour_agreement;
+  const kp = (k, v, d) => vk.append(el('div', { class: 'kpi' }, el('div', { class: 'k', text: k }), el('div', { class: 'v', text: v }), el('div', { class: 'd', text: d })));
+  kp('Calendar colours agree', `${fmt(ca.same_colour_pct, 0)}%`, `Same anomaly colour from harmonized MODIS as from real VIIRS (${fmtInt(ca.months)} country-months). Raw MODIS: ${fmt(ca.without_harmonization_pct, 0)}%.`);
+  kp('Uncertainty', `±${Math.round(report.uncertainty.monthly_rel * 100)}%`, `on a country-month · ±${Math.round(report.uncertainty.annual_rel * 100)}% on a year · ±${Math.round(report.uncertainty.small_regions_rel * 100)}% for small areas (test years)`);
+  const fr = report.frp_test;
+  kp('FRP test', fr.validated ? 'Passed' : 'Not supported', `Is summed fire heat (FRP) more stable between sensors than counts? Variation of the ratio: FRP ${fmt(fr.pooled_cv_frp_ratio, 2)} vs counts ${fmt(fr.pooled_cv_count_ratio, 2)}. ${fr.validated ? 'FRP could be offered.' : 'So the calendar uses counts.'}`);
+  const jn = report.noaa20_to_snpp;
+  kp('NOAA-20 → S-NPP scale', `×${fmt(jn.global, 2)}`, `Live counts come from NOAA-20 since S-NPP stopped (2 Nov 2026) and are multiplied by this factor to stay on the S-NPP scale. Measured on ${fmtInt(jn.months_used)} country-months, 2018–2025.`);
+  const ref = median(report.drift.filter((d) => d.ratio_N_over_A && d.months >= 10).map((d) => d.ratio_N_over_A));
+  driftChart($('#drift'), { drift: report.drift, ref, tol: 0.15, tip });
+  $('#drift-cap').textContent = `Each dot = one year's VIIRS S-NPP ÷ MODIS Aqua hotspots (8 countries). ${report.calibration.rule} The headline ${meta.viirs_vs_modis_ratio.toFixed(1)}× pools all hotspots of the calibration years instead of taking the median year. Filled dots = years used to calibrate. MODIS satellites have been drifting in orbit in recent years, so the ratio can shift; we check it every year.`;
+  // where it struggles: per-country error
+  const per = {};
+  report.scatter.forEach((p) => { if (p.V >= 10) { (per[p.c] = per[p.c] || []).push(Math.abs(p.P - p.V) / p.V); } });
+  const rows = Object.entries(per).map(([c, e]) => [c, median(e), e.length]).sort((a, b) => b[1] - a[1]);
+  const st = $('#struggle');
+  st.append(el('p', { text: 'Typical monthly error by country (months with 10+ VIIRS hotspots). Small countries have few fires, so errors are larger there.' }));
+  st.append(el('table', { class: 'table' }, el('thead', {}, el('tr', {}, el('th', { text: 'Country' }), el('th', { text: 'Typical error' }), el('th', { text: 'Months' }))),
+    el('tbody', {}, ...rows.map(([c, e, n]) => el('tr', {}, el('td', { text: c === 'Turkey' ? 'Türkiye' : c }), el('td', { text: pct(e) }), el('td', { text: n }))))));
+  if (report.outages.length) st.append(el('p', { class: 'fine', text: `Outage months detected and excluded from calibration: ${report.outages.map((o) => `${o.month} (${o.sensor === 'N' ? 'S-NPP' : o.sensor === 'A' ? 'Aqua' : 'NOAA-20'})`).join(', ')}.` }));
+}
+
+function median(xs) { const s = [...xs].sort((a, b) => a - b); const n = s.length; return n ? (n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2) : null; }
 
 // test hook (used by our automated checks): renders the summary without downloading
 window.__jamraSummaryTest = async () => { const m = await import('./summary.js'); const cv = m.drawSummary(summaryCtx()); const url = cv.toDataURL('image/png'); window.__jamraSummaryURL = url; return [cv.width, cv.height, url.length]; };

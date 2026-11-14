@@ -1,5 +1,5 @@
 // Colour ramps. Viridis/Cividis (matplotlib, CC0) and YlOrRd/RdBu (ColorBrewer).
-// Written with the help of an SI coding assistant (Claude Code).
+// Written with the help of an AI coding assistant (Claude Code by Anthropic).
 const RAMPS = {
   ember: ['#F3F1EB', '#F5DCCD', '#F7C2A6', '#F7A07A', '#F67A4C', '#F4511E', '#C23A10', '#8A2A0B'],
   viridis: ['#440154', '#482878', '#3e4989', '#31688e', '#26828e', '#1f9e89', '#35b779', '#6ece58', '#b5de2b', '#fde725'],
@@ -13,6 +13,7 @@ function rgb2hex([r, g, b]) { return '#' + [r, g, b].map((v) => Math.round(v).to
 
 export function ramp(name, t) {
   const stops = RAMPS[name] || RAMPS.ember;
+  if (!Number.isFinite(t)) t = 0;          // NaN / undefined never crash the colour scale
   const x = Math.min(Math.max(t, 0), 1) * (stops.length - 1);
   const i = Math.min(Math.floor(x), stops.length - 2), f = x - i;
   const a = hex2rgb(stops[i]), b = hex2rgb(stops[i + 1]);
@@ -41,6 +42,6 @@ export function textOn(hex) {
 
 // log scale helper for skewed counts
 export function logScale(maxV) {
-  const m = Math.log1p(Math.max(maxV, 1));
+  const m = Math.log1p(Math.max(Number.isFinite(maxV) ? maxV : 1, 1));
   return (v) => (v === null || v === undefined ? null : Math.log1p(Math.max(v, 0)) / m);
 }

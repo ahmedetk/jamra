@@ -2,7 +2,7 @@
 
 1. Recompute data/processed/slide_numbers.json from the website data (story_numbers.py).
 2. Rebuild the expected strings and confirm each appears in slides/AstroByte_Slides.pptx.
-Exit code 1 if anything is missing. Written with an SI coding assistant (Claude Code).
+Exit code 1 if anything is missing. Written with an AI coding assistant (Claude Code by Anthropic).
 """
 import json
 import subprocess

@@ -7,7 +7,7 @@ Two passes over the raw CSVs:
      the part coming from persistent cells kept separately so users can switch
      the static-source filter on and off and see what it removes.
 
-Code written with the help of an SI coding assistant (Claude Code).
+Code written with the help of an AI coding assistant (Claude Code by Anthropic).
 """
 from __future__ import annotations
 

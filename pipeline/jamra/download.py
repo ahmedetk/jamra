@@ -5,7 +5,7 @@ using HTTP range requests (see rangezip.py). Writes a manifest with file sizes,
 row counts and SHA-256 hashes so the archive is reproducible.
 
 Usage: python -m jamra.download [--workers 4]
-Code written with the help of an SI coding assistant (Claude Code).
+Code written with the help of an AI coding assistant (Claude Code by Anthropic).
 """
 from __future__ import annotations
 

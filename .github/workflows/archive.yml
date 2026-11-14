@@ -1,6 +1,6 @@
 # Monthly automatic archive refresh: download the newest NASA FIRMS yearly files,
 # rebuild the grid, harmonization, baselines and model report, then redeploy.
-# Written with the help of an SI coding assistant (Claude Code).
+# Written with the help of an AI coding assistant (Claude Code by Anthropic).
 name: archive-refresh
 
 on:
